@@ -70,13 +70,21 @@ public class MoniApiExecution extends AbstractQuartzJob {
      */
     @Override
     protected void doExecute(JobExecutionContext context, Object job) throws Exception {
-        ResponseEntity<String> response = SpringUtils.getBean(IMoniApiService.class).doUrlCheck(moniApi);
+        ResponseEntity<String> response = null;
+        String result;
+        try {
+            response = SpringUtils.getBean(IMoniApiService.class).doUrlCheck(moniApi);
+            //执行结果
+            result = response.getStatusCode().toString();
+        } catch (Exception e) {
+            //执行异常结果
+            result = ExceptionUtil.getRootErrorMessage(e);
+        }
         //保存执行结果
-        String result = response.getStatusCode().toString();
         moniApiLog.setExecuteResult(result);
         if (resultIsExist()) {
             //没有重复发生的LOG
-            if (doMatch(response.getStatusCodeValue())) {
+            if (StringUtils.isNotNull(response) && doMatch(response.getStatusCodeValue())) {
                 moniApiLog.setStatus(Constants.SUCCESS);
                 moniApiLog.setAlertStatus(Constants.FAIL);
             } else {
