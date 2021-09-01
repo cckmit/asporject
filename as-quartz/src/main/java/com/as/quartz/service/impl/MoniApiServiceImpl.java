@@ -7,7 +7,6 @@ import com.as.common.utils.DateUtils;
 import com.as.common.utils.DictUtils;
 import com.as.common.utils.ShiroUtils;
 import com.as.common.utils.StringUtils;
-import com.as.common.utils.spring.SpringUtils;
 import com.as.quartz.domain.MoniApi;
 import com.as.quartz.job.MoniApiExecution;
 import com.as.quartz.mapper.MoniApiMapper;
@@ -256,8 +255,8 @@ public class MoniApiServiceImpl implements IMoniApiService {
         // 参数
         JobDataMap dataMap = new JobDataMap();
         try {
-        dataMap.put("operator", ShiroUtils.getLoginName());
-        } catch (Exception e){
+            dataMap.put("operator", ShiroUtils.getLoginName());
+        } catch (Exception e) {
             //时ShiroUtils.getLoginName()会异常，此处吞掉异常继续执行調用API
         }
         dataMap.put(ScheduleConstants.TASK_PROPERTIES, tmpObj);
@@ -293,7 +292,12 @@ public class MoniApiServiceImpl implements IMoniApiService {
             String[] headerArray = headers.split("\r\n");
             for (String param : headerArray) {
                 String[] value = param.split(":");
-                headerMap.add(value[0], value[1]);
+                if (value.length > 1) {
+                    headerMap.add(value[0], value[1]);
+                } else {
+                    headerMap.add(value[0], "");
+                }
+
             }
         }
 
@@ -323,7 +327,7 @@ public class MoniApiServiceImpl implements IMoniApiService {
             request = new HttpEntity<>(multiValueMap, headerMap);
             response = restTemplate.exchange(url, method, request, String.class);
         } else {
-            if (HttpMethod.POST.equals(method)){
+            if (HttpMethod.POST.equals(method)) {
                 request = new HttpEntity<>(hashMap, headerMap);
                 response = restTemplate.exchange(url, method, request, String.class);
             } else {
@@ -342,14 +346,14 @@ public class MoniApiServiceImpl implements IMoniApiService {
      */
     @Override
     @Transactional
-    public void doApi(String relApi) throws Exception{
+    public void doApi(String relApi) throws Exception {
         if (StringUtils.isNotEmpty(relApi)) {
             String[] ids = relApi.split(",");
             for (String id : ids) {
                 MoniApi moniApi = selectMoniApiById(Long.parseLong(id));
-                if(StringUtils.isNotNull(moniApi)){
-                   run(moniApi);
-                }else{
+                if (StringUtils.isNotNull(moniApi)) {
+                    run(moniApi);
+                } else {
                     throw new Exception("The related api job does not exist");
                 }
 
