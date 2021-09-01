@@ -17,6 +17,7 @@ import org.quartz.JobKey;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,6 +43,10 @@ public class MoniApiServiceImpl implements IMoniApiService {
 
     @Autowired
     private MoniApiMapper moniApiMapper;
+
+    @Autowired
+    @Qualifier("customRestTemplate")
+    private RestTemplate restTemplate;
 
     /**
      * 查询自动API检测任务
@@ -309,8 +314,6 @@ public class MoniApiServiceImpl implements IMoniApiService {
             }
             url = sb.substring(0, sb.length() - 1);
         }
-
-        RestTemplate restTemplate = new RestTemplate();
 
         //content-type
         MediaType mediaType = null;
