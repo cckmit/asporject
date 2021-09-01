@@ -59,7 +59,7 @@ public class MoniApiExecution extends AbstractQuartzJob {
 
     private int serversLoadTimes;
 
-    private static final int maxLoadTimes = 5; // 最大重连次数
+    private static final int maxLoadTimes = 3; // 最大重连次数
 
     /**
      * 执行方法
@@ -112,6 +112,8 @@ public class MoniApiExecution extends AbstractQuartzJob {
         moniApiLog.setStartTime(new Date());
         moniApiLog.setApiId(moniApi.getId());
         moniApiLog.setExpectedCode(moniApi.getExpectedCode());
+        //此处先插入一条日志以获取日志id，方便后续使用
+        SpringUtils.getBean(IMoniApiLogService.class).addJobLog(moniApiLog);
         //输出日志
         log.info("[API检测任务]任务ID:{},任务名称:{},准备执行",
                 moniApi.getId(), moniApi.getChName());
@@ -150,8 +152,8 @@ public class MoniApiExecution extends AbstractQuartzJob {
             moniApiLog.setOperator("system");
         }
 
-        //插入日志到数据库中
-        SpringUtils.getBean(IMoniApiLogService.class).addJobLog(moniApiLog);
+        //更新日志到数据库中
+        SpringUtils.getBean(IMoniApiLogService.class).updateMoniApiLog(moniApiLog);
         //输出日志
         log.info("[API检测任务]任务ID:{},任务名称:{},开始时间:{},结束时间:{},执行结束,耗时：{}秒,执行状态:{}",
                 moniApi.getId(), moniApi.getChName(), DateUtils.parseDateToStr(DateUtils.YYYY_MM_DD_HH_MM_SS, moniApiLog.getStartTime()),
@@ -231,10 +233,8 @@ public class MoniApiExecution extends AbstractQuartzJob {
             @Override
             public void onResponse(SendMessage request, SendResponse response) {
                 if (!response.isOk()) {
-                    MoniApiLog jobLog = new MoniApiLog();
-                    jobLog.setId(moniApiLog.getId());
-                    jobLog.setExceptionLog("Telegram send message error: ".concat(response.description()));
-                    SpringUtils.getBean(IMoniApiLogService.class).updateMoniApiLog(jobLog);
+                    moniApiLog.setExceptionLog("Telegram send message error: ".concat(response.description()));
+                    SpringUtils.getBean(IMoniApiLogService.class).updateMoniApiLog(moniApiLog);
                     log.error("API jobId：{},JobName：{},telegram发送信息失败", moniApi.getId(), moniApi.getChName());
                 }
             }
@@ -247,11 +247,9 @@ public class MoniApiExecution extends AbstractQuartzJob {
                     messageBot.execute(sendMessage, this);
                     log.error("API jobId：{},JobName：{},telegram信息超时重发,第{}次", moniApi.getId(), moniApi.getChName(), serversLoadTimes);
                 } else {
-                    MoniApiLog jobLog = new MoniApiLog();
-                    jobLog.setId(moniApiLog.getId());
-                    jobLog.setStatus(Constants.ERROR);
-                    jobLog.setExceptionLog("Telegram send message error: ".concat(ExceptionUtil.getExceptionMessage(e).replace("\"", "'")));
-                    SpringUtils.getBean(IMoniApiLogService.class).updateMoniApiLog(jobLog);
+                    moniApiLog.setStatus(Constants.ERROR);
+                    moniApiLog.setExceptionLog("Telegram send message error: ".concat(ExceptionUtil.getExceptionMessage(e).replace("\"", "'")));
+                    SpringUtils.getBean(IMoniApiLogService.class).updateMoniApiLog(moniApiLog);
                     log.error("API jobId：{},JobName：{},telegram发送信息异常,{}", moniApi.getId(), moniApi.getChName(), ExceptionUtil.getExceptionMessage(e));
                 }
             }

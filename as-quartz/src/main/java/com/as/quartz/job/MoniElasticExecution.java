@@ -65,7 +65,7 @@ public class MoniElasticExecution extends AbstractQuartzJob {
 
     private int serversLoadTimes;
 
-    private static final int maxLoadTimes = 5; // 最大重连次数
+    private static final int maxLoadTimes = 3; // 最大重连次数
 
     /**
      * 执行方法
@@ -217,6 +217,8 @@ public class MoniElasticExecution extends AbstractQuartzJob {
         moniElastic = (MoniElastic) job;
         moniElasticLog.setStartTime(new Date());
         moniElasticLog.setElasticId(moniElastic.getId());
+        //此处先插入一条日志以获取日志id，方便后续使用
+        SpringUtils.getBean(IMoniElasticLogService.class).addJobLog(moniElasticLog);
         //输出日志
         log.info("[Elastic检测任务]任务ID:{},任务名称:{},准备执行",
                 moniElastic.getId(), moniElastic.getChName());
@@ -269,8 +271,8 @@ public class MoniElasticExecution extends AbstractQuartzJob {
         } else if (ScheduleConstants.MATCH_NOT_EMPTY.equals(moniElastic.getAutoMatch())) {
             moniElasticLog.setExpectedResult("output is not empty");
         }
-        //插入日志到数据库中
-        SpringUtils.getBean(IMoniElasticLogService.class).addJobLog(moniElasticLog);
+        //更新日志到数据库中
+        SpringUtils.getBean(IMoniElasticLogService.class).updateMoniElasticLog(moniElasticLog);
         //输出日志
         log.info("[Elastic检测任务]任务ID:{},任务名称:{},开始时间:{},结束时间:{},执行结束,耗时：{}秒,执行状态:{}",
                 moniElastic.getId(), moniElastic.getChName(), DateUtils.parseDateToStr(DateUtils.YYYY_MM_DD_HH_MM_SS, moniElasticLog.getStartTime()),
@@ -357,10 +359,8 @@ public class MoniElasticExecution extends AbstractQuartzJob {
             @Override
             public void onResponse(SendMessage request, SendResponse response) {
                 if (!response.isOk()) {
-                    MoniElasticLog jobLog = new MoniElasticLog();
-                    jobLog.setId(moniElasticLog.getId());
-                    jobLog.setExceptionLog("Telegram send message error: ".concat(response.description()));
-                    SpringUtils.getBean(IMoniElasticLogService.class).updateMoniElasticLog(jobLog);
+                    moniElasticLog.setExceptionLog("Telegram send message error: ".concat(response.description()));
+                    SpringUtils.getBean(IMoniElasticLogService.class).updateMoniElasticLog(moniElasticLog);
                     log.error("Log jobId：{},JobName：{},telegram发送信息失败", moniElastic.getId(), moniElastic.getChName());
                 }
             }
@@ -374,11 +374,9 @@ public class MoniElasticExecution extends AbstractQuartzJob {
                     log.error("Log jobId：{},JobName：{},telegram信息超时重发,第{}次", moniElastic.getId(), moniElastic.getChName(), serversLoadTimes);
                 } else {
                     log.info("{},telegram发送失败,{}", moniElastic.getChName(), ExceptionUtil.getExceptionMessage(e));
-                    MoniElasticLog jobLog = new MoniElasticLog();
-                    jobLog.setId(moniElasticLog.getId());
-                    jobLog.setStatus(Constants.ERROR);
-                    jobLog.setExceptionLog("Telegram send message error: ".concat(ExceptionUtil.getExceptionMessage(e).replace("\"", "'")));
-                    SpringUtils.getBean(IMoniElasticLogService.class).updateMoniElasticLog(jobLog);
+                    moniElasticLog.setStatus(Constants.ERROR);
+                    moniElasticLog.setExceptionLog("Telegram send message error: ".concat(ExceptionUtil.getExceptionMessage(e).replace("\"", "'")));
+                    SpringUtils.getBean(IMoniElasticLogService.class).updateMoniElasticLog(moniElasticLog);
                     log.error("Log jobId：{},JobName：{},telegram发送信息异常,{}", moniElastic.getId(), moniElastic.getChName(), ExceptionUtil.getExceptionMessage(e));
                 }
             }

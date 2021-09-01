@@ -12,11 +12,7 @@ import com.as.common.utils.spring.SpringUtils;
 import com.as.quartz.domain.MoniExport;
 import com.as.quartz.domain.MoniJob;
 import com.as.quartz.domain.MoniJobLog;
-import com.as.quartz.service.IMoniExportService;
-import com.as.quartz.service.IMoniApiService;
-import com.as.quartz.service.IMoniJobLogService;
-import com.as.quartz.service.IMoniJobService;
-import com.as.quartz.service.IJobService;
+import com.as.quartz.service.*;
 import com.as.quartz.util.AbstractQuartzJob;
 import com.as.quartz.util.HtmlTemplateUtil;
 import com.as.quartz.util.OkHttpUtils;
@@ -71,7 +67,7 @@ public class MoniJobExecution extends AbstractQuartzJob {
 
     private int serversLoadTimes;
 
-    private static final int maxLoadTimes = 5; // 最大重连次数
+    private static final int maxLoadTimes = 3; // 最大重连次数
 
     private String bot;
 
@@ -141,7 +137,7 @@ public class MoniJobExecution extends AbstractQuartzJob {
         moniJobLog.setStartTime(new Date());
         moniJobLog.setJobId(moniJob.getId());
         moniJobLog.setExpectedResult(moniJob.getExpectedResult());
-        //此处先插入一条日志以获取日志id，方便告警拼接url使用
+        //此处先插入一条日志以获取日志id，方便后续使用
         SpringUtils.getBean(IMoniJobLogService.class).addJobLog(moniJobLog);
         //输出日志
         log.info("[SQL检测任务]任务ID:{},任务名称:{},准备执行",
@@ -526,7 +522,9 @@ public class MoniJobExecution extends AbstractQuartzJob {
                     log.error("DB jobId：{},JobName：{},telegram图片超时重发,第{}次", moniJob.getId(), moniJob.getChName(), serversLoadTimes);
                 } else {
                     //图片文件发送失败则发送文字消息
-//                    sendMessage();
+                    if (StringUtils.isNull(messageId)) {
+                        sendMessage();
+                    }
                     log.error("DB jobId：{},JobName：{},telegram发送图片异常,{}", moniJob.getId(), moniJob.getChName(), ExceptionUtil.getExceptionMessage(e));
                 }
             }
@@ -562,7 +560,9 @@ public class MoniJobExecution extends AbstractQuartzJob {
                     log.error("DB jobId：{},JobName：{},telegram附件超时重发,第{}次", moniJob.getId(), moniJob.getChName(), serversLoadTimes);
                 } else {
                     //图片文件发送失败则发送文字消息
-//                    sendMessage();
+                    if (StringUtils.isNull(messageId)) {
+                        sendMessage();
+                    }
                     log.error("DB jobId：{},JobName：{},telegram发送附件异常,{}", moniJob.getId(), moniJob.getChName(), ExceptionUtil.getExceptionMessage(e));
                 }
             }
@@ -591,13 +591,9 @@ public class MoniJobExecution extends AbstractQuartzJob {
             @Override
             public void onResponse(SendMessage request, SendResponse response) {
                 if (!response.isOk()) {
-                    MoniJobLog jobLog = new MoniJobLog();
-                    jobLog.setId(moniJobLog.getId());
-                    jobLog.setExceptionLog("Telegram send message error: ".concat(response.description()));
-                    SpringUtils.getBean(IMoniJobLogService.class).updateJobLog(jobLog);
+                    moniJobLog.setExceptionLog("Telegram send message error: ".concat(response.description()));
+                    SpringUtils.getBean(IMoniJobLogService.class).updateJobLog(moniJobLog);
                     log.error("DB jobId：{},JobName：{},telegram发送信息失败", moniJob.getId(), moniJob.getChName());
-                } else {
-                    messageId = response.message().messageId();
                 }
             }
 
@@ -609,11 +605,9 @@ public class MoniJobExecution extends AbstractQuartzJob {
                     messageBot.execute(sendMessage, this);
                     log.error("DB jobId：{},JobName：{},telegram信息超时重发,第{}次", moniJob.getId(), moniJob.getChName(), serversLoadTimes);
                 } else {
-                    MoniJobLog jobLog = new MoniJobLog();
-                    jobLog.setId(moniJobLog.getId());
-                    jobLog.setStatus(Constants.ERROR);
-                    jobLog.setExceptionLog("Telegram send message error: ".concat(ExceptionUtil.getExceptionMessage(e).replace("\"", "'")));
-                    SpringUtils.getBean(IMoniJobLogService.class).updateJobLog(jobLog);
+                    moniJobLog.setStatus(Constants.ERROR);
+                    moniJobLog.setExceptionLog("Telegram send message error: ".concat(ExceptionUtil.getExceptionMessage(e).replace("\"", "'")));
+                    SpringUtils.getBean(IMoniJobLogService.class).updateJobLog(moniJobLog);
                     log.error("DB jobId：{},JobName：{},telegram发送信息异常,{}", moniJob.getId(), moniJob.getChName(), ExceptionUtil.getExceptionMessage(e));
                 }
             }
