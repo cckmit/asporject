@@ -210,7 +210,7 @@ public class MoniApiExecution extends AbstractQuartzJob {
                     .replace("{platform}", DictUtils.getDictLabel(DictTypeConstants.UB8_PLATFORM_TYPE, moniApi.getPlatform()))
                     .replace("{descr}", StringUtils.isNotEmpty(moniApi.getDescr()) ? moniApi.getDescr() : "")
                     .replace("{url}", moniApi.getUrl())
-                    .replace("{result}", StringUtils.isNotEmpty(moniApiLog.getExecuteResult()) ? moniApiLog.getExceptionLog() : "")
+                    .replace("{result}", StringUtils.isNotEmpty(moniApiLog.getExecuteResult()) ? moniApiLog.getExecuteResult() : "")
                     .replace("{env}", StringUtils.isNotEmpty(SpringUtils.getActiveProfile()) ? Objects.requireNonNull(SpringUtils.getActiveProfile()) : "")
                     .replace("{export}", "");
         } else {
