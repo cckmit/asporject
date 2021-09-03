@@ -204,7 +204,7 @@ public class JobServiceImpl implements IJobService {
             messageHelper.setText(mail.getContent());
         }
 
-        //寄信
+        //寄信F
         javaMailSender.send(mailMessage);
     }
 
@@ -212,9 +212,17 @@ public class JobServiceImpl implements IJobService {
     public String getCronSchdule(String cron, int count) {
         List<String> cronSchdule = CronUtils.getCronSchdule(cron, count);
         StringBuilder times = new StringBuilder();
-        times.append(MessageUtils.message("job.view.recent.run.time")).append(":").append("\n");
+        times.append(MessageUtils.message("job.view.recent.run.time", cron)).append("<br/>");
+        int num = 1;
         for (String time : cronSchdule) {
-            times.append(time).append("\n");
+            times.append(num);
+            if (num < 10) {
+                times.append("、&nbsp;&nbsp;");
+            } else {
+                times.append("、&nbsp;");
+            }
+            times.append(time).append("<br/>");
+            num++;
         }
         return times.toString();
     }

@@ -246,7 +246,7 @@
         });
 
         $(document).ready(function(){
-            $('#cronExpression').blur(function(){
+            $('#getNextCron').click(function(){
                 if ($("#form-exportJob-add").validate().element($("#cronExpression"))) {
                     var cronExpression = $("[name='cronExpression']").val();
                     $.ajax({
@@ -257,11 +257,9 @@
                             "cronExpression": cronExpression
                         },
                         success : function(data) {
-                            $('#getNextCron').attr('title',data)
+                            $.modal.alertSuccess(data)
                         }
                     });
-                } else {
-                    $('#getNextCron').attr('title',i18n('job.view.recent.run.time.info'))
                 }
             });
         });
