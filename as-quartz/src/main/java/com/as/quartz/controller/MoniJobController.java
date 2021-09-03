@@ -5,6 +5,7 @@ import com.as.common.core.controller.BaseController;
 import com.as.common.core.domain.AjaxResult;
 import com.as.common.core.page.TableDataInfo;
 import com.as.common.enums.BusinessType;
+import com.as.common.utils.ShiroUtils;
 import com.as.common.utils.poi.ExcelUtil;
 import com.as.quartz.domain.MoniJob;
 import com.as.quartz.service.IJobService;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -195,5 +197,25 @@ public class MoniJobController extends BaseController {
     @ResponseBody
     public String getCronSchdule(MoniJob job) {
         return sysJobService.getCronSchdule(job.getCronExpression(), 10);
+    }
+
+    @Log(title = "SQL检测任务", businessType = BusinessType.IMPORT)
+    @RequiresPermissions("monitor:sqlJob:import")
+    @PostMapping("/importData")
+    @ResponseBody
+    public AjaxResult importData(MultipartFile file, boolean updateSupport) throws Exception {
+        ExcelUtil<MoniJob> util = new ExcelUtil<MoniJob>(MoniJob.class);
+        List<MoniJob> jobList = util.importExcel(file.getInputStream());
+        String operName = ShiroUtils.getSysUser().getLoginName();
+        String message = moniJobService.importJob(jobList, updateSupport, operName);
+        return AjaxResult.success(message);
+    }
+
+    @RequiresPermissions("monitor:sqlJob:import")
+    @GetMapping("/importTemplate")
+    @ResponseBody
+    public AjaxResult importTemplate() {
+        ExcelUtil<MoniJob> util = new ExcelUtil<MoniJob>(MoniJob.class);
+        return util.importTemplateExcel("SQL-Detect");
     }
 }

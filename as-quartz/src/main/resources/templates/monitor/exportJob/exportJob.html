@@ -68,7 +68,10 @@
                 <a class="btn btn-warning" onclick="$.table.exportExcel()" shiro:hasPermission="monitor:exportJob:export">
                     <i class="fa fa-download"></i> [[#{common.export}]]
                 </a>
-                <a class="btn btn-info" onclick="javascript:jobLog()" shiro:hasPermission="monitor:exportJobLog:view">
+                <a class="btn btn-info" onclick="$.table.importExcel()" shiro:hasPermission="system:exportJob:import">
+                    <i class="fa fa-upload"></i> [[#{common.import}]]
+                </a>
+                <a class="btn btn-success" onclick="javascript:jobLog()" shiro:hasPermission="monitor:exportJobLog:view">
                     <i class="fa fa-list"></i> [[#{sql.job.log.log}]]
                 </a>
             </div>
@@ -96,6 +99,8 @@
                 updateUrl: prefix + "/edit/{id}",
                 removeUrl: prefix + "/remove",
                 exportUrl: prefix + "/export",
+                importUrl: prefix + "/importData",
+                importTemplateUrl: prefix + "/importTemplate",
                 sortName: "createTime",
                 sortOrder: "desc",
                 modalName: i18n('export.job'),
@@ -273,4 +278,23 @@
         }
     </script>
 </body>
+<!-- 导入区域 -->
+<script id="importTpl" type="text/template">
+    <form autocomplete="off" id="form" enctype="multipart/form-data" class="mt20 mb10">
+        <div class="col-xs-offset-1">
+            <!--		<input type="file" id="file" name="file"/>-->
+            <input type="file" name="file" id="file" style="display: none;"
+                   onchange="$('#path').val(this.value)" accept=".xls,.xlsx" />
+            <input name="path" id="path" th:placeholder="#{select.no.file}" readonly>
+            <input type="button" th:value="#{select.file}" onclick="$('#file').click()">
+            <div class="mt10 pt5">
+                <input type="checkbox" id="updateSupport" name="updateSupport" th:title="#{import.exist.update.info}"> [[#{import.exist.update}]]
+                &nbsp;	<a onclick="$.table.importTemplate()" class="btn btn-default btn-xs"><i class="fa fa-file-excel-o"></i> [[#{user.list.download.template}]]</a>
+            </div>
+            <font color="red" class="pull-left mt10">
+                [[#{user.list.tips}]]
+            </font>
+        </div>
+    </form>
+</script>
 </html>

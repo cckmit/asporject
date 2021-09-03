@@ -82,14 +82,14 @@ public class ScheduleUtils {
      */
     public static String[] getTgData(String telegramConfig) throws Exception {
         String[] tgData;
-        //如果不是生产环境则返回测试群组
-//        if (!"prod".equals(SpringUtils.getActiveProfile())) {
-//            tgData = new String[2];
-//            tgData[0] = "1937111623:AAHDVpT1bezDDJ_Lf7HmyYCRd8mZeSlHCwM";
-//            tgData[1] = "-532553117";
-////            tgData[1] = "736145377";
-//            return tgData;
-//        }
+        //如果是dev环境则返回测试群组
+        if ("dev".equals(SpringUtils.getActiveProfile())) {
+            tgData = new String[2];
+            tgData[0] = "1937111623:AAHDVpT1bezDDJ_Lf7HmyYCRd8mZeSlHCwM";
+            tgData[1] = "-532553117";
+//            tgData[1] = "736145377";
+            return tgData;
+        }
 
         String config = DictUtils.getDictRemark(DictTypeConstants.TELEGRAM_NOTICE_GROUP, telegramConfig);
         if (StringUtils.isEmpty(config)) {

@@ -71,6 +71,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <insert id="insertMoniApi" parameterType="MoniApi" useGeneratedKeys="true" keyProperty="id">
         insert into moni_api
         <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null and id != ''">ID,</if>
             <if test="asid != null and asid != ''">ASID,</if>
             <if test="ticketNumber != null">TICKET_NUMBER,</if>
             <if test="enName != null and enName != ''">EN_NAME,</if>
@@ -99,6 +100,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="ignoreAlert != null and ignoreAlert != ''">IGNORE_ALERT,</if>
          </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null and id != ''">#{id},</if>
             <if test="asid != null and asid != ''">#{asid},</if>
             <if test="ticketNumber != null">#{ticketNumber},</if>
             <if test="enName != null and enName != ''">#{enName},</if>

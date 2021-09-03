@@ -31,6 +31,13 @@ public class MoniJob extends BaseEntity {
     private Long id;
 
     /**
+     * ASID
+     */
+    @NotBlank(message = "ASID不能为空")
+    @Excel(name = "ASID")
+    private String asid;
+
+    /**
      * 任務名稱-英文
      */
     @NotBlank(message = "英文名称不能为空")
@@ -124,13 +131,6 @@ public class MoniJob extends BaseEntity {
     private String telegramConfig;
 
     /**
-     * ASID
-     */
-    @NotBlank(message = "ASID不能为空")
-    @Excel(name = "ASID")
-    private String asid;
-
-    /**
      * 请求者
      */
     @NotBlank(message = "请求者不能为空")
@@ -161,7 +161,7 @@ public class MoniJob extends BaseEntity {
      * 最后告警时间
      */
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    @Excel(name = "最后告警时间", width = 30, dateFormat = "yyyy-MM-dd HH:mm:ss")
+    @Excel(name = "最后告警时间", width = 30, dateFormat = "yyyy-MM-dd HH:mm:ss", type = Excel.Type.EXPORT)
     private Date lastAlert;
 
     /**

@@ -20,7 +20,7 @@ public class OkHttpUtils {
         if (StringUtils.isNull(client)) {
             synchronized (OkHttpUtils.class) {
                 if (StringUtils.isNull(client)) {
-                    client = new OkHttpClient.Builder().connectTimeout(30, TimeUnit.SECONDS)
+                    client = new OkHttpClient.Builder().connectTimeout(60, TimeUnit.SECONDS)
                             .readTimeout(60, TimeUnit.SECONDS)
                             .writeTimeout(60, TimeUnit.SECONDS)
                             .connectionPool(new ConnectionPool(32, 5, TimeUnit.MINUTES))

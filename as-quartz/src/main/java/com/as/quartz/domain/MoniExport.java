@@ -27,6 +27,7 @@ public class MoniExport extends BaseEntity {
     /**
      * ID
      */
+    @Excel(name = "ID")
     private Long id;
 
     /**
@@ -59,7 +60,7 @@ public class MoniExport extends BaseEntity {
     /**
      * 状态（0正常 1停用）
      */
-    @Excel(name = "状态" , readConverterExp = "0=正常,1=停用")
+    @Excel(name = "状态", readConverterExp = "0=正常,1=停用")
     @NotBlank(message = "状态不能为空")
     private String status;
 
@@ -134,7 +135,7 @@ public class MoniExport extends BaseEntity {
      * 最后导出时间
      */
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    @Excel(name = "最后导出时间", width = 30, dateFormat = "yyyy-MM-dd HH:mm:ss")
+    @Excel(name = "最后导出时间", width = 30, dateFormat = "yyyy-MM-dd HH:mm:ss", type = Excel.Type.EXPORT)
     private Date lastExport;
 
     public Date getNextValidTime() {
@@ -147,27 +148,27 @@ public class MoniExport extends BaseEntity {
     @Override
     public String toString() {
         return new ToStringBuilder(this, ToStringStyle.MULTI_LINE_STYLE)
-                .append("id" , getId())
-                .append("asid" , getAsid())
-                .append("ticketNumber" , getTicketNumber())
-                .append("enName" , getEnName())
-                .append("chName" , getChName())
-                .append("status" , getStatus())
-                .append("jdbc" , getJdbc())
-                .append("platform" , getPlatform())
-                .append("cronExpression" , getCronExpression())
-                .append("script" , getScript())
-                .append("mailTo" , getMailTo())
-                .append("mailCc" , getMailCc())
-                .append("mailBcc" , getMailBcc())
-                .append("mailSubject" , getMailSubject())
-                .append("mailContent" , getMailContent())
-                .append("createBy" , getCreateBy())
-                .append("createTime" , getCreateTime())
-                .append("updateBy" , getUpdateBy())
-                .append("updateTime" , getUpdateTime())
-                .append("requester" , getRequester())
-                .append("lastExport" , getLastExport())
+                .append("id", getId())
+                .append("asid", getAsid())
+                .append("ticketNumber", getTicketNumber())
+                .append("enName", getEnName())
+                .append("chName", getChName())
+                .append("status", getStatus())
+                .append("jdbc", getJdbc())
+                .append("platform", getPlatform())
+                .append("cronExpression", getCronExpression())
+                .append("script", getScript())
+                .append("mailTo", getMailTo())
+                .append("mailCc", getMailCc())
+                .append("mailBcc", getMailBcc())
+                .append("mailSubject", getMailSubject())
+                .append("mailContent", getMailContent())
+                .append("createBy", getCreateBy())
+                .append("createTime", getCreateTime())
+                .append("updateBy", getUpdateBy())
+                .append("updateTime", getUpdateTime())
+                .append("requester", getRequester())
+                .append("lastExport", getLastExport())
                 .toString();
     }
 }

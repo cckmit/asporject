@@ -63,6 +63,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <insert id="insertMoniExport" parameterType="MoniExport" useGeneratedKeys="true" keyProperty="id">
         insert into moni_export
         <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null and id != ''">ID,</if>
             <if test="asid != null and asid != ''">ASID,</if>
             <if test="ticketNumber != null">TICKET_NUMBER,</if>
             <if test="enName != null and enName != ''">EN_NAME,</if>
@@ -85,6 +86,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="lastExport != null">LAST_EXPORT,</if>
          </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null and id != ''">#{id},</if>
             <if test="asid != null and asid != ''">#{asid},</if>
             <if test="ticketNumber != null">#{ticketNumber},</if>
             <if test="enName != null and enName != ''">#{enName},</if>

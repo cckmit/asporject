@@ -2,8 +2,11 @@ package com.as.quartz.service.impl;
 
 import com.as.common.constant.ScheduleConstants;
 import com.as.common.core.text.Convert;
+import com.as.common.exception.BusinessException;
 import com.as.common.utils.DateUtils;
+import com.as.common.utils.MessageUtils;
 import com.as.common.utils.ShiroUtils;
+import com.as.common.utils.StringUtils;
 import com.as.quartz.domain.MoniExport;
 import com.as.quartz.job.MoniExportExecution;
 import com.as.quartz.mapper.MoniExportMapper;
@@ -13,10 +16,13 @@ import org.quartz.JobDataMap;
 import org.quartz.JobKey;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -27,6 +33,7 @@ import java.util.List;
  */
 @Service
 public class MoniExportServiceImpl implements IMoniExportService {
+    private static final Logger log = LoggerFactory.getLogger(MoniExportServiceImpl.class);
 
     @Autowired
     private Scheduler scheduler;
@@ -229,12 +236,67 @@ public class MoniExportServiceImpl implements IMoniExportService {
         // 参数
         JobDataMap dataMap = new JobDataMap();
         try {
-            dataMap.put("operator",ShiroUtils.getLoginName());
-        } catch (Exception e){
+            dataMap.put("operator", ShiroUtils.getLoginName());
+        } catch (Exception e) {
             //关联导出时ShiroUtils.getLoginName()会异常，此处吞掉异常继续执行
         }
 
         dataMap.put(ScheduleConstants.TASK_PROPERTIES, tmpObj);
         scheduler.triggerJob(ScheduleUtils.getJobKey(jobCode, tmpObj.getPlatform()), dataMap);
+    }
+
+    /**
+     * 导入JOB数据
+     *
+     * @param jobList         JOB数据列表
+     * @param isUpdateSupport 是否更新支持，如果已存在，则进行更新数据
+     * @param operName        操作用户
+     * @return 结果
+     */
+    @Override
+    public String importJob(List<MoniExport> jobList, Boolean isUpdateSupport, String operName) {
+        if (StringUtils.isNull(jobList) || jobList.size() == 0) {
+            throw new BusinessException(MessageUtils.message("import.not.empty"));
+        }
+        int successNum = 0;
+        int failureNum = 0;
+        StringBuilder successMsg = new StringBuilder();
+        StringBuilder failureMsg = new StringBuilder();
+        for (MoniExport job : jobList) {
+            try {
+                // 验证是否存在这个job
+                MoniExport m = moniExportMapper.selectMoniExportById(job.getId());
+                if (StringUtils.isNull(m)) {
+                    job.setCreateBy(operName);
+                    job.setCreateTime(new Date());
+                    this.insertMoniExport(job);
+                    successNum++;
+                    successMsg.append("<br/>" + successNum + "、JOB(" + job.getId() + ") " + job.getAsid() + " " + MessageUtils.message("import.success"));
+                } else if (isUpdateSupport) {
+                    job.setUpdateBy(operName);
+                    job.setUpdateTime(new Date());
+                    this.updateMoniExport(job);
+                    successNum++;
+                    successMsg.append("<br/>" + successNum + "、JOB(" + job.getId() + ") " + job.getAsid() + " " + MessageUtils.message("import.update.success"));
+                } else {
+                    failureNum++;
+                    failureMsg.append("<br/>" + failureNum + "、JOB(" + job.getId() + ") " + job.getAsid() + " " + MessageUtils.message("import.exist"));
+                }
+            } catch (Exception e) {
+                failureNum++;
+                String msg = "<br/>" + failureNum + "、JOB(" + job.getId() + ") " + job.getAsid() + " " + MessageUtils.message("import.failed");
+                failureMsg.append(msg + e.getMessage());
+                log.error(msg, e);
+            }
+        }
+        if (failureNum > 0 && successNum == 0) {
+            failureMsg.insert(0, MessageUtils.message("import.failed.info", failureNum));
+            throw new BusinessException(failureMsg.toString());
+        } else if (failureNum > 0 && successNum > 0) {
+            successMsg.insert(0, MessageUtils.message("import.success.part.info", successNum, failureNum)).append(failureMsg);
+        } else {
+            successMsg.insert(0, MessageUtils.message("import.success.info", successNum));
+        }
+        return successMsg.toString();
     }
 }

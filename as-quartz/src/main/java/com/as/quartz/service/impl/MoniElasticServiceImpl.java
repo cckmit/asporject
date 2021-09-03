@@ -6,7 +6,9 @@ import com.as.common.constant.Constants;
 import com.as.common.constant.ScheduleConstants;
 import com.as.common.core.text.Convert;
 import com.as.common.enums.DataSourceType;
+import com.as.common.exception.BusinessException;
 import com.as.common.utils.DateUtils;
+import com.as.common.utils.MessageUtils;
 import com.as.common.utils.ShiroUtils;
 import com.as.common.utils.StringUtils;
 import com.as.quartz.domain.MoniElastic;
@@ -39,10 +41,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * ElasticSearch任务Service业务层处理
@@ -59,14 +58,6 @@ public class MoniElasticServiceImpl implements IMoniElasticService {
 
     @Autowired
     private Scheduler scheduler;
-
-//    @Autowired
-//    @Qualifier("PF1Elasticsearch")
-//    private RestHighLevelClient PF1Client;
-//
-//    @Autowired
-//    @Qualifier("PF2Elasticsearch")
-//    private RestHighLevelClient PF2Client;
 
     @Autowired
     private PF1DrawCompareMapper pf1DrawCompareMapper;
@@ -499,5 +490,60 @@ public class MoniElasticServiceImpl implements IMoniElasticService {
         //清除PF2数据源
         DynamicDataSourceContextHolder.clearDataSourceType();
         return map;
+    }
+
+    /**
+     * 导入JOB数据
+     *
+     * @param jobList         JOB数据列表
+     * @param isUpdateSupport 是否更新支持，如果已存在，则进行更新数据
+     * @param operName        操作用户
+     * @return 结果
+     */
+    @Override
+    public String importJob(List<MoniElastic> jobList, Boolean isUpdateSupport, String operName) {
+        if (StringUtils.isNull(jobList) || jobList.size() == 0) {
+            throw new BusinessException(MessageUtils.message("import.not.empty"));
+        }
+        int successNum = 0;
+        int failureNum = 0;
+        StringBuilder successMsg = new StringBuilder();
+        StringBuilder failureMsg = new StringBuilder();
+        for (MoniElastic job : jobList) {
+            try {
+                // 验证是否存在这个job
+                MoniElastic m = moniElasticMapper.selectMoniElasticById(job.getId());
+                if (StringUtils.isNull(m)) {
+                    job.setCreateBy(operName);
+                    job.setCreateTime(new Date());
+                    this.insertMoniElastic(job);
+                    successNum++;
+                    successMsg.append("<br/>" + successNum + "、JOB(" + job.getId() + ") " + job.getAsid() + " " + MessageUtils.message("import.success"));
+                } else if (isUpdateSupport) {
+                    job.setUpdateBy(operName);
+                    job.setUpdateTime(new Date());
+                    this.updateMoniElastic(job);
+                    successNum++;
+                    successMsg.append("<br/>" + successNum + "、JOB(" + job.getId() + ") " + job.getAsid() + " " + MessageUtils.message("import.update.success"));
+                } else {
+                    failureNum++;
+                    failureMsg.append("<br/>" + failureNum + "、JOB(" + job.getId() + ") " + job.getAsid() + " " + MessageUtils.message("import.exist"));
+                }
+            } catch (Exception e) {
+                failureNum++;
+                String msg = "<br/>" + failureNum + "、JOB(" + job.getId() + ") " + job.getAsid() + " " + MessageUtils.message("import.failed");
+                failureMsg.append(msg + e.getMessage());
+                logger.error(msg, e);
+            }
+        }
+        if (failureNum > 0 && successNum == 0) {
+            failureMsg.insert(0, MessageUtils.message("import.failed.info", failureNum));
+            throw new BusinessException(failureMsg.toString());
+        } else if (failureNum > 0 && successNum > 0) {
+            successMsg.insert(0, MessageUtils.message("import.success.part.info", successNum, failureNum)).append(failureMsg);
+        } else {
+            successMsg.insert(0, MessageUtils.message("import.success.info", successNum));
+        }
+        return successMsg.toString();
     }
 }

@@ -71,6 +71,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <insert id="insertMoniJob" parameterType="MoniJob" useGeneratedKeys="true" keyProperty="id">
         insert into moni_job
         <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null and id != ''">ID,</if>
             <if test="enName != null and enName != ''">EN_NAME,</if>
             <if test="chName != null and chName != ''">CH_NAME,</if>
             <if test="descr != null">DESCR,</if>
@@ -99,6 +100,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="ignoreAlert != null and ignoreAlert != ''">IGNORE_ALERT,</if>
          </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null and id != ''">#{id},</if>
             <if test="enName != null and enName != ''">#{enName},</if>
             <if test="chName != null and chName != ''">#{chName},</if>
             <if test="descr != null">#{descr},</if>

@@ -125,4 +125,14 @@ public interface IMoniApiService {
      * @param relApi
      */
     public void doApi(String relApi) throws Exception;
+
+    /**
+     * 导入JOB数据
+     *
+     * @param jobList         JOB数据列表
+     * @param isUpdateSupport 是否更新支持，如果已存在，则进行更新数据
+     * @param operName        操作人
+     * @return 结果
+     */
+    public String importJob(List<MoniApi> jobList, Boolean isUpdateSupport, String operName);
 }
