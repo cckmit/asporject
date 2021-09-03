@@ -201,7 +201,7 @@ public class MoniElasticController extends BaseController {
         return AjaxResult.success(message);
     }
 
-    @RequiresPermissions("monitor:exportJob:import")
+    @RequiresPermissions("monitor:elasticJob:import")
     @GetMapping("/importTemplate")
     @ResponseBody
     public AjaxResult importTemplate() {
