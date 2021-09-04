@@ -91,7 +91,7 @@
 					formatter:function(value) {
 						if (value) {
 							var k =  value.toString();
-							value = k.replace(/\r\n/ig,"<br>");
+							value = k.replace(/\r/ig,"").replace(/\n/ig,"<br>");
 						}
 						return value;
 					},
