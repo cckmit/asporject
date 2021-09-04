@@ -43,7 +43,7 @@
 			<div class="btn-group-sm" id="toolbar" role="group" style="display: none">
 				<span id="execute-time" class="label label-warning">[[#{funds.total}]]：<span class="total"></span>，[[#{sql.job.execution.time}]]：<span class="time"></span></span>
 			</div>
-			<div class="col-sm-12 select-table table-bordered">
+			<div id="out-bootstrap-table" class="col-sm-12 select-table table-bordered">
 				<table id="bootstrap-table"></table>
 			</div>
 		</div>
@@ -84,23 +84,21 @@
 		function setColumns(list) {
 			var columns = [];
 			list.forEach(function(item) {
-				var itemTmp = item.toString().toUpperCase()
-				if($.common.endWith(itemTmp,'DATE') || $.common.endWith(itemTmp,'TIME')){
-					columns.push({
-						field : item,
-						title : item,
-						halign: 'center',
-						cellStyle: {
-							css:{"white-space":"nowrap"}
+				columns.push({
+					field : item,
+					title : item,
+					halign: 'center',
+					formatter:function(value) {
+						if (value) {
+							var k =  value.toString();
+							value = k.replace(/\r\n/ig,"<br>");
 						}
-					})
-				} else {
-					columns.push({
-						field : item,
-						title : item,
-						halign: 'center'
-					})
-				}
+						return value;
+					},
+					cellStyle: {
+						css:{"white-space":"nowrap"}
+					},
+				})
 			});
 			if(!table.get(table.options.id)){
 				initTable(columns);

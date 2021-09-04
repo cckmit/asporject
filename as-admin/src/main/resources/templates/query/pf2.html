@@ -85,23 +85,14 @@
 	function setColumns(list) {
 		var columns = [];
 		list.forEach(function(item) {
-			var itemTmp = item.toString().toUpperCase()
-			if($.common.endWith(itemTmp,'DATE') || $.common.endWith(itemTmp,'TIME')){
-				columns.push({
-					field : item,
-					title : item,
-					halign: 'center',
-					cellStyle: {
-						css:{"white-space":"nowrap"}
-					}
-				})
-			} else {
-				columns.push({
-					field : item,
-					title : item,
-					halign: 'center'
-				})
-			}
+			columns.push({
+				field : item,
+				title : item,
+				halign: 'center',
+				cellStyle: {
+					css:{"white-space":"nowrap"}
+				}
+			})
 		});
 		if(!table.get(table.options.id)){
 			initTable(columns);
