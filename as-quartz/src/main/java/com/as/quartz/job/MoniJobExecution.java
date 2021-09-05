@@ -133,7 +133,7 @@ public class MoniJobExecution extends AbstractQuartzJob {
         moniJob = (MoniJob) job;
         moniJobLog.setStartTime(new Date());
         moniJobLog.setJobId(moniJob.getId());
-        moniJobLog.setExpectedResult(moniJob.getExpectedResult());
+        getExpectedResult();
         //此处先插入一条日志以获取日志id，方便后续使用
         SpringUtils.getBean(IMoniJobLogService.class).addJobLog(moniJobLog);
         //输出日志
@@ -173,6 +173,18 @@ public class MoniJobExecution extends AbstractQuartzJob {
         } else {
             moniJobLog.setOperator("system");
         }
+        if (StringUtils.isEmpty(moniJobLog.getExecuteResult())) {
+            getExpectedResult();
+        }
+        //之前已经插入,本次更新日志到数据库中
+        SpringUtils.getBean(IMoniJobLogService.class).updateJobLog(moniJobLog);
+        //输出日志
+        log.info("[SQL检测任务]任务ID:{},任务名称:{},开始时间:{},结束时间:{},执行结束,耗时：{}秒,执行状态:{}",
+                moniJob.getId(), moniJob.getChName(), DateUtils.parseDateToStr(DateUtils.YYYY_MM_DD_HH_MM_SS, moniJobLog.getStartTime()),
+                DateUtils.parseDateToStr(DateUtils.YYYY_MM_DD_HH_MM_SS, moniJobLog.getEndTime()), runTime, Constants.SUCCESS.equals(moniJobLog.getStatus()) ? "Success" : "failed");
+    }
+
+    private void getExpectedResult() {
         if (ScheduleConstants.MATCH_EQUAL.equals(moniJob.getAutoMatch())) {
             moniJobLog.setExpectedResult("output = " + moniJob.getExpectedResult());
         } else if (ScheduleConstants.MATCH_NOT_EQUAL.equals(moniJob.getAutoMatch())) {
@@ -188,13 +200,6 @@ public class MoniJobExecution extends AbstractQuartzJob {
         } else if (ScheduleConstants.MATCH_NOT_EMPTY.equals(moniJob.getAutoMatch())) {
             moniJobLog.setExpectedResult("output is not empty");
         }
-
-        //之前已经插入,本次更新日志到数据库中
-        SpringUtils.getBean(IMoniJobLogService.class).updateJobLog(moniJobLog);
-        //输出日志
-        log.info("[SQL检测任务]任务ID:{},任务名称:{},开始时间:{},结束时间:{},执行结束,耗时：{}秒,执行状态:{}",
-                moniJob.getId(), moniJob.getChName(), DateUtils.parseDateToStr(DateUtils.YYYY_MM_DD_HH_MM_SS, moniJobLog.getStartTime()),
-                DateUtils.parseDateToStr(DateUtils.YYYY_MM_DD_HH_MM_SS, moniJobLog.getEndTime()), runTime, Constants.SUCCESS.equals(moniJobLog.getStatus()) ? "Success" : "failed");
     }
 
     /**
