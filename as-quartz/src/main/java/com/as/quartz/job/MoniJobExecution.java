@@ -133,7 +133,7 @@ public class MoniJobExecution extends AbstractQuartzJob {
         moniJob = (MoniJob) job;
         moniJobLog.setStartTime(new Date());
         moniJobLog.setJobId(moniJob.getId());
-        getExpectedResult();
+        setExpectedResult();
         //此处先插入一条日志以获取日志id，方便后续使用
         SpringUtils.getBean(IMoniJobLogService.class).addJobLog(moniJobLog);
         //输出日志
@@ -174,7 +174,7 @@ public class MoniJobExecution extends AbstractQuartzJob {
             moniJobLog.setOperator("system");
         }
         if (StringUtils.isEmpty(moniJobLog.getExecuteResult())) {
-            getExpectedResult();
+            setExpectedResult();
         }
         //之前已经插入,本次更新日志到数据库中
         SpringUtils.getBean(IMoniJobLogService.class).updateJobLog(moniJobLog);
@@ -184,7 +184,7 @@ public class MoniJobExecution extends AbstractQuartzJob {
                 DateUtils.parseDateToStr(DateUtils.YYYY_MM_DD_HH_MM_SS, moniJobLog.getEndTime()), runTime, Constants.SUCCESS.equals(moniJobLog.getStatus()) ? "Success" : "failed");
     }
 
-    private void getExpectedResult() {
+    private void setExpectedResult() {
         if (ScheduleConstants.MATCH_EQUAL.equals(moniJob.getAutoMatch())) {
             moniJobLog.setExpectedResult("output = " + moniJob.getExpectedResult());
         } else if (ScheduleConstants.MATCH_NOT_EQUAL.equals(moniJob.getAutoMatch())) {
