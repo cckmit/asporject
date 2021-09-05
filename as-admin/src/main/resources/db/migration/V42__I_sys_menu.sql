@@ -1,0 +1,2 @@
+insert into sys_menu (menu_name, parent_id, order_num, url, menu_type, visible, perms, icon, create_by, create_time, update_by, update_time, remark)
+values('ElasticSearch任务LOG详细', (select a.menu_id from ( select menu_id from sys_menu where perms = 'monitor:elasticJob:view' and url = '/monitor/elasticJob') a), '16',  '#',  'F', '0', 'monitor:elasticJobLog:detail',       '#', 'admin', sysdate(), '', null, '');
