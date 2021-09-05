@@ -108,9 +108,6 @@ public class MoniJobExecution extends AbstractQuartzJob {
                 moniJobLog.setAlertStatus(Constants.SUCCESS);
                 if (Constants.SUCCESS.equals(moniJob.getTelegramAlert())) {
                     sendTelegram();
-//                    if (!sendResponse.isOk()) {
-//                        moniJobLog.setExceptionLog("Telegram send error: ".concat(sendResponse.description()));
-//                    }
                 }
                 //更新最后告警时间
                 moniJob.setLastAlert(DateUtils.getNowDate());
@@ -443,7 +440,6 @@ public class MoniJobExecution extends AbstractQuartzJob {
 
         sendMessage = new SendMessage(chatId, telegramInfo).parseMode(ParseMode.Markdown);
         sendMessage.replyMarkup(inlineKeyboard);
-//        sendMessage(telegramBot, sendMessage);
         try {
             SendResponse response = ScheduleUtils.sendMessage(bot, chatId, telegramInfo, inlineKeyboard);
             if (response.isOk()) {
@@ -465,32 +461,6 @@ public class MoniJobExecution extends AbstractQuartzJob {
             sendDocument.replyMarkup(inlineKeyboard);
             sendDocument(telegramBot, sendDocument);
         }
-
-//        SendResponse execute;
-//        StringBuilder error = new StringBuilder();
-//        try {
-//            execute = ScheduleUtils.sendPhoto(bot, chatId, telegramInfo, inlineKeyboard, new File(imgPath));
-//            if (!execute.isOk()) {
-//                throw new Exception(execute.description());
-//            }
-//        } catch (Exception e) {
-//            error.append(ExceptionUtil.getExceptionMessage(e));
-//            try {
-//                //图片发送异常则以文件形式发送
-//                execute = ScheduleUtils.sendDocument(bot, chatId, telegramInfo, inlineKeyboard, new File(imgPath));
-//                if (!execute.isOk()) {
-//                    throw new Exception(execute.description());
-//                }
-//            } catch (Exception e1) {
-//                error.append(" AND ").append(ExceptionUtil.getExceptionMessage(e1));
-//                //图片和文件发送均异常则发送文字告警
-//                execute = ScheduleUtils.sendMessage(bot, chatId, telegramInfo, inlineKeyboard);
-//            }
-//        }
-//        if (StringUtils.isNotEmpty(error)) {
-//            moniJobLog.setExceptionLog("Telegram send photo error:" + error);
-//        }
-//        return execute;
     }
 
     private void sendPhoto(TelegramBot photoBot, SendPhoto sendPhoto) {

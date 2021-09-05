@@ -2,10 +2,69 @@
 <html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
 <head>
 
-	<th:block th:include="include :: header('API检测定时任务详细')" />
+	<th:block th:include="include :: header('Elastic定时任务详细')" />
+	<style type="text/css">
+		h2{
+			margin:0px 0px 3px 0px;
+		}
+
+		.white-space{
+			border:1px solid #333;
+			background:#FFFFFF;
+			padding:5px;
+			margin-bottom:20px;
+		}
+		table {width:100%;}
+
+		.block{
+			color: #333;
+			background: #E7ECF3;
+			border: 1px solid #AAA;
+			margin: 5px;
+			padding: 13px;
+			border-radius: 10px;
+			-moz-border-radius: 10px;
+			-webkit-border-radius: 10px;
+		}
+	</style>
 </head>
 <body class="white-bg">
-	<form autocomplete="off" class="form-horizontal m-t" id="jobForm">
+
+<div class="block" style="min-height:100%;" th:if="${name == 'elasticJobLog'}">
+	<input name="id" type="hidden" th:field="*{jobLog.id}"/>
+	<h2>[[#{sql.job.descr}]]：</h2>
+	<div class="white-space">
+		<pre th:text="${jobLog.moniElastic.descr}"></pre>
+	</div>
+	<h2>[[#{sql.job.execute.time}]]：</h2>
+	<div class="white-space" th:text="${#dates.format(jobLog.startTime, 'yyyy-MM-dd HH:mm:ss')}"></div>
+	<h2>[[#{common.end.time}]]：</h2>
+	<div class="white-space" th:text="${#dates.format(jobLog.endTime, 'yyyy-MM-dd HH:mm:ss')}"></div>
+	<h2>[[#{sql.job.expected.result}]]：</h2>
+	<div class="white-space" style="overflow:auto;"  th:text="${jobLog.expectedResult}"></div>
+	<h2>[[#{sql.job.execution.result}]]：</h2>
+	<div class="white-space">
+		<pre style="overflow-y:auto;" th:text="${jobLog.executeResult}"></pre>
+	</div>
+	<h2>[[#{elastic.job.export.field}]]：</h2>
+	<div class="white-space">
+		<pre style="overflow-y:auto;" th:text="${jobLog.exportResult}"></pre>
+	</div>
+	<h2>[[#{sql.job.log.exception}]]：</h2>
+	<div class="white-space">
+		<pre style="overflow-y:auto;" th:text="${jobLog.exceptionLog}"></pre>
+	</div>
+	<div style="text-align: center;">
+		<button id="callbackBtn" type="button" class="btn btn-w-m btn-warning"
+				th:data-loading-text="'<i class=\'fa fa-hourglass-2\'></i> '+#{sql.job.log.callback.loading}"
+				th:data-error-text="'<i class=\'fa fa-exclamation-circle\'></i> '+#{home.server.error}"
+				th:data-success-text="'<i class=\'fa fa-check-circle\'></i> '+#{sql.job.log.callback.success}+' <i class=\'fa fa-thumbs-o-up\'></i>'"
+				th:data-failure-text="'<i class=\'fa fa-times-circle\'></i> '+#{sql.job.log.callback.failure}+' <i class=\'fa fa-frown-o\'></i>'"
+				autocomplete="off"><i class="fa fa-mail-forward"></i> [[#{sql.job.log.callback}]]</button>&nbsp;
+	</div>
+</div>
+
+	<form autocomplete="off" class="form-horizontal m-t" id="jobForm" th:if="${name == 'elasticJob'}">
 	    <div class="form-group">
 			<label class="col-sm-3 control-label">[[#{sql.job.id}]]：</label>
 			<div class="form-control-static" th:text="${job.id}">
@@ -104,7 +163,7 @@
 		</div>
 		<div class="form-group">
 			<label class="col-sm-3 control-label">[[#{elastic.job.query}]]：</label>
-			<div class="form-control-static">
+			<div class="col-sm-9 form-control-static">
 				<pre  th:text="${job.query}"></pre>
 			</div>
 		</div>
@@ -168,5 +227,70 @@
     </div>
 
 <th:block th:include="include :: footer" />
+<script th:inline="javascript">
+	var prefix = ctx + "monitor/elasticJobLog";
+
+	function callbackStart(){
+		$('#callbackBtn').button('loading')
+		$('#callbackBtn').removeClass('btn-danger')
+		$('#callbackBtn').removeClass('btn-primary')
+		$('#callbackBtn').addClass('btn-warning')
+		$('#callbackBtn').css('color','white')
+	}
+
+	function callbackSuccess(){
+		$('#callbackBtn').removeClass('btn-warning')
+		$('#callbackBtn').removeClass('btn-danger')
+		$('#callbackBtn').addClass('btn-primary')
+		$('#callbackBtn').removeAttr('style')
+		$('#callbackBtn').button('success')
+	}
+
+	function callbackFailure(){
+		$('#callbackBtn').removeClass('btn-warning')
+		$('#callbackBtn').removeClass('btn-primary')
+		$('#callbackBtn').addClass('btn-danger')
+		$('#callbackBtn').removeAttr('style')
+		$('#callbackBtn').button('failure')
+	}
+
+	function callbackError(){
+		$('#callbackBtn').removeClass('btn-warning')
+		$('#callbackBtn').removeClass('btn-primary')
+		$('#callbackBtn').addClass('btn-danger')
+		$('#callbackBtn').removeAttr('style')
+		$('#callbackBtn').button('error')
+	}
+
+	$(document).ready(function(){
+		$('#callbackBtn').on('click',function(){
+			callbackStart()
+			var id = $("[name='id']").val();
+			$.ajax({
+				type:"GET",
+				url:prefix + "/callback/" + id,
+				async:true,
+				error : function(){
+					callbackError()
+				},
+				success : function(data) {
+					if(data.code === 0){
+						var parent = window.parent;
+						parent.$.table.refresh();
+						var sqlTable = parent.table.config['bootstrap-table-elastic'];
+						if (sqlTable){
+							$("#" + sqlTable.id).bootstrapTable('refresh',{silent: true});
+						}
+						callbackSuccess()
+						setTimeout(() => $.modal.close(), 1000)
+					} else {
+						callbackFailure()
+					}
+				}
+			});
+		});
+
+	});
+</script>
 </body>
 </html>

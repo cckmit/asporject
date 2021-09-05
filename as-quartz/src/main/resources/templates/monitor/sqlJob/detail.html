@@ -39,9 +39,7 @@
 	<h2>[[#{common.end.time}]]：</h2>
 	<div class="white-space" th:text="${#dates.format(jobLog.endTime, 'yyyy-MM-dd HH:mm:ss')}"></div>
 	<h2>[[#{sql.job.expected.result}]]：</h2>
-	<div class="white-space" style="overflow:auto;">
-		<pre th:text="${jobLog.expectedResult}"></pre>
-	</div>
+	<div class="white-space" style="overflow:auto;" th:text="${jobLog.expectedResult}"></div>
 	<h2>[[#{sql.job.execution.result}]]：</h2>
 	<div class="white-space" style="overflow:auto;" id="executeResult" th:text="${jobLog.executeResult}"></div>
 	<h2>[[#{sql.job.log.exception}]]：</h2>

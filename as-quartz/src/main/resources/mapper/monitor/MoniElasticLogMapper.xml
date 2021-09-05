@@ -23,6 +23,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <resultMap type="MoniElastic" id="moniElasticResult">
         <result property="enName"    column="EN_NAME"    />
         <result property="chName"    column="CH_NAME"    />
+        <result property="descr"    column="DESCR"    />
         <result property="platform"    column="PLATFORM"    />
         <result property="priority"    column="PRIORITY"    />
         <result property="asid"    column="ASID"    />
@@ -30,7 +31,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
     <sql id="selectMoniElasticLogVo">
         select MEL.ID, MEL.ELASTIC_ID, MEL.START_TIME, MEL.END_TIME, MEL.EXPECTED_RESULT, MEL.EXECUTE_RESULT, MEL.EXCEPTION_LOG, MEL.EXECUTE_TIME, MEL.STATUS, MEL.ALERT_STATUS, MEL.OPERATOR, MEL.EXPORT_RESULT,
-        ME.EN_NAME, ME.CH_NAME, ME.PLATFORM, ME.PRIORITY, ME.ASID
+        ME.EN_NAME, ME.CH_NAME, ME.DESCR, ME.PLATFORM, ME.PRIORITY, ME.ASID
         from moni_elastic_log MEL
         left join moni_elastic ME on MEL.ELASTIC_ID = ME.ID
     </sql>

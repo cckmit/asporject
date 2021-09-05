@@ -220,7 +220,7 @@
     $(function(){
         var options = {
             url: prefix + "/updateSqlJob",
-            detailUrl: ctx + 'monitor/sqlJobLog/detail/{id}"',
+            detailUrl: ctx + 'monitor/sqlJobLog/detail/{id}',
             id:'bootstrap-table-sql',
             toolbar:'toolbarSql',
             pagination: false,
@@ -425,6 +425,7 @@
     $(function(){
         var options = {
             url: prefix + "/updateApiJob",
+            detailUrl: ctx + 'monitor/apiJobLog/detail/{id}',
             id:'bootstrap-table-api',
             toolbar:'toolbarApi',
             pagination: false,
@@ -435,6 +436,7 @@
             showColumns: false,
             headerStyle: headerStyle,
             onLoadSuccess: apiLastUpdateTime,
+            onClickCell: onClickApiCell,
             modalName: i18n('api.job'),
             columns: [
                 [{
@@ -503,6 +505,7 @@
                         },
                     },
                     {
+                        field: 'callback',
                         title: i18n('sql.job.log.callback'),
                         align: 'center',
                         formatter: function(value, row, index) {
@@ -521,6 +524,7 @@
     $(function(){
         var options = {
             url: prefix + "/updateElasticJob",
+            detailUrl: ctx + 'monitor/elasticJobLog/detail/{id}',
             id:'bootstrap-table-elastic',
             toolbar:'toolbarElastic',
             pagination: false,
@@ -531,6 +535,7 @@
             showColumns: false,
             headerStyle: headerStyle,
             onLoadSuccess: elasticLastUpdateTime,
+            onClickCell: onClickElasticCell,
             modalName: i18n('elastic.job'),
             columns: [
                 [{
@@ -599,6 +604,7 @@
                         },
                     },
                     {
+                        field: 'callback',
                         title: i18n('sql.job.log.callback'),
                         align: 'center',
                         formatter: function(value, row, index) {
@@ -679,6 +685,18 @@
     }
 
     function onClickSqlCell(field, value, row, $element){
+        if (field !== 'callback' && field !== 'alertStatus'){
+            $.operate.detail(row.id);
+        }
+    }
+
+    function onClickApiCell(field, value, row, $element){
+        if (field !== 'callback' && field !== 'alertStatus'){
+            $.operate.detail(row.id);
+        }
+    }
+
+    function onClickElasticCell(field, value, row, $element){
         if (field !== 'callback' && field !== 'alertStatus'){
             $.operate.detail(row.id);
         }

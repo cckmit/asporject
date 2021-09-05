@@ -83,6 +83,21 @@ public class MoniElasticLogController extends BaseController {
     }
 
     /**
+     * 日志详情
+     *
+     * @param id
+     * @param mmap
+     * @return
+     */
+    @RequiresPermissions("monitor:elasticJobLog:detail")
+    @GetMapping("/detail/{id}")
+    public String detail(@PathVariable("id") Long id, ModelMap mmap) {
+        mmap.put("name", "elasticJobLog");
+        mmap.put("jobLog", moniElasticLogService.selectMoniElasticLogById(id));
+        return prefix + "/detail";
+    }
+
+    /**
      * 清空日志
      *
      * @return

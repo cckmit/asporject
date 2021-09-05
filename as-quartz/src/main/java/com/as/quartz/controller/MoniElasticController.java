@@ -131,6 +131,7 @@ public class MoniElasticController extends BaseController {
     @RequiresPermissions("monitor:elasticJob:detail")
     @GetMapping("/detail/{id}")
     public String detail(@PathVariable("id") Long id, ModelMap mmap) {
+        mmap.put("name", "elasticJob");
         mmap.put("job", moniElasticService.selectMoniElasticById(id));
         return prefix + "/detail";
     }

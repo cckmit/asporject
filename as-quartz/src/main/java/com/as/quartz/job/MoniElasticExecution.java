@@ -58,6 +58,7 @@ public class MoniElasticExecution extends AbstractQuartzJob {
     private static final String JOB_CODE = "ELASTIC-JOB";
 
     private static final String JOB_DETAIL_URL = "/monitor/elasticJob/detail/";
+    private static final String LOG_DETAIL_URL = "/monitor/elasticJobLog/detail/";
 
     private MoniElasticLog moniElasticLog = new MoniElasticLog();
 
@@ -200,10 +201,6 @@ public class MoniElasticExecution extends AbstractQuartzJob {
         //发送告警
         if (Constants.SUCCESS.equals(moniElastic.getTelegramAlert())) {
             sendTelegram();
-//            if (!sendResponse.isOk()) {
-//                moniElasticLog.setStatus(Constants.ERROR);
-//                moniElasticLog.setExceptionLog("Telegram send message error: ".concat(sendResponse.description()));
-//            }
         }
     }
 
@@ -346,7 +343,8 @@ public class MoniElasticExecution extends AbstractQuartzJob {
         }
 
         InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup(
-                new InlineKeyboardButton("JOB Details").url(ASConfig.getAsDomain().concat(JOB_DETAIL_URL).concat(String.valueOf(moniElastic.getId()))));
+                new InlineKeyboardButton("JOB Details").url(ASConfig.getAsDomain().concat(JOB_DETAIL_URL).concat(String.valueOf(moniElastic.getId()))),
+                new InlineKeyboardButton("LOG Details").url(ASConfig.getAsDomain().concat(LOG_DETAIL_URL).concat(String.valueOf(moniElasticLog.getId()))));
 
 
         TelegramBot messageBot = new TelegramBot.Builder(bot).okHttpClient(OkHttpUtils.getInstance()).build();
@@ -381,8 +379,6 @@ public class MoniElasticExecution extends AbstractQuartzJob {
                 }
             }
         });
-
-//        return null;
     }
 
     /**

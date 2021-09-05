@@ -52,6 +52,7 @@ public class MoniApiExecution extends AbstractQuartzJob {
     private static final String JOB_CODE = "API-JOB";
 
     private static final String JOB_DETAIL_URL = "/monitor/apiJob/detail/";
+    private static final String LOG_DETAIL_URL = "/monitor/apiJobLog/detail/";
 
     private MoniApiLog moniApiLog = new MoniApiLog();
 
@@ -93,10 +94,6 @@ public class MoniApiExecution extends AbstractQuartzJob {
                 //发送告警
                 if (Constants.SUCCESS.equals(moniApi.getTelegramAlert())) {
                     sendTelegram();
-//                    if (!sendResponse.isOk()) {
-//                        moniApiLog.setStatus(Constants.ERROR);
-//                        moniApiLog.setExceptionLog("Telegram send message error: ".concat(sendResponse.description()));
-//                    }
                 }
                 //更新最后告警时间
                 moniApi.setLastAlert(DateUtils.getNowDate());
@@ -228,7 +225,8 @@ public class MoniApiExecution extends AbstractQuartzJob {
         }
 
         InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup(
-                new InlineKeyboardButton("JOB Details").url(ASConfig.getAsDomain().concat(JOB_DETAIL_URL).concat(String.valueOf(moniApi.getId()))));
+                new InlineKeyboardButton("JOB Details").url(ASConfig.getAsDomain().concat(JOB_DETAIL_URL).concat(String.valueOf(moniApi.getId()))),
+                new InlineKeyboardButton("LOG Details").url(ASConfig.getAsDomain().concat(LOG_DETAIL_URL).concat(String.valueOf(moniApiLog.getId()))));
 
 
         TelegramBot messageBot = new TelegramBot.Builder(bot).okHttpClient(OkHttpUtils.getInstance()).build();
@@ -262,8 +260,6 @@ public class MoniApiExecution extends AbstractQuartzJob {
                 }
             }
         });
-
-//        return ScheduleUtils.sendMessage(bot, chatId, telegramInfo, inlineKeyboard);
     }
 
     /**

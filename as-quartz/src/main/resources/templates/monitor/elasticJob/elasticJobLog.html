@@ -80,6 +80,7 @@
 </div>
 <th:block th:include="include :: footer"/>
 <script th:inline="javascript">
+    var detailFlag = [[${@permission.hasPermi('monitor:elasticJob:detail')}]];
     var editFlag = [[${@permission.hasPermi('monitor:elasticJob:edit')}]];
     var removeFlag = [[${@permission.hasPermi('monitor:elasticJob:remove')}]];
     var statusDatas = [[${@dict.getType('sys_common_status')}]];
@@ -158,43 +159,23 @@
                     title: i18n('sql.job.log.operator')
                 },
                 {
-                    field: 'expectedResult',
-                    title: i18n('sql.job.expected.result'),
+                    field: 'status',
+                    title: i18n('sql.job.execute.status'),
                     formatter: function (value, row, index) {
-                        return '<p><span data-toggle="tooltip" data-placement="left" title="' + value + '"><i class="fa fa-eye"></i></span></p>'
-                    },
-                    align: 'center',
+                        return $.table.selectDictLabel(statusDatas, value);
+                    }
                 },
                 {
                     field: 'executeResult',
                     title: i18n('sql.job.execution.result'),
-                    formatter: function (value, row, index) {
-                        if (value){
-                            var array = value.toString().split(';')
-                            if (array.length === 2){
-                                return '<p><span class="label label-warning" data-toggle="tooltip" data-placement="left" title="' + array[1] + '">' + array[0] + '</span></p>'
-                            }
-                            var exportResult = row.exportResult
-                            if (!exportResult){
-                                exportResult = array[0]
-                            }
-                            exportResult = exportResult.replaceAll("\"","'")
-                            return '<p><span class="label label-warning" data-toggle="tooltip" data-placement="left" title="' + exportResult + '">' + array[0] + '</span></p>'
-                        }
-                        return '<p><span class="label label-warning">NO RESULT</span></p>'
+                    align: 'center',
+                    formatter: function(value, row, index) {
+                        var actions = [];
+                        actions.push('<a class="btn btn-info btn-xs ' + detailFlag + '" href="javascript:void(0)" onclick="$.operate.detail(\'' + row.id + '\')"><i class="fa fa-search"></i>' + i18n('home.details') + '</a>');
+                        return actions.join('');
                     }
-                },
-                {
-                    field: 'status',
-                    title: i18n('sql.job.execute.status'),
-                    formatter: function (value, row, index) {
-                        var status = $.table.selectDictLabel(statusDatas, value)
-                        if (value === '2') {
-                            return '<p><span data-toggle="tooltip" data-placement="left" title="' + row.exceptionLog + '">' + status + '</span></p>'
-                        }
-                        return status;
-                    }
-                }]
+                }
+            ]
         };
         $.table.init(options);
     });
