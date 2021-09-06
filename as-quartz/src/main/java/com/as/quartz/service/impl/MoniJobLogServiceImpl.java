@@ -24,9 +24,6 @@ public class MoniJobLogServiceImpl implements IMoniJobLogService {
     @Autowired
     private MoniJobLogMapper moniJobLogMapper;
 
-    @Autowired
-    private MoniJobMapper moniJobMapper;
-
     /**
      * 查询SQL检测任務LOG
      *
