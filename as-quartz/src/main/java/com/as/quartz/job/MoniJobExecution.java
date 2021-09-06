@@ -173,7 +173,7 @@ public class MoniJobExecution extends AbstractQuartzJob {
         } else {
             moniJobLog.setOperator("system");
         }
-        if (StringUtils.isEmpty(moniJobLog.getExecuteResult())) {
+        if (StringUtils.isEmpty(moniJobLog.getExpectedResult())) {
             setExpectedResult();
         }
         //之前已经插入,本次更新日志到数据库中

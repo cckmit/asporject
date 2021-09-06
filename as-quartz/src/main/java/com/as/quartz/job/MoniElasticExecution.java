@@ -214,6 +214,7 @@ public class MoniElasticExecution extends AbstractQuartzJob {
         moniElastic = (MoniElastic) job;
         moniElasticLog.setStartTime(new Date());
         moniElasticLog.setElasticId(moniElastic.getId());
+        setExpectedResult();
         //此处先插入一条日志以获取日志id，方便后续使用
         SpringUtils.getBean(IMoniElasticLogService.class).addJobLog(moniElasticLog);
         //输出日志
@@ -253,6 +254,18 @@ public class MoniElasticExecution extends AbstractQuartzJob {
         } else {
             moniElasticLog.setOperator("system");
         }
+        if (StringUtils.isEmpty(moniElasticLog.getExpectedResult())) {
+            setExpectedResult();
+        }
+        //更新日志到数据库中
+        SpringUtils.getBean(IMoniElasticLogService.class).updateMoniElasticLog(moniElasticLog);
+        //输出日志
+        log.info("[Elastic检测任务]任务ID:{},任务名称:{},开始时间:{},结束时间:{},执行结束,耗时：{}秒,执行状态:{}",
+                moniElastic.getId(), moniElastic.getChName(), DateUtils.parseDateToStr(DateUtils.YYYY_MM_DD_HH_MM_SS, moniElasticLog.getStartTime()),
+                DateUtils.parseDateToStr(DateUtils.YYYY_MM_DD_HH_MM_SS, moniElasticLog.getEndTime()), runTime, Constants.SUCCESS.equals(moniElasticLog.getStatus()) ? "Success" : "failed");
+    }
+
+    private void setExpectedResult() {
         if (ScheduleConstants.MATCH_EQUAL.equals(moniElastic.getAutoMatch())) {
             moniElasticLog.setExpectedResult("output = " + moniElastic.getExpectedResult());
         } else if (ScheduleConstants.MATCH_NOT_EQUAL.equals(moniElastic.getAutoMatch())) {
@@ -268,12 +281,6 @@ public class MoniElasticExecution extends AbstractQuartzJob {
         } else if (ScheduleConstants.MATCH_NOT_EMPTY.equals(moniElastic.getAutoMatch())) {
             moniElasticLog.setExpectedResult("output is not empty");
         }
-        //更新日志到数据库中
-        SpringUtils.getBean(IMoniElasticLogService.class).updateMoniElasticLog(moniElasticLog);
-        //输出日志
-        log.info("[Elastic检测任务]任务ID:{},任务名称:{},开始时间:{},结束时间:{},执行结束,耗时：{}秒,执行状态:{}",
-                moniElastic.getId(), moniElastic.getChName(), DateUtils.parseDateToStr(DateUtils.YYYY_MM_DD_HH_MM_SS, moniElasticLog.getStartTime()),
-                DateUtils.parseDateToStr(DateUtils.YYYY_MM_DD_HH_MM_SS, moniElasticLog.getEndTime()), runTime, Constants.SUCCESS.equals(moniElasticLog.getStatus()) ? "Success" : "failed");
     }
 
     /**
