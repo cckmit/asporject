@@ -336,12 +336,12 @@ public class MoniElasticExecution extends AbstractQuartzJob {
         String telegramInfo = moniElastic.getTelegramInfo();
         if (StringUtils.isNotEmpty(telegramInfo)) {
             telegramInfo = telegramInfo.replace("{id}", String.valueOf(moniElastic.getId()))
+                    .replace("{descr}", StringUtils.isNotEmpty(moniElastic.getDescr()) ? moniElastic.getDescr() : "")
                     .replace("{asid}", moniElastic.getAsid())
                     .replace("{priority}", "1".equals(moniElastic.getPriority()) ? "NU" : "URG")
                     .replace("{zh_name}", moniElastic.getChName())
                     .replace("{en_name}", moniElastic.getEnName())
                     .replace("{platform}", DictUtils.getDictLabel(DictTypeConstants.UB8_PLATFORM_TYPE, moniElastic.getPlatform()))
-                    .replace("{descr}", StringUtils.isNotEmpty(moniElastic.getDescr()) ? moniElastic.getDescr() : "")
                     .replace("{result}", moniElasticLog.getExecuteResult().replace(";", ""))
                     .replace("{env}", StringUtils.isNotEmpty(SpringUtils.getActiveProfile()) ? Objects.requireNonNull(SpringUtils.getActiveProfile()) : "")
                     .replace("{export}", StringUtils.isNull(moniElasticLog.getExportResult()) ? "" : moniElasticLog.getExportResult());

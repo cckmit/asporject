@@ -210,12 +210,12 @@ public class MoniApiExecution extends AbstractQuartzJob {
         String telegramInfo = moniApi.getTelegramInfo();
         if (StringUtils.isNotEmpty(telegramInfo)) {
             telegramInfo = telegramInfo.replace("{id}", String.valueOf(moniApi.getId()))
+                    .replace("{descr}", StringUtils.isNotEmpty(moniApi.getDescr()) ? moniApi.getDescr() : "")
                     .replace("{asid}", moniApi.getAsid())
                     .replace("{priority}", "1".equals(moniApi.getPriority()) ? "NU" : "URG")
                     .replace("{zh_name}", moniApi.getChName())
                     .replace("{en_name}", moniApi.getEnName())
                     .replace("{platform}", DictUtils.getDictLabel(DictTypeConstants.UB8_PLATFORM_TYPE, moniApi.getPlatform()))
-                    .replace("{descr}", StringUtils.isNotEmpty(moniApi.getDescr()) ? moniApi.getDescr() : "")
                     .replace("{url}", moniApi.getUrl())
                     .replace("{result}", StringUtils.isNotEmpty(moniApiLog.getExecuteResult()) ? moniApiLog.getExecuteResult() : "")
                     .replace("{env}", StringUtils.isNotEmpty(SpringUtils.getActiveProfile()) ? Objects.requireNonNull(SpringUtils.getActiveProfile()) : "")

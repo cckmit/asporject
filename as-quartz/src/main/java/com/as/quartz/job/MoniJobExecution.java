@@ -409,12 +409,12 @@ public class MoniJobExecution extends AbstractQuartzJob {
         telegramInfo = moniJob.getTelegramInfo();
         if (StringUtils.isNotEmpty(telegramInfo)) {
             telegramInfo = telegramInfo.replace("{id}", String.valueOf(moniJob.getId()))
+                    .replace("{descr}", StringUtils.isNotEmpty(moniJob.getDescr()) ? moniJob.getDescr() : "")
                     .replace("{asid}", moniJob.getAsid())
                     .replace("{priority}", "1".equals(moniJob.getPriority()) ? "NU" : "URG")
                     .replace("{zh_name}", moniJob.getChName())
                     .replace("{en_name}", moniJob.getEnName())
                     .replace("{platform}", DictUtils.getDictLabel(DictTypeConstants.UB8_PLATFORM_TYPE, moniJob.getPlatform()))
-                    .replace("{descr}", StringUtils.isNotEmpty(moniJob.getDescr()) ? moniJob.getDescr() : "")
                     .replace("{result}", "")
                     .replace("{env}", StringUtils.isNotEmpty(SpringUtils.getActiveProfile()) ? Objects.requireNonNull(SpringUtils.getActiveProfile()) : "")
                     .replace("{export}", "");
