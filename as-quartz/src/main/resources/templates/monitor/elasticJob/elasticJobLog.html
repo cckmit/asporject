@@ -111,14 +111,28 @@
                     title: i18n('sql.job.id')
                 },
                 {
+                    field: 'moniElastic.asid',
+                    title: 'ASID',
+                    sortable: true,
+                    cellStyle: {
+                        css:{"white-space":"nowrap"}
+                    }
+                },
+                {
                     field: 'moniElastic.chName',
                     title: i18n('sql.job.name_zh'),
-                    visible: i18n('locale') !== 'en-US'
+                    visible: i18n('locale') !== 'en-US',
+                    cellStyle: {
+                        css:{"white-space":"nowrap"}
+                    }
                 },
                 {
                     field: 'moniElastic.enName',
                     title: i18n('sql.job.name_en'),
-                    visible: i18n('locale') === 'en-US'
+                    visible: i18n('locale') === 'en-US',
+                    cellStyle: {
+                        css:{"white-space":"nowrap"}
+                    }
                 },
                 {
                     field: 'moniElastic.platform',

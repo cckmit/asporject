@@ -78,8 +78,8 @@ public class MoniExportExecution extends AbstractQuartzJob {
 
 
         //发送邮件
-        mail.setSubject("[Export Data] " + moniExport.getMailSubject());
-        mail.setContent(moniExport.getMailContent());
+        mail.setSubject("[Export Data] " + doReplacement(moniExport.getMailSubject()));
+        mail.setContent(doReplacement(moniExport.getMailContent()));
         mail.setAttachment(file);
         SpringUtils.getBean(IJobService.class).sendEmail(mail);
 
@@ -87,6 +87,16 @@ public class MoniExportExecution extends AbstractQuartzJob {
         //更新最后导出时间
         moniExport.setLastExport(DateUtils.getNowDate());
         SpringUtils.getBean(IMoniExportService.class).updateMoniExportLastExportTime(moniExport);
+    }
+
+    private String doReplacement(String str) {
+        str = str.replace("{id}", String.valueOf(moniExport.getId()))
+                .replace("{asid}", moniExport.getAsid())
+                .replace("{zh_name}", moniExport.getChName())
+                .replace("{en_name}", moniExport.getEnName())
+                .replace("{platform}", moniExport.getPlatform())
+                .replace("{ticket}", moniExport.getPlatform());
+        return str;
     }
 
     /**

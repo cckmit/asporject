@@ -1,10 +1,12 @@
 package com.as.quartz.controller;
 
 import com.as.common.annotation.Log;
+import com.as.common.constant.DictTypeConstants;
 import com.as.common.core.controller.BaseController;
 import com.as.common.core.domain.AjaxResult;
 import com.as.common.core.page.TableDataInfo;
 import com.as.common.enums.BusinessType;
+import com.as.common.utils.DictUtils;
 import com.as.common.utils.StringUtils;
 import com.as.common.utils.poi.ExcelUtil;
 import com.as.quartz.domain.MoniApi;
@@ -94,7 +96,17 @@ public class MoniApiLogController extends BaseController {
     @GetMapping("/detail/{id}")
     public String detail(@PathVariable("id") Long id, ModelMap mmap) {
         mmap.put("name", "apiJobLog");
-        mmap.put("jobLog", moniApiLogService.selectMoniApiLogById(id));
+        MoniApiLog moniApiLog = moniApiLogService.selectMoniApiLogById(id);
+        String descr = moniApiLog.getMoniApi().getDescr();
+        if (StringUtils.isNotEmpty(descr)) {
+            descr = descr.replace("{id}", String.valueOf(moniApiLog.getApiId()))
+                    .replace("{asid}", moniApiLog.getMoniApi().getAsid())
+                    .replace("{zh_name}", moniApiLog.getMoniApi().getChName())
+                    .replace("{en_name}", moniApiLog.getMoniApi().getEnName())
+                    .replace("{platform}", DictUtils.getDictLabel(DictTypeConstants.UB8_PLATFORM_TYPE, moniApiLog.getMoniApi().getPlatform()));
+        }
+        moniApiLog.getMoniApi().setDescr(descr);
+        mmap.put("jobLog", moniApiLog);
         return prefix + "/detail";
     }
 

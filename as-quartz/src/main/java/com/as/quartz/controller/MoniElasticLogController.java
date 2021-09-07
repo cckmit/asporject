@@ -1,10 +1,12 @@
 package com.as.quartz.controller;
 
 import com.as.common.annotation.Log;
+import com.as.common.constant.DictTypeConstants;
 import com.as.common.core.controller.BaseController;
 import com.as.common.core.domain.AjaxResult;
 import com.as.common.core.page.TableDataInfo;
 import com.as.common.enums.BusinessType;
+import com.as.common.utils.DictUtils;
 import com.as.common.utils.StringUtils;
 import com.as.common.utils.poi.ExcelUtil;
 import com.as.quartz.domain.MoniElastic;
@@ -93,7 +95,17 @@ public class MoniElasticLogController extends BaseController {
     @GetMapping("/detail/{id}")
     public String detail(@PathVariable("id") Long id, ModelMap mmap) {
         mmap.put("name", "elasticJobLog");
-        mmap.put("jobLog", moniElasticLogService.selectMoniElasticLogById(id));
+        MoniElasticLog moniElasticLog = moniElasticLogService.selectMoniElasticLogById(id);
+        String descr = moniElasticLog.getMoniElastic().getDescr();
+        if (StringUtils.isNotEmpty(descr)) {
+            descr = descr.replace("{id}", String.valueOf(moniElasticLog.getElasticId()))
+                    .replace("{asid}", moniElasticLog.getMoniElastic().getAsid())
+                    .replace("{zh_name}", moniElasticLog.getMoniElastic().getChName())
+                    .replace("{en_name}", moniElasticLog.getMoniElastic().getEnName())
+                    .replace("{platform}", DictUtils.getDictLabel(DictTypeConstants.UB8_PLATFORM_TYPE, moniElasticLog.getMoniElastic().getPlatform()));
+        }
+        moniElasticLog.getMoniElastic().setDescr(descr);
+        mmap.put("jobLog", moniElasticLog);
         return prefix + "/detail";
     }
 

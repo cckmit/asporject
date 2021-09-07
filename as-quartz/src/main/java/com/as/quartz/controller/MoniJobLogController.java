@@ -1,10 +1,12 @@
 package com.as.quartz.controller;
 
 import com.as.common.annotation.Log;
+import com.as.common.constant.DictTypeConstants;
 import com.as.common.core.controller.BaseController;
 import com.as.common.core.domain.AjaxResult;
 import com.as.common.core.page.TableDataInfo;
 import com.as.common.enums.BusinessType;
+import com.as.common.utils.DictUtils;
 import com.as.common.utils.StringUtils;
 import com.as.common.utils.poi.ExcelUtil;
 import com.as.quartz.domain.MoniJob;
@@ -93,7 +95,17 @@ public class MoniJobLogController extends BaseController {
     @GetMapping("/detail/{id}")
     public String detail(@PathVariable("id") Long id, ModelMap mmap) {
         mmap.put("name", "sqlJobLog");
-        mmap.put("jobLog", moniJobLogService.selectMoniJobLogById(id));
+        MoniJobLog moniJobLog = moniJobLogService.selectMoniJobLogById(id);
+        String descr = moniJobLog.getMoniJob().getDescr();
+        if (StringUtils.isNotEmpty(descr)) {
+            descr = descr.replace("{id}", String.valueOf(moniJobLog.getJobId()))
+                    .replace("{asid}", moniJobLog.getMoniJob().getAsid())
+                    .replace("{zh_name}", moniJobLog.getMoniJob().getChName())
+                    .replace("{en_name}", moniJobLog.getMoniJob().getEnName())
+                    .replace("{platform}", DictUtils.getDictLabel(DictTypeConstants.UB8_PLATFORM_TYPE, moniJobLog.getMoniJob().getPlatform()));
+        }
+        moniJobLog.getMoniJob().setDescr(descr);
+        mmap.put("jobLog", moniJobLog);
         return prefix + "/detail";
     }
 
