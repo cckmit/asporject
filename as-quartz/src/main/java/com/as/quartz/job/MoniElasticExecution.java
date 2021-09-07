@@ -214,7 +214,6 @@ public class MoniElasticExecution extends AbstractQuartzJob {
         moniElastic = (MoniElastic) job;
         moniElasticLog.setStartTime(new Date());
         moniElasticLog.setElasticId(moniElastic.getId());
-        setExpectedResult();
         //此处先插入一条日志以获取日志id，方便后续使用
         SpringUtils.getBean(IMoniElasticLogService.class).addJobLog(moniElasticLog);
         //输出日志
@@ -254,9 +253,7 @@ public class MoniElasticExecution extends AbstractQuartzJob {
         } else {
             moniElasticLog.setOperator("system");
         }
-        if (StringUtils.isEmpty(moniElasticLog.getExpectedResult())) {
-            setExpectedResult();
-        }
+        setExpectedResult();
         //更新日志到数据库中
         SpringUtils.getBean(IMoniElasticLogService.class).updateMoniElasticLog(moniElasticLog);
         //输出日志

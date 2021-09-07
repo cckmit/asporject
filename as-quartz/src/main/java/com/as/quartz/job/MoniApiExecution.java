@@ -116,7 +116,6 @@ public class MoniApiExecution extends AbstractQuartzJob {
         moniApi = (MoniApi) job;
         moniApiLog.setStartTime(new Date());
         moniApiLog.setApiId(moniApi.getId());
-        moniApiLog.setExpectedCode(moniApi.getExpectedCode());
         //此处先插入一条日志以获取日志id，方便后续使用
         SpringUtils.getBean(IMoniApiLogService.class).addJobLog(moniApiLog);
         //输出日志
@@ -148,6 +147,7 @@ public class MoniApiExecution extends AbstractQuartzJob {
     @Override
     protected void doFinally(JobExecutionContext context, Object job) {
         moniApiLog.setEndTime(new Date());
+        moniApiLog.setExpectedCode(moniApi.getExpectedCode());
         long runTime = (moniApiLog.getEndTime().getTime() - moniApiLog.getStartTime().getTime()) / 1000;
         moniApiLog.setExecuteTime(runTime);
         String operator = (String) context.getMergedJobDataMap().get("operator");
