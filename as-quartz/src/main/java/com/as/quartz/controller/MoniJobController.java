@@ -6,6 +6,7 @@ import com.as.common.core.domain.AjaxResult;
 import com.as.common.core.page.TableDataInfo;
 import com.as.common.enums.BusinessType;
 import com.as.common.utils.ShiroUtils;
+import com.as.common.utils.StringUtils;
 import com.as.common.utils.poi.ExcelUtil;
 import com.as.quartz.domain.MoniJob;
 import com.as.quartz.service.IJobService;
@@ -188,6 +189,16 @@ public class MoniJobController extends BaseController {
     @ResponseBody
     public boolean checkCronExpressionIsValid(MoniJob job) {
         return sysJobService.checkCronExpressionIsValid(job.getCronExpression());
+    }
+
+    /**
+     * 校验ID是否存在
+     */
+    @PostMapping("/checkIdExist")
+    @ResponseBody
+    public boolean checkIdExist(MoniJob job) {
+        MoniJob moniJob = moniJobService.selectMoniJobById(job.getId());
+        return StringUtils.isNull(moniJob);
     }
 
     /**

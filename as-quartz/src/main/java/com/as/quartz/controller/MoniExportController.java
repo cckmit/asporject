@@ -6,6 +6,7 @@ import com.as.common.core.domain.AjaxResult;
 import com.as.common.core.page.TableDataInfo;
 import com.as.common.enums.BusinessType;
 import com.as.common.utils.ShiroUtils;
+import com.as.common.utils.StringUtils;
 import com.as.common.utils.poi.ExcelUtil;
 import com.as.quartz.domain.MoniExport;
 import com.as.quartz.service.IJobService;
@@ -191,6 +192,16 @@ public class MoniExportController extends BaseController {
     @ResponseBody
     public boolean checkCronExpressionIsValid(MoniExport job) {
         return sysJobService.checkCronExpressionIsValid(job.getCronExpression());
+    }
+
+    /**
+     * 校验ID是否存在
+     */
+    @PostMapping("/checkIdExist")
+    @ResponseBody
+    public boolean checkIdExist(MoniExport job) {
+        MoniExport exportJob = moniExportService.selectMoniExportById(job.getId());
+        return StringUtils.isNull(exportJob);
     }
 
     /**

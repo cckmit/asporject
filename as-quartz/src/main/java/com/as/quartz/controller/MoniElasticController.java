@@ -6,6 +6,7 @@ import com.as.common.core.domain.AjaxResult;
 import com.as.common.core.page.TableDataInfo;
 import com.as.common.enums.BusinessType;
 import com.as.common.utils.ShiroUtils;
+import com.as.common.utils.StringUtils;
 import com.as.common.utils.poi.ExcelUtil;
 import com.as.quartz.domain.MoniElastic;
 import com.as.quartz.service.IJobService;
@@ -179,6 +180,16 @@ public class MoniElasticController extends BaseController {
     @ResponseBody
     public boolean checkCronExpressionIsValid(MoniElastic job) {
         return sysJobService.checkCronExpressionIsValid(job.getCronExpression());
+    }
+
+    /**
+     * 校验ID是否存在
+     */
+    @PostMapping("/checkIdExist")
+    @ResponseBody
+    public boolean checkIdExist(MoniElastic job) {
+        MoniElastic elasticJob = moniElasticService.selectMoniElasticById(job.getId());
+        return StringUtils.isNull(elasticJob);
     }
 
     /**
