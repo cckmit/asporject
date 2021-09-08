@@ -13,7 +13,7 @@ $(document).ready(function(){
 	},"请填写正确的11位手机号");
 	// 订单号验证
 	jQuery.validator.addMethod("isOrder", function (value, element) {
-		var order = /^[a-zA-Z0-9]{2,22}$/;
+		var order = /^[a-zA-Z0-9]{2,30}$/;
 		return this.optional(element) || (order.test(value));
 	});
 	//电话号码验证
