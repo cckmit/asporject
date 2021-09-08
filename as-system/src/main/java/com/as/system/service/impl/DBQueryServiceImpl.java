@@ -141,6 +141,8 @@ public class DBQueryServiceImpl implements IDBQueryService {
                 sql.append(pageNum * pageSize);
                 sql.append(" ) WHERE RN > ");
                 sql.append((pageNum - 1) * pageSize);
+            } else {
+                sql.append(")");
             }
         }
 

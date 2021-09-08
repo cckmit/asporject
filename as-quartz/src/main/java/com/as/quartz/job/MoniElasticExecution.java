@@ -341,7 +341,7 @@ public class MoniElasticExecution extends AbstractQuartzJob {
                     .replace("{platform}", DictUtils.getDictLabel(DictTypeConstants.UB8_PLATFORM_TYPE, moniElastic.getPlatform()))
                     .replace("{result}", moniElasticLog.getExecuteResult().replace(";", ""))
                     .replace("{env}", StringUtils.isNotEmpty(SpringUtils.getActiveProfile()) ? Objects.requireNonNull(SpringUtils.getActiveProfile()) : "")
-                    .replace("{export}", StringUtils.isNull(moniElasticLog.getExportResult()) ? "" : moniElasticLog.getExportResult());
+                    .replace("{export}", StringUtils.isNull(moniElasticLog.getExportResult()) ? "Export field is not set" : moniElasticLog.getExportResult());
         } else {
             telegramInfo = "LOG Monitor ID(" + moniElastic.getId() + "),Notification content is not set";
         }
