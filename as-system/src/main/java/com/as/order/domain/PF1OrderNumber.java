@@ -24,7 +24,7 @@ public class PF1OrderNumber implements Serializable {
      * 订单号
      */
     @NotBlank(message = "订单号不能为空")
-    @Pattern(regexp = "^[a-zA-Z0-9]{2,20}$" , message = "订单号不能包含特殊字符/空格/符号")
+    @Pattern(regexp = "^[a-zA-Z0-9]{2,22}$" , message = "订单号不能包含特殊字符/空格/符号")
     private String orderNo;
 
     /**
