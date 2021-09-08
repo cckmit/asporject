@@ -148,12 +148,12 @@ public class MoniElasticExecution extends AbstractQuartzJob {
                         if (tmpExportResult.length() > 500) {
                             tmpExportResult = tmpExportResult.substring(0, 500) + "\n... more data not be showed";
                         }
-                        exportResult.append(exportField).append(":").append(tmpExportResult).append("\n\n");
+                        exportResult.append(exportField).append(":").append(tmpExportResult).append("\n");
                     } else {
-                        exportResult.append(exportField).append(":").append("null").append("\n\n");
+                        exportResult.append(exportField).append(":").append("null").append("\n");
                     }
                 } else {
-                    exportResult.append(exportField).append(":").append("null").append("\n\n");
+                    exportResult.append(exportField).append(":").append("null").append("\n");
                 }
                 count++;
             }
