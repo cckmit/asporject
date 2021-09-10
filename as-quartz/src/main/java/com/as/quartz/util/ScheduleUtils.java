@@ -80,26 +80,35 @@ public class ScheduleUtils {
     /**
      * 获取TG配置
      */
-    public static String[] getTgData(String telegramConfig) throws Exception {
-        String[] tgData;
+    public static String[] getTgData(String telegramConfig, boolean isWebhook) throws Exception {
+        String[] tgData = new String[2];
         //如果是dev环境则返回测试群组
-        if ("dev".equals(SpringUtils.getActiveProfile())) {
-            tgData = new String[2];
-            tgData[0] = "1937111623:AAHDVpT1bezDDJ_Lf7HmyYCRd8mZeSlHCwM";
-            tgData[1] = "-532553117";
-//            tgData[1] = "736145377";
-            return tgData;
-        }
+//        if ("dev".equals(SpringUtils.getActiveProfile())) {
+//            tgData[0] = "1937111623:AAHDVpT1bezDDJ_Lf7HmyYCRd8mZeSlHCwM";
+//            tgData[1] = "-532553117";
+////            tgData[1] = "736145377";
+//            return tgData;
+//        }
 
         String config = DictUtils.getDictRemark(DictTypeConstants.TELEGRAM_NOTICE_GROUP, telegramConfig);
         if (StringUtils.isEmpty(config)) {
             //若是沒有设置telegram通知群组,则抛出例外
-            throw new Exception("Cant find any telegram group setting");
+            throw new Exception("Cant find telegram group setting");
         }
-        tgData = config.split(";");
-        if (tgData.length != 2) {
-            //若是数量不等于2，则配置错误
+        String[] tgDataTmp = config.split(";");
+        if (tgDataTmp.length < 2) {
+            //若是数量小于2，则配置错误
             throw new Exception("telegram group Configuration error, please check");
+        }
+        if (tgDataTmp.length > 2) {
+            tgData[0] = tgDataTmp[1];
+            tgData[1] = tgDataTmp[2];
+            if (isWebhook) {
+                tgData[0] = tgDataTmp[0];
+            }
+        } else {
+            tgData[0] = tgDataTmp[0];
+            tgData[1] = tgDataTmp[1];
         }
         return tgData;
     }

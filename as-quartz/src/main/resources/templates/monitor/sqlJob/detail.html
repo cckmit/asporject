@@ -1,297 +1,328 @@
 <!DOCTYPE html>
 <html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
 <head>
-	<th:block th:include="include :: header('sql检测定时任务详细')" />
-	<style type="text/css">
-		h2{
-			margin:0px 0px 3px 0px;
-		}
+    <th:block th:include="include :: header('sql检测定时任务详细')"/>
+    <style type="text/css">
+        h2 {
+            margin: 0px 0px 3px 0px;
+        }
 
-		.white-space{
-			border:1px solid #333;
-			background:#FFFFFF;
-			padding:5px;
-			margin-bottom:20px;
-		}
-		table {width:100%;}
+        .white-space {
+            border: 1px solid #333;
+            background: #FFFFFF;
+            padding: 5px;
+            margin-bottom: 20px;
+        }
 
-		.block{
-			color: #333;
-			background: #E7ECF3;
-			border: 1px solid #AAA;
-			margin: 5px;
-			padding: 13px;
-			border-radius: 10px;
-			-moz-border-radius: 10px;
-			-webkit-border-radius: 10px;
-		}
-	</style>
+        table {
+            width: 100%;
+        }
+
+        .block {
+            color: #333;
+            background: #E7ECF3;
+            border: 1px solid #AAA;
+            margin: 5px;
+            padding: 13px;
+            border-radius: 10px;
+            -moz-border-radius: 10px;
+            -webkit-border-radius: 10px;
+        }
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style>
 </head>
 <body class="white-bg">
 <div class="block" style="min-height:100%;" th:if="${name == 'sqlJobLog'}">
-	<input id="id" name="id" type="hidden" th:field="*{jobLog.id}"/>
-	<h2>[[#{sql.job.descr}]]：</h2>
-	<div class="white-space">
-		<pre th:text="${jobLog.moniJob.descr}"></pre>
-	</div>
-	<h2>[[#{sql.job.execute.time}]]：</h2>
-	<div class="white-space" th:text="${#dates.format(jobLog.startTime, 'yyyy-MM-dd HH:mm:ss')}"></div>
-	<h2>[[#{common.end.time}]]：</h2>
-	<div class="white-space" th:text="${#dates.format(jobLog.endTime, 'yyyy-MM-dd HH:mm:ss')}"></div>
-	<h2>[[#{sql.job.expected.result}]]：</h2>
-	<div class="white-space" style="overflow:auto;" th:text="${jobLog.expectedResult}"></div>
-	<h2>[[#{sql.job.execution.result}]]：</h2>
-	<div class="white-space" style="overflow:auto;" id="executeResult" th:text="${jobLog.executeResult}"></div>
-	<h2>[[#{sql.job.log.exception}]]：</h2>
-	<div class="white-space">
-		<pre style="overflow-y:auto;" th:text="${jobLog.exceptionLog}"></pre>
-	</div>
-
-	<div style="text-align: center;">
-		<button id="callbackBtn" type="button" class="btn btn-w-m btn-warning"
-				th:data-loading-text="'<i class=\'fa fa-hourglass-2\'></i> '+#{sql.job.log.callback.loading}"
-				th:data-error-text="'<i class=\'fa fa-exclamation-circle\'></i> '+#{home.server.error}"
-				th:data-success-text="'<i class=\'fa fa-check-circle\'></i> '+#{sql.job.log.callback.success}+' <i class=\'fa fa-thumbs-o-up\'></i>'"
-				th:data-failure-text="'<i class=\'fa fa-times-circle\'></i> '+#{sql.job.log.callback.failure}+' <i class=\'fa fa-frown-o\'></i>'"
-				autocomplete="off"><i class="fa fa-mail-forward"></i> [[#{sql.job.log.callback}]]</button>&nbsp;
-	</div>
-</div>
-
-	
-	<form autocomplete="off" class="form-horizontal m-t" id="jobForm" th:if="${name == 'sqlJob'}">
-	    <div class="form-group">
-			<label class="col-sm-3 control-label">[[#{sql.job.id}]]：</label>
-			<div class="form-control-static" th:text="${job.id}">
-			</div>
-		</div>
-		<div class="form-group">
-			<label class="col-sm-3 control-label">ASID：</label>
-			<div class="form-control-static" th:text="${job.asid}">
-			</div>
-		</div>
-		<div class="form-group">
-			<label class="col-sm-3 control-label">Ticket Number：</label>
-			<div class="form-control-static" th:text="${#strings.defaultString(job.ticketNumber, '-')}">
-			</div>
-		</div>
-		<div class="form-group">
-			<label class="col-sm-3 control-label">[[#{sql.job.name_zh}]]：</label>
-			<div class="form-control-static" th:text="${job.chName}">
-			</div>
-		</div>
-		<div class="form-group">
-			<label class="col-sm-3 control-label">[[#{sql.job.name_en}]]：</label>
-			<div class="form-control-static" th:text="${job.enName}">
-			</div>
-		</div>
-		<div class="form-group">
-			<label class="col-sm-3 control-label">[[#{sql.job.status}]]：</label>
-			<div class="form-control-static" th:class="${job.status == '0' ? 'label label-primary' : 'label label-danger'}" th:text="${job.status} == '0' ? #{'正常'} : #{'暂停'}">
-			</div>
-		</div>
-		<div class="form-group">
-			<label class="col-sm-3 control-label">JDBC：</label>
-			<div class="form-control-static" th:text="${job.jdbc}">
-			</div>
-		</div>
-		<div class="form-group">
-			<label class="col-sm-3 control-label">[[#{sql.job.platform}]]：</label>
-			<div class="form-control-static" th:class="${job.platform == '1.0' ? 'label label-success' : 'label label-primary'}" th:text="${job.platform == '1.0' ? 'Platform 1.0' : 'Platform 5.0'}">
-			</div>
-		</div>
-		<div class="form-group">
-			<label class="col-sm-3 control-label">[[#{sql.job.cron.expression}]]：</label>
-			<div class="form-control-static" th:text="${job.cronExpression}">
-			</div>
-		</div>
-		<div class="form-group">
-			<label class="col-sm-3 control-label">[[#{sql.job.next.run.time}]]：</label>
-			<div class="form-control-static" th:text="${#dates.format(job.nextValidTime, 'yyyy-MM-dd HH:mm:ss')}">
-			</div>
-		</div>
-		<div class="form-group">
-			<label class="col-sm-3 control-label">[[#{sql.job.related.export}]]：</label>
-			<div class="form-control-static" th:text="${#strings.defaultString(job.relExport, '-')}">
-			</div>
-		</div>
-		<div class="form-group">
-			<label class="col-sm-3 control-label">[[#{sql.job.related.api}]]：</label>
-			<div class="form-control-static" th:text="${#strings.defaultString(job.relApi, '-')}">
-			</div>
-		</div>
-		<div class="form-group">
-			<label class="col-sm-3 control-label">[[#{sql.job.tg.alert}]]：</label>
-			<div class="form-control-static" th:class="${job.telegramAlert == '0' ? 'label label-primary' : 'label label-danger'}" th:text="${job.telegramAlert} == '0' ? #{'正常'} : #{'停用'}">
-			</div>
-		</div>
-		<div class="form-group">
-			<label class="col-sm-3 control-label">[[#{sql.job.tg.info}]]：</label>
-			<div class="col-sm-9 form-control-static">
-				<pre th:text="${#strings.defaultString(job.telegramInfo, '-')}"></pre>
-			</div>
-		</div>
-		<div class="form-group">
-			<label class="col-sm-3 control-label">[[#{sql.job.ignore.alert}]]：</label>
-			<div id="ignoreAlert" class="form-control-static"  th:text="${job.ignoreAlert}">
-			</div>
-		</div>
-		<div class="form-group">
-			<label class="col-sm-3 control-label">[[#{sql.job.tg.group}]]：</label>
-			<div id="telegramConfig" class="form-control-static"  th:text="${#strings.defaultString(job.telegramConfig, '-')}">
-			</div>
-		</div>
-		<div class="form-group">
-			<label class="col-sm-3 control-label">[[#{sql.job.requester}]]：</label>
-			<div class="form-control-static" th:text="${job.requester}">
-			</div>
-		</div>
-		<div class="form-group">
-			<label class="col-sm-3 control-label">[[#{sql.job.priority}]]：</label>
-			<div class="form-control-static" th:class="${job.priority == '1' ? 'label label-primary' : 'label label-danger'}" th:text="${job.priority} == '1' ? #{'不紧急'} : #{'紧急'}">
-			</div>
-		</div>
-		<div class="form-group">
-			<label class="col-sm-3 control-label">[[#{sql.job.action}]]：</label>
-			<div class="form-control-static" th:text="${job.actionItem}"></div>
-		</div>
-		<div class="form-group">
-			<label class="col-sm-3 control-label">[[#{sql.job.descr}]]：</label>
-			<div class="col-sm-9 form-control-static">
-				<pre th:text="${#strings.defaultString(job.descr, '-')}"></pre>
-			</div>
-		</div>
-		<div class="form-group">
-			<label class="col-sm-3 control-label">[[#{sql.job.script}]]：</label>
-			<div class="col-sm-9 form-control-static">
-				<pre  th:text="${job.script}"></pre>
-			</div>
-		</div>
-		<div class="form-group">
-			<label class="col-sm-3 control-label">[[#{sql.job.auto.match}]]：</label>
-			<div class="form-control-static" th:if="${job.autoMatch == '0'}">[[#{不比对}]]</div>
-			<div class="form-control-static" th:if="${job.autoMatch == '1'}">[[#{等于}]]</div>
-			<div class="form-control-static" th:if="${job.autoMatch == '2'}">[[#{不等于}]]</div>
-			<div class="form-control-static" th:if="${job.autoMatch == '3'}">[[#{大于}]]</div>
-			<div class="form-control-static" th:if="${job.autoMatch == '4'}">[[#{小于}]]</div>
-			<div class="form-control-static" th:if="${job.autoMatch == '5'}">[[#{无资料}]]</div>
-			<div class="form-control-static" th:if="${job.autoMatch == '6'}">[[#{有资料}]]</div>
-		</div>
-		<div class="form-group">
-			<label class="col-sm-3 control-label">[[#{sql.job.expected.result}]]：</label>
-			<div class="form-control-static" th:text="${#strings.defaultString(job.expectedResult, '-')}">
-			</div>
-		</div>
-		<div class="form-group">
-			<label class="col-sm-3 control-label">[[#{sql.job.last.alert}]]：</label>
-			<div class="form-control-static" th:text="${#strings.defaultString(#dates.format(job.lastAlert, 'yyyy-MM-dd HH:mm:ss'), '-')}">
-			</div>
-		</div>
-		<div class="form-group">
-			<label class="col-sm-3 control-label">[[#{common.create.by}]]：</label>
-			<div class="form-control-static" th:text="${job.createBy}">
-			</div>
-		</div>
-		<div class="form-group">
-			<label class="col-sm-3 control-label">[[#{common.create.time}]]：</label>
-			<div class="form-control-static" th:text="${#dates.format(job.createTime, 'yyyy-MM-dd HH:mm:ss')}">
-			</div>
-		</div>
-		<div class="form-group">
-			<label class="col-sm-3 control-label">[[#{common.update.by}]]：</label>
-			<div class="form-control-static" th:text="${#strings.defaultString(job.updateBy, '-')}">
-			</div>
-		</div>
-		<div class="form-group">
-			<label class="col-sm-3 control-label">[[#{common.update.time}]]：</label>
-			<div class="form-control-static" th:text="${#strings.defaultString(#dates.format(job.updateTime, 'yyyy-MM-dd HH:mm:ss'), '-')}">
-			</div>
-		</div>
-	</form>
-	
+    <input id="id" name="id" type="hidden" th:field="*{jobLog.id}"/>
+    <input id="jobId" name="jobId" type="hidden" th:field="*{jobLog.jobId}"/>
+    <h2>[[#{sql.job.id}]]：</h2>
+    <div class="white-space" style="overflow:auto;" th:text="${jobLog.jobId}"></div>
+    <h2>[[#{sql.job.descr}]]：</h2>
+    <div class="white-space">
+        <pre th:text="${jobLog.moniJob.descr}"></pre>
+    </div>
+    <h2>[[#{sql.job.execute.time}]]：</h2>
+    <div class="white-space" th:text="${#dates.format(jobLog.startTime, 'yyyy-MM-dd HH:mm:ss')}"></div>
+    <h2>[[#{common.end.time}]]：</h2>
+    <div class="white-space" th:text="${#dates.format(jobLog.endTime, 'yyyy-MM-dd HH:mm:ss')}"></div>
+    <h2>[[#{sql.job.expected.result}]]：</h2>
+    <div class="white-space" style="overflow:auto;" th:text="${jobLog.expectedResult}"></div>
+    <h2>[[#{sql.job.execution.result}]]：</h2>
+    <div class="white-space" style="overflow:auto;" id="executeResult" th:text="${jobLog.executeResult}"></div>
+    <h2 th:style="'display:' + ${#strings.isEmpty(jobLog.exceptionLog) ? 'none' : 'block'}">[[#{sql.job.log.exception}]]：</h2>
+    <div class="white-space" th:style="'display:' + ${#strings.isEmpty(jobLog.exceptionLog) ? 'none' : 'block'}">
+        <pre style="overflow-y:auto;" th:text="${jobLog.exceptionLog}"></pre>
     </div>
 
-<th:block th:include="include :: footer" />
+    <div style="text-align: center;">
+        <button id="callbackBtn" type="button" class="btn btn-w-m btn-warning"
+                th:data-loading-text="'<i class=\'fa fa-hourglass-2\'></i> '+#{sql.job.log.callback.loading}"
+                th:data-error-text="'<i class=\'fa fa-exclamation-circle\'></i> '+#{home.server.error}"
+                th:data-success-text="'<i class=\'fa fa-check-circle\'></i> '+#{sql.job.log.callback.success}+' <i class=\'fa fa-thumbs-o-up\'></i>'"
+                th:data-failure-text="'<i class=\'fa fa-times-circle\'></i> '+#{sql.job.log.callback.failure}+' <i class=\'fa fa-frown-o\'></i>'">
+            <i class="fa fa-mail-forward"></i> [[#{sql.job.log.callback}]]
+        </button>&nbsp;
+        <button id="viewJob" type="button" class="btn btn-w-m btn-info"><i class="fa fa-navicon"></i>
+            [[#{sql.job.detail}]]
+        </button>&nbsp;
+    </div>
+</div>
+
+
+<form autocomplete="off" class="form-horizontal m-t" id="jobForm" th:if="${name == 'sqlJob'}">
+    <div class="form-group">
+        <label class="col-sm-3 control-label">[[#{sql.job.id}]]：</label>
+        <div class="form-control-static" th:text="${job.id}">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">ASID：</label>
+        <div class="form-control-static" th:text="${job.asid}">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Ticket Number：</label>
+        <div class="form-control-static" th:text="${#strings.defaultString(job.ticketNumber, '-')}">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">[[#{sql.job.name_zh}]]：</label>
+        <div class="form-control-static" th:text="${job.chName}">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">[[#{sql.job.name_en}]]：</label>
+        <div class="form-control-static" th:text="${job.enName}">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">[[#{sql.job.status}]]：</label>
+        <div class="form-control-static" th:class="${job.status == '0' ? 'label label-primary' : 'label label-danger'}"
+             th:text="${job.status} == '0' ? #{'正常'} : #{'暂停'}">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">JDBC：</label>
+        <div class="form-control-static" th:text="${job.jdbc}">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">[[#{sql.job.platform}]]：</label>
+        <div class="form-control-static"
+             th:class="${job.platform == '1.0' ? 'label label-success' : 'label label-primary'}"
+             th:text="${job.platform == '1.0' ? 'Platform 1.0' : 'Platform 5.0'}">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">[[#{sql.job.cron.expression}]]：</label>
+        <div class="form-control-static" th:text="${job.cronExpression}">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">[[#{sql.job.next.run.time}]]：</label>
+        <div class="form-control-static" th:text="${#dates.format(job.nextValidTime, 'yyyy-MM-dd HH:mm:ss')}">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">[[#{sql.job.related.export}]]：</label>
+        <div class="form-control-static" th:text="${#strings.defaultString(job.relExport, '-')}">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">[[#{sql.job.related.api}]]：</label>
+        <div class="form-control-static" th:text="${#strings.defaultString(job.relApi, '-')}">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">[[#{sql.job.tg.alert}]]：</label>
+        <div class="form-control-static"
+             th:class="${job.telegramAlert == '0' ? 'label label-primary' : 'label label-danger'}"
+             th:text="${job.telegramAlert} == '0' ? #{'正常'} : #{'停用'}">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">[[#{sql.job.tg.info}]]：</label>
+        <div class="col-sm-9 form-control-static">
+            <pre th:text="${#strings.defaultString(job.telegramInfo, '-')}"></pre>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">[[#{sql.job.ignore.alert}]]：</label>
+        <div id="ignoreAlert" class="form-control-static" th:text="${job.ignoreAlert}">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">[[#{sql.job.tg.group}]]：</label>
+        <div id="telegramConfig" class="form-control-static"
+             th:text="${#strings.defaultString(job.telegramConfig, '-')}">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">[[#{sql.job.requester}]]：</label>
+        <div class="form-control-static" th:text="${job.requester}">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">[[#{sql.job.priority}]]：</label>
+        <div class="form-control-static"
+             th:class="${job.priority == '1' ? 'label label-primary' : 'label label-danger'}"
+             th:text="${job.priority} == '1' ? #{'不紧急'} : #{'紧急'}">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">[[#{sql.job.action}]]：</label>
+        <div class="form-control-static" th:text="${job.actionItem}"></div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">[[#{sql.job.descr}]]：</label>
+        <div class="col-sm-9 form-control-static">
+            <pre th:text="${#strings.defaultString(job.descr, '-')}"></pre>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">[[#{sql.job.script}]]：</label>
+        <div class="col-sm-9 form-control-static">
+            <pre th:text="${job.script}"></pre>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">[[#{sql.job.auto.match}]]：</label>
+        <div class="form-control-static" th:if="${job.autoMatch == '0'}">[[#{不比对}]]</div>
+        <div class="form-control-static" th:if="${job.autoMatch == '1'}">[[#{等于}]]</div>
+        <div class="form-control-static" th:if="${job.autoMatch == '2'}">[[#{不等于}]]</div>
+        <div class="form-control-static" th:if="${job.autoMatch == '3'}">[[#{大于}]]</div>
+        <div class="form-control-static" th:if="${job.autoMatch == '4'}">[[#{小于}]]</div>
+        <div class="form-control-static" th:if="${job.autoMatch == '5'}">[[#{无资料}]]</div>
+        <div class="form-control-static" th:if="${job.autoMatch == '6'}">[[#{有资料}]]</div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">[[#{sql.job.expected.result}]]：</label>
+        <div class="form-control-static" th:text="${#strings.defaultString(job.expectedResult, '-')}">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">[[#{sql.job.last.alert}]]：</label>
+        <div class="form-control-static"
+             th:text="${#strings.defaultString(#dates.format(job.lastAlert, 'yyyy-MM-dd HH:mm:ss'), '-')}">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">[[#{common.create.by}]]：</label>
+        <div class="form-control-static" th:text="${job.createBy}">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">[[#{common.create.time}]]：</label>
+        <div class="form-control-static" th:text="${#dates.format(job.createTime, 'yyyy-MM-dd HH:mm:ss')}">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">[[#{common.update.by}]]：</label>
+        <div class="form-control-static" th:text="${#strings.defaultString(job.updateBy, '-')}">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">[[#{common.update.time}]]：</label>
+        <div class="form-control-static"
+             th:text="${#strings.defaultString(#dates.format(job.updateTime, 'yyyy-MM-dd HH:mm:ss'), '-')}">
+        </div>
+    </div>
+</form>
+
+</div>
+
+<th:block th:include="include :: footer"/>
 <script th:inline="javascript">
-	var prefix = ctx + "monitor/sqlJobLog";
+    var prefix = ctx + "monitor/sqlJobLog";
 
 
-	$(function (){
-		var str = $('#executeResult').text()
-		$('#executeResult').html(str)
+    $(function () {
+        var str = $('#executeResult').text()
+        $('#executeResult').html(str)
 
-		var value = $('#telegramConfig').text().trim()
-		var tgGroupDatas = [[${@dict.getType('telegram_notice_group')}]];
-		if ($.common.isEmpty(tgGroupDatas)) {
-			return;
-		}
-		$.each(tgGroupDatas, function(index, dict) {
-			if (dict.dictValue == value) {
-				$('#telegramConfig').text(dict.dictLabel)
-			}
-		});
-	})
+        var value = $('#telegramConfig').text().trim()
+        var tgGroupDatas = [[${@dict.getType('telegram_notice_group')}]];
+        if ($.common.isEmpty(tgGroupDatas)) {
+            return;
+        }
+        $.each(tgGroupDatas, function (index, dict) {
+            if (dict.dictValue == value) {
+                $('#telegramConfig').text(dict.dictLabel)
+            }
+        });
+    })
 
-	function callbackStart(){
-		$('#callbackBtn').button('loading')
-		$('#callbackBtn').removeClass('btn-danger')
-		$('#callbackBtn').removeClass('btn-primary')
-		$('#callbackBtn').addClass('btn-warning')
-		$('#callbackBtn').css('color','white')
-	}
+    function callbackStart() {
+        $('#callbackBtn').button('loading')
+        $('#callbackBtn').removeClass('btn-danger')
+        $('#callbackBtn').removeClass('btn-primary')
+        $('#callbackBtn').addClass('btn-warning')
+        $('#callbackBtn').css('color', 'white')
+    }
 
-	function callbackSuccess(){
-		$('#callbackBtn').removeClass('btn-warning')
-		$('#callbackBtn').removeClass('btn-danger')
-		$('#callbackBtn').addClass('btn-primary')
-		$('#callbackBtn').removeAttr('style')
-		$('#callbackBtn').button('success')
-	}
+    function callbackSuccess() {
+        $('#callbackBtn').removeClass('btn-warning')
+        $('#callbackBtn').removeClass('btn-danger')
+        $('#callbackBtn').addClass('btn-primary')
+        $('#callbackBtn').removeAttr('style')
+        $('#callbackBtn').button('success')
+    }
 
-	function callbackFailure(){
-		$('#callbackBtn').removeClass('btn-warning')
-		$('#callbackBtn').removeClass('btn-primary')
-		$('#callbackBtn').addClass('btn-danger')
-		$('#callbackBtn').removeAttr('style')
-		$('#callbackBtn').button('failure')
-	}
+    function callbackFailure() {
+        $('#callbackBtn').removeClass('btn-warning')
+        $('#callbackBtn').removeClass('btn-primary')
+        $('#callbackBtn').addClass('btn-danger')
+        $('#callbackBtn').removeAttr('style')
+        $('#callbackBtn').button('failure')
+    }
 
-	function callbackError(){
-		$('#callbackBtn').removeClass('btn-warning')
-		$('#callbackBtn').removeClass('btn-primary')
-		$('#callbackBtn').addClass('btn-danger')
-		$('#callbackBtn').removeAttr('style')
-		$('#callbackBtn').button('error')
-	}
+    function callbackError() {
+        $('#callbackBtn').removeClass('btn-warning')
+        $('#callbackBtn').removeClass('btn-primary')
+        $('#callbackBtn').addClass('btn-danger')
+        $('#callbackBtn').removeAttr('style')
+        $('#callbackBtn').button('error')
+    }
 
-	$(document).ready(function(){
-		$('#callbackBtn').on('click',function(){
-			callbackStart()
-			var id = $("[name='id']").val();
-			$.ajax({
-				type:"GET",
-				url:prefix + "/callback/" + id,
-				async:true,
-				error : function(){
-					callbackError()
-				},
-				success : function(data) {
-					if(data.code === 0){
-						var parent = window.parent;
-						parent.$.table.refresh();
-						var sqlTable = parent.table.config['bootstrap-table-sql'];
-						if (sqlTable){
-							$("#" + sqlTable.id).bootstrapTable('refresh',{silent: true});
-						}
-						callbackSuccess()
-						setTimeout(() => $.modal.close(), 1000)
-					} else {
-						callbackFailure()
-					}
-				}
-			});
-		});
+    $(document).ready(function () {
+        $('#callbackBtn').on('click', function () {
+            callbackStart()
+            var id = $("[name='id']").val();
+            $.ajax({
+                type: "GET",
+                url: prefix + "/callback/" + id,
+                async: true,
+                error: function () {
+                    callbackError()
+                },
+                success: function (data) {
+                    if (data.code === 0) {
+                        var parent = window.parent;
+                        parent.$.table.refresh();
+                        var sqlTable = parent.table.config['bootstrap-table-sql'];
+                        if (sqlTable) {
+                            $("#" + sqlTable.id).bootstrapTable('refresh', {silent: true});
+                        }
+                        callbackSuccess()
+                        setTimeout(() => $.modal.close(), 1000)
+                    } else {
+                        callbackFailure()
+                    }
+                }
+            });
+        });
 
-	});
+    });
+
+    $(document).ready(function () {
+        $('#viewJob').on('click', function () {
+            var jobId = $('#jobId').val()
+            window.open(ctx + "monitor/sqlJob/detail/" + jobId, '_blank')
+        });
+    });
 </script>
 </body>
 </html>

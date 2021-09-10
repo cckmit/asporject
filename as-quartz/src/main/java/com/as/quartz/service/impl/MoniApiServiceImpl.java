@@ -262,6 +262,12 @@ public class MoniApiServiceImpl implements IMoniApiService {
         // 参数
         JobDataMap dataMap = new JobDataMap();
         try {
+            Boolean isWebhook = false;
+            Map<String, Object> params = job.getParams();
+            if (StringUtils.isNotEmpty(params)) {
+                isWebhook = (Boolean) params.get("isWebhook");
+            }
+            dataMap.put("isWebhook", isWebhook);
             dataMap.put("operator", ShiroUtils.getLoginName());
         } catch (Exception e) {
             //时ShiroUtils.getLoginName()会异常，此处吞掉异常继续执行調用API

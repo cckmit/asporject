@@ -81,6 +81,8 @@ public class MoniJobExecution extends AbstractQuartzJob {
 
     private SendMessage sendMessage;
 
+    private Boolean isWebhook;
+
     /**
      * 执行方法
      *
@@ -136,6 +138,11 @@ public class MoniJobExecution extends AbstractQuartzJob {
         setExpectedResult();
         //此处先插入一条日志以获取日志id，方便后续使用
         SpringUtils.getBean(IMoniJobLogService.class).addJobLog(moniJobLog);
+
+        isWebhook = (Boolean) context.getMergedJobDataMap().get("isWebhook");
+        if (StringUtils.isNull(isWebhook)) {
+            isWebhook = false;
+        }
         //输出日志
         log.info("[SQL检测任务]任务ID:{},任务名称:{},准备执行",
                 moniJob.getId(), moniJob.getChName());
@@ -403,7 +410,7 @@ public class MoniJobExecution extends AbstractQuartzJob {
     }
 
     private void sendTelegram() throws Exception {
-        String[] tgData = ScheduleUtils.getTgData(moniJob.getTelegramConfig());
+        String[] tgData = ScheduleUtils.getTgData(moniJob.getTelegramConfig(), isWebhook);
         bot = tgData[0];
         chatId = tgData[1];
         telegramInfo = moniJob.getTelegramInfo();
@@ -597,7 +604,7 @@ public class MoniJobExecution extends AbstractQuartzJob {
                 //替换模板数据
                 htmlContent = htmlContent.replace("{descr}", moniJob.getDescr())
                         .replace("{startTime}", DateUtils.parseDateToStr(DateUtils.YYYY_MM_DD_HH_MM_SS, moniJobLog.getStartTime()))
-                        .replace("{expectedResult}", StringUtils.isNull(moniJob.getExpectedResult()) ? "" : moniJob.getExpectedResult())
+                        .replace("{expectedResult}", StringUtils.isNull(moniJobLog.getExpectedResult()) ? "" : moniJobLog.getExpectedResult())
                         .replace("{executeResult}", moniJobLog.getExecuteResult());
                 HtmlImageGenerator imageGenerator = new HtmlImageGenerator();
                 imageGenerator.loadHtml(htmlContent);

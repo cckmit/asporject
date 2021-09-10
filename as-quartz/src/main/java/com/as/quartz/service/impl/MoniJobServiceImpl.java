@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * SQL检测任务Service业务层处理
@@ -252,7 +253,17 @@ public class MoniJobServiceImpl implements IMoniJobService {
         MoniJob tmpObj = selectMoniJobById(job.getId());
         // 参数
         JobDataMap dataMap = new JobDataMap();
-        dataMap.put("operator", ShiroUtils.getLoginName());
+        try {
+            Boolean isWebhook = false;
+            Map<String, Object> params = job.getParams();
+            if (StringUtils.isNotEmpty(params)) {
+                isWebhook = (Boolean) params.get("isWebhook");
+            }
+            dataMap.put("isWebhook", isWebhook);
+            dataMap.put("operator", ShiroUtils.getLoginName());
+        } catch (Exception e) {
+            // do nothing
+        }
         dataMap.put(ScheduleConstants.TASK_PROPERTIES, tmpObj);
         scheduler.triggerJob(ScheduleUtils.getJobKey(jobCode, tmpObj.getPlatform()), dataMap);
     }

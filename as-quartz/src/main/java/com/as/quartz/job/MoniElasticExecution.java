@@ -68,6 +68,8 @@ public class MoniElasticExecution extends AbstractQuartzJob {
 
     private static final int maxLoadTimes = 3; // 最大重连次数
 
+    private Boolean isWebhook;
+
     /**
      * 执行方法
      *
@@ -216,6 +218,11 @@ public class MoniElasticExecution extends AbstractQuartzJob {
         moniElasticLog.setElasticId(moniElastic.getId());
         //此处先插入一条日志以获取日志id，方便后续使用
         SpringUtils.getBean(IMoniElasticLogService.class).addJobLog(moniElasticLog);
+
+        isWebhook = (Boolean) context.getMergedJobDataMap().get("isWebhook");
+        if (StringUtils.isNull(isWebhook)) {
+            isWebhook = false;
+        }
         //输出日志
         log.info("[Elastic检测任务]任务ID:{},任务名称:{},准备执行",
                 moniElastic.getId(), moniElastic.getChName());
@@ -327,7 +334,7 @@ public class MoniElasticExecution extends AbstractQuartzJob {
 
 
     private void sendTelegram() throws Exception {
-        String[] tgData = ScheduleUtils.getTgData(moniElastic.getTelegramConfig());
+        String[] tgData = ScheduleUtils.getTgData(moniElastic.getTelegramConfig(), isWebhook);
         String bot = tgData[0];
         String chatId = tgData[1];
         String telegramInfo = moniElastic.getTelegramInfo();

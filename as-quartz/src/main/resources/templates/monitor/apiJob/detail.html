@@ -26,12 +26,19 @@
 			-moz-border-radius: 10px;
 			-webkit-border-radius: 10px;
 		}
+		pre {
+			white-space: pre-wrap;
+			word-wrap: break-word;
+		}
 	</style>
 </head>
 <body class="white-bg">
 
 <div class="block" style="min-height:100%;" th:if="${name == 'apiJobLog'}">
 	<input name="id" type="hidden" th:field="*{jobLog.id}"/>
+	<input id="jobId" name="jobId" type="hidden" th:field="*{jobLog.apiId}"/>
+	<h2>[[#{sql.job.id}]]：</h2>
+	<div class="white-space" style="overflow:auto;" th:text="${jobLog.apiId}"></div>
 	<h2>[[#{sql.job.descr}]]：</h2>
 	<div class="white-space">
 		<pre th:text="${jobLog.moniApi.descr}"></pre>
@@ -43,10 +50,12 @@
 	<h2>[[#{api.job.expected.code}]]：</h2>
 	<div class="white-space" style="overflow:auto;" th:text="${jobLog.expectedCode}"></div>
 	<h2>[[#{sql.job.execution.result}]]：</h2>
-	<div class="white-space" style="overflow-y:auto;" th:text="${jobLog.executeResult}"></div>
-	<h2>[[#{sql.job.log.exception}]]：</h2>
 	<div class="white-space">
-		<pre style="overflow-y:auto;" th:text="${jobLog.exceptionLog}"></pre>
+		<pre th:text="${jobLog.executeResult}"></pre>
+	</div>
+	<h2 th:style="'display:' + ${#strings.isEmpty(jobLog.exceptionLog) ? 'none' : 'block'}">[[#{sql.job.log.exception}]]：</h2>
+	<div class="white-space" th:style="'display:' + ${#strings.isEmpty(jobLog.exceptionLog) ? 'none' : 'block'}">
+		<pre th:text="${jobLog.exceptionLog}"></pre>
 	</div>
 	<div style="text-align: center;">
 		<button id="callbackBtn" type="button" class="btn btn-w-m btn-warning"
@@ -55,6 +64,9 @@
 				th:data-success-text="'<i class=\'fa fa-check-circle\'></i> '+#{sql.job.log.callback.success}+' <i class=\'fa fa-thumbs-o-up\'></i>'"
 				th:data-failure-text="'<i class=\'fa fa-times-circle\'></i> '+#{sql.job.log.callback.failure}+' <i class=\'fa fa-frown-o\'></i>'"
 				autocomplete="off"><i class="fa fa-mail-forward"></i> [[#{sql.job.log.callback}]]</button>&nbsp;
+		<button id="viewJob" type="button" class="btn btn-w-m btn-info"><i class="fa fa-navicon"></i>
+			[[#{sql.job.detail}]]
+		</button>&nbsp;
 	</div>
 </div>
 
@@ -269,7 +281,13 @@
 				}
 			});
 		});
+	});
 
+	$(document).ready(function () {
+		$('#viewJob').on('click', function () {
+			var jobId = $('#jobId').val()
+			window.open(ctx + "monitor/apiJob/detail/" + jobId, '_blank')
+		});
 	});
 </script>
 </body>

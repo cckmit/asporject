@@ -296,7 +296,17 @@ public class MoniElasticServiceImpl implements IMoniElasticService {
         MoniElastic tmpObj = selectMoniElasticById(job.getId());
         // 参数
         JobDataMap dataMap = new JobDataMap();
-        dataMap.put("operator", ShiroUtils.getLoginName());
+        try {
+            Boolean isWebhook = false;
+            Map<String, Object> params = job.getParams();
+            if (StringUtils.isNotEmpty(params)) {
+                isWebhook = (Boolean) params.get("isWebhook");
+            }
+            dataMap.put("isWebhook", isWebhook);
+            dataMap.put("operator", ShiroUtils.getLoginName());
+        } catch (Exception e) {
+            // do nothing
+        }
         dataMap.put(ScheduleConstants.TASK_PROPERTIES, tmpObj);
         scheduler.triggerJob(ScheduleUtils.getJobKey(jobCode, tmpObj.getPlatform()), dataMap);
     }

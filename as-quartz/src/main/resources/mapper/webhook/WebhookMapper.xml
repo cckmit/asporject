@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.as.webhook.mapper.WebhookMapper">
+
+    <resultMap type="PushObject" id="webhookRecordResult">
+        <result property="id"    column="ID"    />
+        <result property="type"    column="TYPE"    />
+        <result property="title"    column="TITLE"    />
+        <result property="descr"    column="DESCR"    />
+        <result property="remark"    column="REMARK"    />
+        <result property="tgId"    column="TG_ID"    />
+        <result property="mailAdd"    column="MAIL_ADD"    />
+        <result property="reporter"    column="REPORTER"    />
+        <result property="ip"    column="IP"    />
+        <result property="status"    column="STATUS"    />
+        <result property="message"    column="MESSAGE"    />
+        <result property="createTime"    column="CREATE_TIME"    />
+    </resultMap>
+
+    <sql id="selectWebhookRecordVo">
+        select ID, TYPE, TITLE, DESCR, REMARK, TG_ID, MAIL_ADD, REPORTER, IP, STATUS, MESSAGE, CREATE_TIME from webhook_record
+    </sql>
+
+    <select id="selectWebhookRecordList" parameterType="PushObject" resultMap="webhookRecordResult">
+        <include refid="selectWebhookRecordVo"/>
+        <where>
+            <if test="type != null  and type != ''"> and TYPE like concat('%', #{type}, '%')</if>
+            <if test="reporter != null  and reporter != ''"> and REPORTER = #{reporter}</if>
+            <if test="ip != null  and ip != ''"> and IP = #{ip}</if>
+            <if test="status != null  and status != ''"> and STATUS = #{status}</if>
+            <if test="params.beginCreateTime != null and params.beginCreateTime != ''"><!-- 开始时间检索 -->
+                AND date_format(CREATE_TIME,'%y%m%d') &gt;= date_format(#{params.beginCreateTime},'%y%m%d')
+            </if>
+            <if test="params.endCreateTime != null and params.endCreateTime != ''"><!-- 结束时间检索 -->
+                AND date_format(CREATE_TIME,'%y%m%d') &lt;= date_format(#{params.endCreateTime},'%y%m%d')
+            </if>
+        </where>
+    </select>
+
+    <select id="selectWebhookRecordById" parameterType="Long" resultMap="webhookRecordResult">
+        <include refid="selectWebhookRecordVo"/>
+        where ID = #{id}
+    </select>
+
+    <insert id="insertWebhookRecord" parameterType="PushObject" useGeneratedKeys="true" keyProperty="id">
+        insert into webhook_record
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="type != null">TYPE,</if>
+            <if test="title != null">TITLE,</if>
+            <if test="descr != null">DESCR,</if>
+            <if test="remark != null">REMARK,</if>
+            <if test="tgId != null">TG_ID,</if>
+            <if test="mailAdd != null">MAIL_ADD,</if>
+            <if test="reporter != null">REPORTER,</if>
+            <if test="ip != null">IP,</if>
+            <if test="status != null">STATUS,</if>
+            <if test="message != null">MESSAGE,</if>
+            <if test="createTime != null">CREATE_TIME,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="type != null">#{type},</if>
+            <if test="title != null">#{title},</if>
+            <if test="descr != null">#{descr},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="tgId != null">#{tgId},</if>
+            <if test="mailAdd != null">#{mailAdd},</if>
+            <if test="reporter != null">#{reporter},</if>
+            <if test="ip != null">#{ip},</if>
+            <if test="status != null">#{status},</if>
+            <if test="message != null">#{message},</if>
+            <if test="createTime != null">#{createTime},</if>
+        </trim>
+    </insert>
+
+    <update id="updateWebhookRecord" parameterType="PushObject">
+        update webhook_record
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="type != null">TYPE = #{type},</if>
+            <if test="title != null">TITLE = #{title},</if>
+            <if test="descr != null">DESCR = #{descr},</if>
+            <if test="remark != null">REMARK = #{remark},</if>
+            <if test="tgId != null">TG_ID = #{tgId},</if>
+            <if test="mailAdd != null">MAIL_ADD = #{mailAdd},</if>
+            <if test="reporter != null">REPORTER = #{reporter},</if>
+            <if test="ip != null">IP = #{ip},</if>
+            <if test="status != null">STATUS = #{status},</if>
+            <if test="message != null">MESSAGE = #{message},</if>
+            <if test="createTime != null">CREATE_TIME = #{createTime},</if>
+        </trim>
+        where ID = #{id}
+    </update>
+
+    <delete id="deleteWebhookRecordById" parameterType="Long">
+        delete from webhook_record where ID = #{id}
+    </delete>
+
+    <delete id="deleteWebhookRecordByIds" parameterType="String">
+        delete from webhook_record where ID in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="selectWebhookRecordAll" resultMap="webhookRecordResult">
+        <include refid="selectWebhookRecordVo"/>
+    </select>
+
+</mapper>
