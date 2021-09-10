@@ -26,7 +26,14 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <select id="selectWebhookRecordList" parameterType="PushObject" resultMap="webhookRecordResult">
         <include refid="selectWebhookRecordVo"/>
         <where>
+            <if test="params.ids != null  and params.ids.length > 0">
+                and ID in
+                <foreach collection="params.ids" item="id" index="index" open="(" separator="," close=")">
+                    #{id}
+                </foreach>
+            </if>
             <if test="type != null  and type != ''"> and TYPE like concat('%', #{type}, '%')</if>
+            <if test="title != null  and title != ''"> and TITLE like concat('%', #{title}, '%')</if>
             <if test="reporter != null  and reporter != ''"> and REPORTER = #{reporter}</if>
             <if test="ip != null  and ip != ''"> and IP = #{ip}</if>
             <if test="status != null  and status != ''"> and STATUS = #{status}</if>
@@ -106,5 +113,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <select id="selectWebhookRecordAll" resultMap="webhookRecordResult">
         <include refid="selectWebhookRecordVo"/>
     </select>
+
+    <select id="checkReporterIsExist" parameterType="String" resultType="int">
+		select count(1) from sys_user where login_name=#{reporter} limit 1
+	</select>
 
 </mapper>

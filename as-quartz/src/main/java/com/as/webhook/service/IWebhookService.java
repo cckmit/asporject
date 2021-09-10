@@ -9,9 +9,9 @@ import java.util.Map;
 
 public interface IWebhookService {
 
-    public Map<String, Result> doPush(PushObject pushObject, HttpServletRequest request) throws Exception;
+    public Map<String, Object> doPush(PushObject pushObject, HttpServletRequest request) throws Exception;
 
-    public Map<String, Result> run(String jobId, String elasticId, String apiId, HttpServletRequest request);
+    public Map<String, Object> run(String jobId, String elasticId, String apiId, String reporter, HttpServletRequest request);
 
     /**
      * 查询webhook请求记录
@@ -60,5 +60,7 @@ public interface IWebhookService {
      * @return 结果
      */
     public int deleteWebhookRecordById(Long id);
+
+    public boolean checkReporterIsExist(String reporter);
 
 }

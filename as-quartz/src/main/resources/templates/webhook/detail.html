@@ -34,6 +34,8 @@
 <body class="white-bg">
 <div class="block" style="min-height:100%;">
 	<input id="id" name="id" type="hidden" th:field="*{webhookRecord.id}"/>
+	<h2>Record ID：</h2>
+	<div class="white-space" style="overflow:auto;" th:text="${webhookRecord.id}"></div>
 	<h2>[[#{webhook.descr}]]：</h2>
 	<div class="white-space">
 		<pre th:text="${webhookRecord.descr}"></pre>

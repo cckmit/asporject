@@ -59,6 +59,11 @@ public enum ResultEnum {
      */
     API_EMPTY(1008, "api job not exist"),
 
+    /**
+     * user not exist
+     */
+    USER_EMPTY(1009, "Reporter does not exist"),
+
     ;
     private final int code;
     private final String message;

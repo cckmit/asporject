@@ -49,12 +49,20 @@ public class WebhookServiceImpl implements IWebhookService {
     private IMoniApiService apiService;
 
     @Override
-    public Map<String, Result> doPush(PushObject pushObject, HttpServletRequest request) {
-        Map<String, Result> result = new HashMap();
+    public Map<String, Object> doPush(PushObject pushObject, HttpServletRequest request) {
+        Map<String, Object> result = new HashMap();
+        String reporter = pushObject.getReporter();
+        if (StringUtils.isEmpty(reporter) || !checkReporterIsExist(reporter)) {
+            result.put(TypeConstants.ERROR, Result.result(ResultEnum.USER_EMPTY));
+            return result;
+        }
         boolean flag = true;
         Date date = new Date();
         pushObject.setCreateTime(date);
         pushObject.setIp(getIpAddress(request));
+        pushObject.setReporter(reporter.toLowerCase());
+        //先储存log，获取record id
+        webhookMapper.insertWebhookRecord(pushObject);
         String types = pushObject.getType();
         if (StringUtils.isNotEmpty(types)) {
             String[] typeArr = types.split("/");
@@ -64,9 +72,7 @@ public class WebhookServiceImpl implements IWebhookService {
                     if (StringUtils.isNotEmpty(pushObject.getTgId())) {
                         String[] tgIds = pushObject.getTgId().split(";");
                         StringBuilder tgInfo = new StringBuilder();
-                        if (StringUtils.isNotEmpty(pushObject.getReporter())) {
-                            tgInfo.append("\\[").append(processStr(pushObject.getReporter())).append("]");
-                        }
+                        tgInfo.append("\\[").append(processStr(reporter.toLowerCase())).append("]");
                         tgInfo.append(DateUtils.parseDateToStr(DateUtils.YYYY_MM_DD_HH_MM_SS, date));
                         if (StringUtils.isNotEmpty(pushObject.getTitle())) {
                             tgInfo.append("\n").append("*").append("TITLE:").append("*").append(processStr(pushObject.getTitle()));
@@ -104,17 +110,11 @@ public class WebhookServiceImpl implements IWebhookService {
                         if (StringUtils.isNotEmpty(pushObject.getMailAdd())) {
                             Mail mail = new Mail();
                             mail.setTo(pushObject.getMailAdd().split(";"));
-                            String reporter = pushObject.getReporter();
-                            if (StringUtils.isNotEmpty(reporter)) {
-                                reporter = "[" + pushObject.getReporter() + "]";
-                            } else {
-                                reporter = "";
-                            }
                             String title = pushObject.getTitle();
                             if (StringUtils.isEmpty(title)) {
                                 title = "";
                             }
-                            mail.setSubject(reporter + title);
+                            mail.setSubject("[" + reporter.toLowerCase() + "]" + title);
                             StringBuilder body = new StringBuilder();
                             body.append("create_time: ").append(DateUtils.parseDateToStr(DateUtils.YYYY_MM_DD_HH_MM_SS, date));
                             if (StringUtils.isNotEmpty(pushObject.getDescr())) {
@@ -142,12 +142,13 @@ public class WebhookServiceImpl implements IWebhookService {
             } else {
                 pushObject.setStatus(Constants.FAIL);
             }
-            result.put("log", Result.success());
             if (StringUtils.isEmpty(pushObject.getType())) {
                 pushObject.setType("log");
             }
+            result.put("log", Result.success());
+            result.put("recordId", pushObject.getId());
             pushObject.setMessage(JSONObject.toJSONString(result));
-            webhookMapper.insertWebhookRecord(pushObject);
+            webhookMapper.updateWebhookRecord(pushObject);
         } catch (Exception e) {
             result.put("log", Result.result(ResultEnum.LOG_ERROR, ExceptionUtil.getRootErrorMessage(e)));
         }
@@ -182,8 +183,12 @@ public class WebhookServiceImpl implements IWebhookService {
     }
 
     @Override
-    public Map<String, Result> run(String jobId, String elasticId, String apiId, HttpServletRequest request) {
-        Map<String, Result> result = new HashMap();
+    public Map<String, Object> run(String jobId, String elasticId, String apiId, String reporter, HttpServletRequest request) {
+        Map<String, Object> result = new HashMap();
+        if (StringUtils.isEmpty(reporter) || !checkReporterIsExist(reporter)) {
+            result.put(TypeConstants.ERROR, Result.result(ResultEnum.USER_EMPTY));
+            return result;
+        }
         StringBuilder type = new StringBuilder();
         StringBuilder remark = new StringBuilder();
         Map<String, Object> params = new HashMap<>();
@@ -246,10 +251,13 @@ public class WebhookServiceImpl implements IWebhookService {
         if (StringUtils.isNotEmpty(type)) {
             PushObject pushObject = new PushObject();
             pushObject.setCreateTime(new Date());
-            pushObject.setReporter("webhook");
+            pushObject.setReporter(reporter.toLowerCase());
             pushObject.setTitle("webhook run job >> " + remark.substring(0, remark.length() - 1));
             pushObject.setType(type.substring(0, type.length() - 1));
             pushObject.setRemark(remark.substring(0, remark.length() - 1));
+            //先插入获取recordId
+            webhookMapper.insertWebhookRecord(pushObject);
+            result.put("recordId", pushObject.getId());
             pushObject.setMessage(JSONObject.toJSONString(result));
             if (flag) {
                 pushObject.setStatus(Constants.SUCCESS);
@@ -257,9 +265,14 @@ public class WebhookServiceImpl implements IWebhookService {
                 pushObject.setStatus(Constants.FAIL);
             }
             pushObject.setIp(getIpAddress(request));
-            webhookMapper.insertWebhookRecord(pushObject);
+            webhookMapper.updateWebhookRecord(pushObject);
         }
         return result;
+    }
+
+    public boolean checkReporterIsExist(String reporter) {
+        int row = webhookMapper.checkReporterIsExist(reporter.toLowerCase());
+        return row == 1;
     }
 
     /**
@@ -281,6 +294,8 @@ public class WebhookServiceImpl implements IWebhookService {
      */
     @Override
     public List<PushObject> selectWebhookRecordList(PushObject pushObject) {
+        Long[] jobIds = Convert.toLongArray((String) pushObject.getParams().get("ids"));
+        pushObject.getParams().put("ids", jobIds);
         return webhookMapper.selectWebhookRecordList(pushObject);
     }
 

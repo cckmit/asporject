@@ -11,6 +11,14 @@
                     <div class="select-list">
                         <ul>
                             <li>
+                                <label th:title="#{common.support.batch}"><i class="fa fa-question-circle-o"></i> ID：</label>
+                                <input type="text" name="params[ids]"/>
+                            </li>
+                            <li>
+                                <label>[[#{webhook.title}]]：</label>
+                                <input type="text" name="title"/>
+                            </li>
+                            <li>
                                 <label>[[#{webhook.type}]]：</label>
                                 <input type="text" name="type"/>
                             </li>

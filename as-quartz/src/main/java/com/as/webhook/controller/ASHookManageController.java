@@ -112,7 +112,7 @@ public class ASHookManageController extends BaseController {
         mmap.put("pushParam", "{\"type\":\"log/tg/mail\",\"title\":\"webhook push\",\"descr\":\"webhook push\",\"remark\":\"webhook push\",\"tgId\":\"as_test\",\"reporter\":\"kolin\",\"mailAdd\":\"c98fb80a.my-cpg.com@apac.teams.ms\"}");
         mmap.put("cbUrl", ASConfig.getAsDomain() + "/webhook/cb");
         mmap.put("cbMethod", "GET");
-        mmap.put("cbParam", "?job=999&elastic=999&api=999");
+        mmap.put("cbParam", "?reporter=kolin&job=999&elastic=999&api=999");
         return prefix + "/hookDetail";
     }
 }

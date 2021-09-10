@@ -36,4 +36,9 @@ public class TypeConstants
      * API
      */
     public static final String API = "api";
+
+    /**
+     * ERROR
+     */
+    public static final String ERROR = "error";
 }

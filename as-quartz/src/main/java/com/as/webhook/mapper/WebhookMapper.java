@@ -56,4 +56,6 @@ public interface WebhookMapper {
      */
     public int deleteWebhookRecordByIds(String[] ids);
 
+    public int checkReporterIsExist(String reporter);
+
 }
