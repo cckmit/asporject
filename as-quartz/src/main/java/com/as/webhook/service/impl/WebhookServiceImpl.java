@@ -115,8 +115,8 @@ public class WebhookServiceImpl implements IWebhookService {
                             }
                             mail.setSubject("[webhook] " + title);
                             StringBuilder body = new StringBuilder();
-                            body.append("[webhook] " + title);
-                            body.append("\n").append("CreateTime: ").append(DateUtils.parseDateToStr(DateUtils.YYYY_MM_DD_HH_MM_SS, date)).append(" (" + reporter.toLowerCase() + ")");
+                            body.append("[webhook] ").append(title);
+                            body.append("\n").append("CreateTime: ").append(DateUtils.parseDateToStr(DateUtils.YYYY_MM_DD_HH_MM_SS, date)).append(" (").append(reporter.toLowerCase()).append(")");
                             if (StringUtils.isNotEmpty(pushObject.getDescr())) {
                                 body.append("\n").append("Descr: ").append(pushObject.getDescr());
                             }
