@@ -9,7 +9,9 @@ import com.as.quartz.domain.MoniApi;
 import com.as.quartz.job.MoniApiExecution;
 import com.as.quartz.mapper.MoniApiMapper;
 import com.as.quartz.service.IMoniApiService;
+import com.as.quartz.util.OkHttpUtils;
 import com.as.quartz.util.ScheduleUtils;
+import okhttp3.*;
 import org.quartz.JobDataMap;
 import org.quartz.JobKey;
 import org.quartz.Scheduler;
@@ -17,16 +19,12 @@ import org.quartz.SchedulerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.http.*;
+import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.RestTemplate;
 
+import java.io.IOException;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -45,10 +43,6 @@ public class MoniApiServiceImpl implements IMoniApiService {
 
     @Autowired
     private MoniApiMapper moniApiMapper;
-
-    @Autowired
-    @Qualifier("customRestTemplate")
-    private RestTemplate restTemplate;
 
     /**
      * 查询自动API检测任务
@@ -283,71 +277,62 @@ public class MoniApiServiceImpl implements IMoniApiService {
      * @return
      */
     @Override
-    public ResponseEntity<String> doUrlCheck(MoniApi job) {
+    public Response doUrlCheck(MoniApi job) throws IOException {
         String url = job.getUrl();
+        OkHttpClient okHttpClient = OkHttpUtils.getInstance();
+        Request.Builder builder = new Request.Builder();
+        String contentType = DictUtils.getDictLabel(DictTypeConstants.API_JOB_CONTENT, job.getContentType());
         HttpMethod method = HttpMethod.resolve(DictUtils.getDictLabel(DictTypeConstants.API_JOB_METHOD, job.getMethod()));
-        MultiValueMap<String, String> multiValueMap = new LinkedMultiValueMap<>();
-        Map<String, String> hashMap = new HashMap<>();
-        //处理Body
-        String bodies = job.getBody();
-        if (StringUtils.isNotEmpty(bodies)) {
-            String[] bodyArray = bodies.split("\r\n");
-            for (String param : bodyArray) {
-                String[] value = param.split(":");
-                multiValueMap.add(value[0], value[1]);
-                hashMap.put(value[0], value[1]);
+        if (HttpMethod.GET.equals(method)) {
+            //处理GET Body
+            StringBuilder getParam = new StringBuilder();
+            String bodies = job.getBody();
+            if (StringUtils.isNotEmpty(bodies)) {
+                String[] bodyArray = bodies.split("\r\n");
+                for (String param : bodyArray) {
+                    String[] value = param.split(":");
+                    getParam.append(value[0]).append("=").append(value[1]).append("&");
+                }
             }
+            if (StringUtils.isNotEmpty(getParam)) {
+                url = url + "?" + getParam.substring(0, getParam.length() - 1);
+            }
+            builder.addHeader("content-type", contentType);
+            builder.get();
+        } else if (HttpMethod.POST.equals(method) && contentType.contains("json")) {
+            //处理POST JSON Body
+            MediaType mediaType = MediaType.get(contentType);
+            RequestBody body = RequestBody.create(mediaType, job.getBody());
+            builder.post(body);
+        } else {
+            FormBody.Builder form = new FormBody.Builder();
+            //处理POST Body
+            String bodies = job.getBody();
+            if (StringUtils.isNotEmpty(bodies)) {
+                String[] bodyArray = bodies.split("\r\n");
+                for (String param : bodyArray) {
+                    String[] value = param.split(":");
+                    form.add(value[0], value[1]);
+                }
+            }
+            builder.addHeader("content-type", contentType);
+            builder.post(form.build());
         }
         //处理Header
-        HttpHeaders headerMap = new HttpHeaders();
         String headers = job.getHeader();
         if (StringUtils.isNotEmpty(headers)) {
             String[] headerArray = headers.split("\r\n");
             for (String param : headerArray) {
                 String[] value = param.split(":");
                 if (value.length > 1) {
-                    headerMap.add(value[0], value[1]);
+                    builder.addHeader(value[0], value[1]);
                 } else {
-                    headerMap.add(value[0], "");
+                    builder.addHeader(value[0], "");
                 }
-
             }
         }
-
-        if (HttpMethod.GET.equals(method) && StringUtils.isNotEmpty(hashMap)) {
-            StringBuilder sb = new StringBuilder();
-            sb.append(url).append("?");
-            for (Map.Entry<String, String> entry : hashMap.entrySet()) {
-                sb.append(entry.getKey()).append("=").append("{").append(entry.getKey()).append("}").append("&");
-            }
-            url = sb.substring(0, sb.length() - 1);
-        }
-
-        //content-type
-        MediaType mediaType = null;
-        if (StringUtils.isNotEmpty(job.getContentType())) {
-            mediaType = MediaType.parseMediaType(DictUtils.getDictLabel(DictTypeConstants.API_JOB_CONTENT, job.getContentType()));
-            headerMap.setContentType(mediaType);
-        }
-
-
-        assert method != null;
-        HttpEntity<Object> request;
-        ResponseEntity<String> response;
-        if (!(MediaType.APPLICATION_JSON_UTF8.equals(mediaType) || MediaType.APPLICATION_JSON.equals(mediaType)) && HttpMethod.POST.equals(method)) {
-            request = new HttpEntity<>(multiValueMap, headerMap);
-            response = restTemplate.exchange(url, method, request, String.class);
-        } else {
-            if (HttpMethod.POST.equals(method)) {
-                request = new HttpEntity<>(hashMap, headerMap);
-                response = restTemplate.exchange(url, method, request, String.class);
-            } else {
-                request = new HttpEntity<>(null, headerMap);
-                response = restTemplate.exchange(url, method, request, String.class, hashMap);
-            }
-        }
-
-        return response;
+        Request request = builder.url(url).build();
+        return okHttpClient.newCall(request).execute();
     }
 
     /**

@@ -12,16 +12,17 @@ import com.as.quartz.domain.MoniApi;
 import com.as.quartz.service.IJobService;
 import com.as.quartz.service.IMoniApiService;
 import com.as.quartz.util.CronUtils;
+import okhttp3.Response;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -187,9 +188,9 @@ public class MoniApiController extends BaseController {
      */
     @PostMapping("/test")
     @ResponseBody
-    public AjaxResult test(MoniApi job) {
-        ResponseEntity<String> response = moniApiService.doUrlCheck(job);
-        int statusCode = response.getStatusCodeValue();
+    public AjaxResult test(MoniApi job) throws IOException {
+        Response response = moniApiService.doUrlCheck(job);
+        int statusCode = response.code();
         String expectedCode = job.getExpectedCode();
         String[] expectedCodes = expectedCode.split(",");
         for (String code : expectedCodes) {
@@ -197,7 +198,7 @@ public class MoniApiController extends BaseController {
                 return success();
             }
         }
-        return error(response.getStatusCode().toString());
+        return error(String.valueOf(statusCode));
     }
 
     /**

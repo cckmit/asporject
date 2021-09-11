@@ -22,12 +22,12 @@ import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.model.request.ParseMode;
 import com.pengrad.telegrambot.request.SendMessage;
 import com.pengrad.telegrambot.response.SendResponse;
+import okhttp3.Response;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 import org.quartz.PersistJobDataAfterExecution;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.sql.DataSource;
@@ -73,12 +73,12 @@ public class MoniApiExecution extends AbstractQuartzJob {
      */
     @Override
     protected void doExecute(JobExecutionContext context, Object job) throws Exception {
-        ResponseEntity<String> response = null;
+        Response response = null;
         String result;
         try {
             response = SpringUtils.getBean(IMoniApiService.class).doUrlCheck(moniApi);
             //执行结果
-            result = response.getStatusCode().toString();
+            result = String.valueOf(response.code());
         } catch (Exception e) {
             //执行异常结果
             result = ExceptionUtil.getRootErrorMessage(e);
@@ -88,7 +88,7 @@ public class MoniApiExecution extends AbstractQuartzJob {
         moniApiLog.setExecuteResult(result);
         if (resultIsExist()) {
             //没有重复发生的LOG
-            if (StringUtils.isNotNull(response) && doMatch(response.getStatusCodeValue())) {
+            if (StringUtils.isNotNull(response) && doMatch(response.code())) {
                 moniApiLog.setStatus(Constants.SUCCESS);
                 moniApiLog.setAlertStatus(Constants.FAIL);
             } else {

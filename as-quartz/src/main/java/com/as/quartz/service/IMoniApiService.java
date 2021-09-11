@@ -1,9 +1,11 @@
 package com.as.quartz.service;
 
 import com.as.quartz.domain.MoniApi;
+import okhttp3.Response;
 import org.quartz.SchedulerException;
 import org.springframework.http.ResponseEntity;
 
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -117,7 +119,7 @@ public interface IMoniApiService {
      * @param job
      * @return
      */
-    public ResponseEntity<String> doUrlCheck(MoniApi job);
+    public Response doUrlCheck(MoniApi job) throws IOException;
 
     /**
      * 調用Api

@@ -133,7 +133,7 @@
                 <div class="col-sm-8">
                     <div class="input-group m-b">
                         <div class="input-group-btn">
-                            <select name="method" class="form-control m-b" th:with="type=${@dict.getType('api_job_method')}"
+                            <select id="method" name="method" class="form-control m-b" th:with="type=${@dict.getType('api_job_method')}"
                                     style="width:70px;padding:0px 10px;appearance:none;-moz-appearance:none;-webkit-appearance:none;
                                     background:url(data:image/jpg;base64,/9j/4QAYRXhpZgAASUkqAAgAAAAAAAAAAAAAAP/sABFEdWNreQABAAQAAAA8AAD/4QMraHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wLwA8P3hwYWNrZXQgYmVnaW49Iu+7vyIgaWQ9Ilc1TTBNcENlaGlIenJlU3pOVGN6a2M5ZCI/PiA8eDp4bXBtZXRhIHhtbG5zOng9ImFkb2JlOm5zOm1ldGEvIiB4OnhtcHRrPSJBZG9iZSBYTVAgQ29yZSA1LjMtYzAxMSA2Ni4xNDU2NjEsIDIwMTIvMDIvMDYtMTQ6NTY6MjcgICAgICAgICI+IDxyZGY6UkRGIHhtbG5zOnJkZj0iaHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyI+IDxyZGY6RGVzY3JpcHRpb24gcmRmOmFib3V0PSIiIHhtbG5zOnhtcD0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wLyIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bXA6Q3JlYXRvclRvb2w9IkFkb2JlIFBob3Rvc2hvcCBDUzYgKFdpbmRvd3MpIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjE3MDBDMTIwOEM1RjExRTY5OURFQjNEMzU1OTYzQzczIiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOjE3MDBDMTIxOEM1RjExRTY5OURFQjNEMzU1OTYzQzczIj4gPHhtcE1NOkRlcml2ZWRGcm9tIHN0UmVmOmluc3RhbmNlSUQ9InhtcC5paWQ6MTcwMEMxMUU4QzVGMTFFNjk5REVCM0QzNTU5NjNDNzMiIHN0UmVmOmRvY3VtZW50SUQ9InhtcC5kaWQ6MTcwMEMxMUY4QzVGMTFFNjk5REVCM0QzNTU5NjNDNzMiLz4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz7/7gAOQWRvYmUAZMAAAAAB/9sAhAAGBAQEBQQGBQUGCQYFBgkLCAYGCAsMCgoLCgoMEAwMDAwMDBAMDg8QDw4MExMUFBMTHBsbGxwfHx8fHx8fHx8fAQcHBw0MDRgQEBgaFREVGh8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx//wAARCAAyAB4DAREAAhEBAxEB/8QAbgABAQEBAQEAAAAAAAAAAAAABAAHBgUIAQEBAAMAAAAAAAAAAAAAAAAAAwECBBAAAgEDAQYFBQAAAAAAAAAAAQIAAwQFETGyczUGByFhEhMjUTJyYxQRAQADAQEAAAAAAAAAAAAAAAABEQIDMf/aAAwDAQACEQMRAD8A+i8dy+24SbogIgUCgHx3L7bhJuiAiBQKAS0R3xVFEqGk7UFC1VAJUlAAwDArqPMQMA6h7j91MFmbvFXmW0rWrlfV/NagMu1XHxbGUgidEYzMOTXTUTTt+0Gf686juLnI5jImriLYe0lL2aCe7WI1+5Katoi+J0O0jzmnSIjxXlrU+tTklh8dy+24SbogZ93e7d3HUa2WRxVMHJ0nS3rDZ6qFRtAxP6mOv4k/SU57pHrzvx2/TmCs8DhbTFWg+G2QKX00LufF3PmzEmaTNyrnNRT0phkfHcvtuEm6ICIFAoB8dy+24SbogIgUCgHx3L7bhJuiAiBQKB//2Q0K)
                                     no-repeat right center;background-color: #eee;background-size:20%;" required>
@@ -147,7 +147,7 @@
             <div class="form-group">
                 <label class="col-sm-3 control-label">[[#{api.job.content.type}]]：</label>
                 <div class="col-sm-8">
-                    <select name="contentType" class="form-control m-b" th:with="type=${@dict.getType('api_job_content')}">
+                    <select id="contentType" name="contentType" class="form-control m-b" th:with="type=${@dict.getType('api_job_content')}">
                         <option value="">--[[#{dict.data.none}]]--</option>
                         <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}"></option>
                     </select>
@@ -156,7 +156,7 @@
             <div class="form-group">
                 <label class="col-sm-3 control-label">[[#{api.job.body}]]：</label>
                 <div class="col-sm-8">
-                    <textarea name="body" class="form-control" rows="5" placeholder="key1: value1&#13;&#10;key2: value2"></textarea>
+                    <textarea id="body" name="body" class="form-control" rows="5" placeholder="key1: value1&#13;&#10;key2: value2"></textarea>
                 </div>
             </div>
             <div class="form-group">
@@ -298,7 +298,24 @@
                 }
             });
 
+            $('#contentType').change(function(){
+                changePlaceholder()
+            })
+
+            $('#method').change(function(){
+                changePlaceholder()
+            })
         });
+
+        function changePlaceholder(){
+            var selected = $('#contentType').val()
+            var method = $('#method').val()
+            if (selected.indexOf("json") !== -1 && $.common.equalsIgnoreCase(method, "POST")){
+                $('#body').attr('placeholder','{\n"key1":"value1",\n"key2":"value2"\n}')
+            } else {
+                $('#body').attr("placeholder","key1: value1\nkey2: value2")
+            }
+        }
 
         $(document).ready(function(){
             $('#getNextCron').click(function(){
