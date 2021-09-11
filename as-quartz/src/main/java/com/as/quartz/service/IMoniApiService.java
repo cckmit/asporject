@@ -119,7 +119,7 @@ public interface IMoniApiService {
      * @param job
      * @return
      */
-    public Response doUrlCheck(MoniApi job) throws IOException;
+    public Response doUrlCheck(MoniApi job) throws Exception;
 
     /**
      * 調用Api

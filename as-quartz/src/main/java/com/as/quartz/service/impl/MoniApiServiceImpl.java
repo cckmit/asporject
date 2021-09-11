@@ -23,7 +23,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -277,7 +276,7 @@ public class MoniApiServiceImpl implements IMoniApiService {
      * @return
      */
     @Override
-    public Response doUrlCheck(MoniApi job) throws IOException {
+    public Response doUrlCheck(MoniApi job) throws Exception {
         String url = job.getUrl();
         OkHttpClient okHttpClient = OkHttpUtils.getInstance();
         Request.Builder builder = new Request.Builder();
@@ -288,17 +287,21 @@ public class MoniApiServiceImpl implements IMoniApiService {
         HttpMethod method = HttpMethod.resolve(DictUtils.getDictLabel(DictTypeConstants.API_JOB_METHOD, job.getMethod()));
         if (HttpMethod.GET.equals(method)) {
             //处理GET Body
-            StringBuilder getParam = new StringBuilder();
-            String bodies = job.getBody();
-            if (StringUtils.isNotEmpty(bodies)) {
-                String[] bodyArray = bodies.split("\r\n");
-                for (String param : bodyArray) {
-                    String[] value = param.split(":");
-                    getParam.append(value[0]).append("=").append(value[1]).append("&");
+            try {
+                StringBuilder getParam = new StringBuilder();
+                String bodies = job.getBody();
+                if (StringUtils.isNotEmpty(bodies)) {
+                    String[] bodyArray = bodies.split("\r\n");
+                    for (String param : bodyArray) {
+                        String[] value = param.split(":");
+                        getParam.append(value[0]).append("=").append(value[1]).append("&");
+                    }
                 }
-            }
-            if (StringUtils.isNotEmpty(getParam)) {
-                url = url + "?" + getParam.substring(0, getParam.length() - 1);
+                if (StringUtils.isNotEmpty(getParam)) {
+                    url = url + "?" + getParam.substring(0, getParam.length() - 1);
+                }
+            } catch (Exception e) {
+                throw new RuntimeException("Incorrect parameter format");
             }
             if (StringUtils.isNotEmpty(contentType)) {
                 builder.addHeader("content-type", contentType);
@@ -311,15 +314,20 @@ public class MoniApiServiceImpl implements IMoniApiService {
             builder.post(body);
         } else {
             FormBody.Builder form = new FormBody.Builder();
-            //处理POST Body
-            String bodies = job.getBody();
-            if (StringUtils.isNotEmpty(bodies)) {
-                String[] bodyArray = bodies.split("\r\n");
-                for (String param : bodyArray) {
-                    String[] value = param.split(":");
-                    form.add(value[0], value[1]);
+            try {
+                //处理POST Body
+                String bodies = job.getBody();
+                if (StringUtils.isNotEmpty(bodies)) {
+                    String[] bodyArray = bodies.split("\r\n");
+                    for (String param : bodyArray) {
+                        String[] value = param.split(":");
+                        form.add(value[0], value[1]);
+                    }
                 }
+            } catch (Exception e) {
+                throw new RuntimeException("Incorrect parameter format");
             }
+
             if (StringUtils.isNotEmpty(contentType)) {
                 builder.addHeader("content-type", contentType);
             }

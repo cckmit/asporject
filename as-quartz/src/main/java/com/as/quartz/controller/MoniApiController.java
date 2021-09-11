@@ -22,7 +22,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.List;
 
 /**
@@ -188,7 +187,7 @@ public class MoniApiController extends BaseController {
      */
     @PostMapping("/test")
     @ResponseBody
-    public AjaxResult test(MoniApi job) throws IOException {
+    public AjaxResult test(MoniApi job) throws Exception {
         Response response = moniApiService.doUrlCheck(job);
         int statusCode = response.code();
         String expectedCode = job.getExpectedCode();
