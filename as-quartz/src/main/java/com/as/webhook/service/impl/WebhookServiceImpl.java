@@ -72,16 +72,15 @@ public class WebhookServiceImpl implements IWebhookService {
                     if (StringUtils.isNotEmpty(pushObject.getTgId())) {
                         String[] tgIds = pushObject.getTgId().split(";");
                         StringBuilder tgInfo = new StringBuilder();
-                        tgInfo.append("\\[").append(processStr(reporter.toLowerCase())).append("]");
-                        tgInfo.append(DateUtils.parseDateToStr(DateUtils.YYYY_MM_DD_HH_MM_SS, date));
+                        tgInfo.append("*[webhook]* `").append(processStr(pushObject.getTitle())).append("`");
                         if (StringUtils.isNotEmpty(pushObject.getTitle())) {
-                            tgInfo.append("\n").append("*").append("TITLE:").append("*").append(processStr(pushObject.getTitle()));
+                            tgInfo.append("\n").append("*CreateTime:* `").append(DateUtils.parseDateToStr(DateUtils.YYYY_MM_DD_HH_MM_SS, date)).append(" (").append(processStr(reporter.toLowerCase())).append(")`");
                         }
                         if (StringUtils.isNotEmpty(pushObject.getDescr())) {
-                            tgInfo.append("\n").append("*").append("DESCR:").append("*").append(processStr(pushObject.getDescr()));
+                            tgInfo.append("\n").append("*Descr:* `").append(processStr(pushObject.getDescr())).append("`");
                         }
                         if (StringUtils.isNotEmpty(pushObject.getRemark())) {
-                            tgInfo.append("\n").append("*").append("REMARK:").append("*").append(processStr(pushObject.getRemark()));
+                            tgInfo.append("\n").append("*Remark:* `").append(processStr(pushObject.getRemark())).append("`");
                         }
                         for (String tgId : tgIds) {
                             try {
