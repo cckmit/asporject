@@ -99,9 +99,8 @@
                 {
                     field: 'title',
                     title: i18n('webhook.title'),
-                    cellStyle: {
-                        css:{"white-space":"nowrap"}
-                    },
+                    cellStyle: formatTableUnit,
+                    formatter: paramsMatter
                 },
                 {
                     field: 'tgId',
@@ -110,9 +109,8 @@
                 {
                     field: 'mailAdd',
                     title: i18n('user.email.address'),
-                    cellStyle: {
-                        css:{"white-space":"nowrap"}
-                    },
+                    cellStyle: formatTableUnit,
+                    formatter: paramsMatter
                 },
                 {
                     field: 'reporter',
@@ -158,6 +156,26 @@
             var url = prefix + '/hookDetail';
             var tabName = i18n('webhook.info');
             $.modal.open(tabName, url);
+        }
+
+        //表格超出宽度鼠标悬停显示td内容
+        function paramsMatter(value,row,index) {
+            var span=document.createElement("span");
+            span.setAttribute("title",value);
+            span.innerHTML = value;
+            return span.outerHTML;
+        }
+        //td宽度以及内容超过宽度隐藏
+        function formatTableUnit(value, row, index) {
+            return {
+                css: {
+                    "min-width": "100px",
+                    "white-space": "nowrap",
+                    "text-overflow": "ellipsis",
+                    "overflow": "hidden",
+                    "max-width": "500px"
+                }
+            }
         }
     </script>
 </body>
