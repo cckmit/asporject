@@ -281,7 +281,10 @@ public class MoniApiServiceImpl implements IMoniApiService {
         String url = job.getUrl();
         OkHttpClient okHttpClient = OkHttpUtils.getInstance();
         Request.Builder builder = new Request.Builder();
-        String contentType = DictUtils.getDictLabel(DictTypeConstants.API_JOB_CONTENT, job.getContentType());
+        String contentType = "";
+        if (StringUtils.isNotEmpty(job.getContentType())) {
+            contentType = DictUtils.getDictLabel(DictTypeConstants.API_JOB_CONTENT, job.getContentType());
+        }
         HttpMethod method = HttpMethod.resolve(DictUtils.getDictLabel(DictTypeConstants.API_JOB_METHOD, job.getMethod()));
         if (HttpMethod.GET.equals(method)) {
             //处理GET Body
@@ -297,7 +300,9 @@ public class MoniApiServiceImpl implements IMoniApiService {
             if (StringUtils.isNotEmpty(getParam)) {
                 url = url + "?" + getParam.substring(0, getParam.length() - 1);
             }
-            builder.addHeader("content-type", contentType);
+            if (StringUtils.isNotEmpty(contentType)) {
+                builder.addHeader("content-type", contentType);
+            }
             builder.get();
         } else if (HttpMethod.POST.equals(method) && contentType.contains("json")) {
             //处理POST JSON Body
@@ -315,7 +320,9 @@ public class MoniApiServiceImpl implements IMoniApiService {
                     form.add(value[0], value[1]);
                 }
             }
-            builder.addHeader("content-type", contentType);
+            if (StringUtils.isNotEmpty(contentType)) {
+                builder.addHeader("content-type", contentType);
+            }
             builder.post(form.build());
         }
         //处理Header
