@@ -177,7 +177,7 @@ public class JobServiceImpl implements IJobService {
         MimeMessageHelper messageHelper = new MimeMessageHelper(mailMessage, true, "UTF-8");
 
         //寄信人
-        messageHelper.setFrom(new InternetAddress(((JavaMailSenderImpl) javaMailSender).getUsername(), "AS Monitor"));
+        messageHelper.setFrom(new InternetAddress(((JavaMailSenderImpl) javaMailSender).getUsername(), "AS-Portal"));
 
         //	step2.	設定寄信資訊
         //收信人
