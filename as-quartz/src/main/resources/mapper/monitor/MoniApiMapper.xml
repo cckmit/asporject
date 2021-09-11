@@ -97,7 +97,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="priority != null and priority != ''">PRIORITY,</if>
             <if test="actionItem != null and actionItem != ''">ACTION_ITEM,</if>
             <if test="lastAlert != null">LAST_ALERT,</if>
-            <if test="ignoreAlert != null and ignoreAlert != ''">IGNORE_ALERT,</if>
+            <if test="ignoreAlert != null">IGNORE_ALERT,</if>
          </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="id != null and id != ''">#{id},</if>
@@ -126,7 +126,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="priority != null and priority != ''">#{priority},</if>
             <if test="actionItem != null and actionItem != ''">#{actionItem},</if>
             <if test="lastAlert != null">#{lastAlert},</if>
-            <if test="ignoreAlert != null and ignoreAlert != ''">#{ignoreAlert},</if>
+            <if test="ignoreAlert != null">#{ignoreAlert},</if>
          </trim>
     </insert>
 
@@ -158,7 +158,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="priority != null and priority != ''">PRIORITY = #{priority},</if>
             <if test="actionItem != null and actionItem != ''">ACTION_ITEM = #{actionItem},</if>
             <if test="lastAlert != null">LAST_ALERT = #{lastAlert},</if>
-            <if test="ignoreAlert != null and ignoreAlert != ''">IGNORE_ALERT = #{ignoreAlert},</if>
+            <if test="ignoreAlert != null">IGNORE_ALERT = #{ignoreAlert},</if>
         </trim>
         where ID = #{id}
     </update>

@@ -99,7 +99,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="updateBy != null and updateBy != ''">UPDATE_BY,</if>
             <if test="updateTime != null">UPDATE_TIME,</if>
             <if test="lastAlert != null">LAST_ALERT,</if>
-            <if test="ignoreAlert != null and ignoreAlert != ''">IGNORE_ALERT,</if>
+            <if test="ignoreAlert != null">IGNORE_ALERT,</if>
             <if test="exportField != null">EXPORT_FIELD,</if>
             <if test="relApi != null">REL_API,</if>
          </trim>
@@ -130,7 +130,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="updateBy != null and updateBy != ''">#{updateBy},</if>
             <if test="updateTime != null">#{updateTime},</if>
             <if test="lastAlert != null">#{lastAlert},</if>
-            <if test="ignoreAlert != null and ignoreAlert != ''">#{ignoreAlert},</if>
+            <if test="ignoreAlert != null">#{ignoreAlert},</if>
             <if test="exportField != null">#{exportField},</if>
             <if test="relApi != null">#{relApi},</if>
          </trim>
@@ -164,7 +164,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="updateBy != null and updateBy != ''">UPDATE_BY = #{updateBy},</if>
             <if test="updateTime != null">UPDATE_TIME = #{updateTime},</if>
             <if test="lastAlert != null">LAST_ALERT = #{lastAlert},</if>
-            <if test="ignoreAlert != null and ignoreAlert != ''">IGNORE_ALERT = #{ignoreAlert},</if>
+            <if test="ignoreAlert != null">IGNORE_ALERT = #{ignoreAlert},</if>
             <if test="exportField != null">EXPORT_FIELD = #{exportField},</if>
             <if test="relApi != null">REL_API = #{relApi},</if>
         </trim>
