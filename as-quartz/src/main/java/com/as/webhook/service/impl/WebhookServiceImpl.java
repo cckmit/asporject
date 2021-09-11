@@ -113,14 +113,15 @@ public class WebhookServiceImpl implements IWebhookService {
                             if (StringUtils.isEmpty(title)) {
                                 title = "";
                             }
-                            mail.setSubject("[" + reporter.toLowerCase() + "]" + title);
+                            mail.setSubject("[webhook] " + title);
                             StringBuilder body = new StringBuilder();
-                            body.append("create_time: ").append(DateUtils.parseDateToStr(DateUtils.YYYY_MM_DD_HH_MM_SS, date));
+                            body.append("[webhook] " + title);
+                            body.append("\n").append("CreateTime: ").append(DateUtils.parseDateToStr(DateUtils.YYYY_MM_DD_HH_MM_SS, date)).append(" (" + reporter.toLowerCase() + ")");
                             if (StringUtils.isNotEmpty(pushObject.getDescr())) {
-                                body.append("\n").append("descr: ").append(pushObject.getDescr());
+                                body.append("\n").append("Descr: ").append(pushObject.getDescr());
                             }
                             if (StringUtils.isNotEmpty(pushObject.getRemark())) {
-                                body.append("\n").append("remark: ").append(pushObject.getRemark());
+                                body.append("\n").append("Remark: ").append(pushObject.getRemark());
                             }
                             mail.setContent(body.toString());
                             SpringUtils.getBean(IJobService.class).sendEmail(mail);
