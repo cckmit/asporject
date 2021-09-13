@@ -15,12 +15,23 @@
                                 <input type="text" name="params[ids]"/>
                             </li>
                             <li>
+                                <label>[[#{webhook.type}]]：</label>
+                                <input type="text" name="type"/>
+                            </li>
+                            <li>
+                                <label>ASID：</label>
+                                <input type="text" name="asid"/>
+                            </li>
+                            <li>
                                 <label>[[#{webhook.title}]]：</label>
                                 <input type="text" name="title"/>
                             </li>
                             <li>
-                                <label>[[#{webhook.type}]]：</label>
-                                <input type="text" name="type"/>
+                                <label>[[#{webhook.method}]]：</label>
+                                <select name="method" th:with="type=${@dict.getType('api_job_method')}">
+                                    <option value="">[[#{user.list.all}]]</option>
+                                    <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}"></option>
+                                </select>
                             </li>
                             <li>
                                 <label>[[#{webhook.reporter}]]：</label>
