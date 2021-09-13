@@ -18,11 +18,6 @@ public class HttpRequestUtil {
 
     /**
      * 通用请求格式转换,兼容form和json两种格式
-     *
-     * @param httpServletRequest
-     * @return
-     * @Author Divid
-     * @Date 2020/03/06
      */
     public static Object commonHttpRequestParamConvert(HttpServletRequest httpServletRequest, Object classModel) {
         Map<String, String> params = new HashMap<>();
