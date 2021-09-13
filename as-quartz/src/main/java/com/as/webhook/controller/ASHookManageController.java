@@ -106,13 +106,11 @@ public class ASHookManageController extends BaseController {
     @RequiresPermissions("as:webhook:detail")
     @GetMapping("/hookDetail")
     public String hookDetail(ModelMap mmap) {
-        mmap.put("name", "webhookInfo");
         mmap.put("pushUrl", ASConfig.getAsDomain() + "/webhook/push");
-        mmap.put("pushMethod", "POST");
-        mmap.put("pushParam", "{\"type\":\"log/tg/mail\",\"title\":\"webhook push\",\"descr\":\"webhook push\",\"remark\":\"webhook push\",\"tgId\":\"as_test\",\"reporter\":\"kolin\",\"mailAdd\":\"c98fb80a.my-cpg.com@apac.teams.ms\"}");
+        mmap.put("method", "GET or POST");
+        mmap.put("pushParam", "{\"type\":\"log/tg/mail\",\"asid\":\"\",\"title\":\"webhook push\",\"descr\":\"webhook push\",\"remark\":\"webhook push\",\"tgId\":\"as_test\",\"reporter\":\"kolin\",\"mailAdd\":\"c98fb80a.my-cpg.com@apac.teams.ms\"}");
         mmap.put("cbUrl", ASConfig.getAsDomain() + "/webhook/cb");
-        mmap.put("cbMethod", "GET");
-        mmap.put("cbParam", "?reporter=kolin&job=999&elastic=999&api=999");
+        mmap.put("cbParam", "{\"reporter\":\"kolin\",\"job\":999,\"elastic\":999,\"api\":999}");
         return prefix + "/hookDetail";
     }
 }

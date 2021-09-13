@@ -23,10 +23,22 @@ public class PushObject extends BaseEntity {
     private String type;
 
     /**
+     * ASID
+     */
+    @Excel(name = "ASID")
+    private String asid;
+
+    /**
      * 标题
      */
     @Excel(name = "标题")
     private String title;
+
+    /**
+     * 请求方式
+     */
+    @Excel(name = "请求方式")
+    private String method;
 
     /**
      * 说明

@@ -72,6 +72,7 @@
     <script th:inline="javascript">
         var detailFlag = [[${@permission.hasPermi('as:webhook:detail')}]];
         var statusDatas = [[${@dict.getType('sys_common_status')}]];
+        var methodDatas = [[${@dict.getType('api_job_method')}]];
         var prefix = ctx + "as/webhook";
 
         $(function() {
@@ -97,10 +98,24 @@
                     title: i18n('webhook.type')
                 },
                 {
+                    field: 'asid',
+                    title: 'ASID',
+                    cellStyle: {
+                        css:{"white-space":"nowrap"}
+                    },
+                },
+                {
                     field: 'title',
                     title: i18n('webhook.title'),
                     cellStyle: formatTableUnit,
                     formatter: paramsMatter
+                },
+                {
+                    field: 'method',
+                    title: i18n('webhook.method'),
+                    formatter: function (value, row, index) {
+                        return $.table.selectDictLabel(methodDatas, value);
+                    }
                 },
                 {
                     field: 'tgId',
@@ -109,8 +124,9 @@
                 {
                     field: 'mailAdd',
                     title: i18n('user.email.address'),
-                    cellStyle: formatTableUnit,
-                    formatter: paramsMatter
+                    formatter: function(value, row, index) {
+                        return $.table.tooltip(value);
+                    }
                 },
                 {
                     field: 'reporter',
@@ -161,8 +177,8 @@
         //表格超出宽度鼠标悬停显示td内容
         function paramsMatter(value,row,index) {
             var span=document.createElement("span");
-            span.setAttribute("title",value);
-            span.innerHTML = value;
+            span.setAttribute("title",value ? value : '');
+            span.innerHTML = value ? value : '-';
             return span.outerHTML;
         }
         //td宽度以及内容超过宽度隐藏
@@ -173,7 +189,7 @@
                     "white-space": "nowrap",
                     "text-overflow": "ellipsis",
                     "overflow": "hidden",
-                    "max-width": "500px"
+                    "max-width": "250px"
                 }
             }
         }

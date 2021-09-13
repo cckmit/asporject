@@ -1,7 +1,7 @@
 package com.as.webhook.service;
 
+import com.as.webhook.domain.CbObject;
 import com.as.webhook.domain.PushObject;
-import com.as.webhook.utils.Result;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -11,7 +11,7 @@ public interface IWebhookService {
 
     public Map<String, Object> doPush(PushObject pushObject, HttpServletRequest request) throws Exception;
 
-    public Map<String, Object> run(String jobId, String elasticId, String apiId, String reporter, HttpServletRequest request);
+    public Map<String, Object> run(CbObject cbObject, HttpServletRequest request);
 
     /**
      * 查询webhook请求记录

@@ -2,42 +2,203 @@
 <html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
 <head>
 	<th:block th:include="include :: header('sql检测定时任务详细')" />
+	<style type="text/css">
+		h4 {
+			margin: 0px 0px 3px 0px;
+		}
+
+		.white-space {
+			background: #E7ECF3;
+			padding: 5px;
+			margin-bottom: 20px;
+			font-size: 15px;
+		}
+
+		table {
+			width: 100%;
+		}
+
+		.block {
+			color: #333333;
+			background: #E7ECF3;
+			border: 1px solid #AAA;
+			margin: 5px;
+			padding: 13px;
+			border-radius: 10px;
+			-moz-border-radius: 10px;
+			-webkit-border-radius: 10px;
+		}
+		pre {
+			white-space: pre-wrap;
+			word-wrap: break-word;
+		}
+	</style>
 </head>
 <body class="white-bg">
-<form autocomplete="off" class="form-horizontal m-t">
-	<h4 class="form-header h4">[[#{webhook.push}]]</h4>
-	<div class="form-group">
-		<label class="col-sm-2 control-label">[[#{webhook.url}]]：</label>
-		<div class="form-control-static" th:text="${pushUrl}">
-		</div>
+<div class="block" style="min-height:100%;">
+	<h2 style="text-align: center">[[#{webhook.push}]]</h2>
+	<h4>[[#{webhook.url}]]：</h4>
+	<div class="white-space" style="overflow:auto;" th:text="${pushUrl}"></div>
+	<h4>[[#{webhook.method}]]：</h4>
+	<div class="white-space" th:text="${method}"></div>
+	<h4>[[#{operation.request.form}]]：</h4>
+	<div class="white-space" style="overflow:auto;">
+		<table style="width:100%;" class="data_table">
+			<thead>
+				<tr>
+				<th>Parameter</th>
+				<th>Type</th>
+				<th>Required</th>
+				<th>Description</th>
+				</tr>
+			</thead>
+			<tbody>
+			<tr>
+				<td>type</td>
+				<td>String</td>
+				<td>No</td>
+				<td>log/tg/mail, default 'log'<br>Multiple use '/' separation</td>
+			</tr>
+			<tr>
+				<td>asid</td>
+				<td>String</td>
+				<td>No</td>
+				<td>Ex:URG-CAL2-MID-1</td>
+			</tr>
+			<tr>
+				<td>title</td>
+				<td>String</td>
+				<td>No</td>
+				<td>Ex:webhook push</td>
+			</tr>
+			<tr>
+				<td>descr</td>
+				<td>String</td>
+				<td>No</td>
+				<td>Ex:webhook push</td>
+			</tr>
+			<tr>
+				<td>remark</td>
+				<td>String</td>
+				<td>No</td>
+				<td>Ex:webhook push</td>
+			</tr>
+			<tr>
+				<td>tgId</td>
+				<td>String</td>
+				<td>No</td>
+				<td>Telegram group code<br>Ex:as_test;as_group<br>Multiple use ';' separation</td>
+			</tr>
+			<tr>
+				<td>reporter</td>
+				<td>String</td>
+				<td>Yes</td>
+				<td>Ex:kolin</td>
+			</tr>
+			<tr>
+				<td>mailAdd</td>
+				<td>String</td>
+				<td>No</td>
+				<td>Ex:c98fb80a.my-cpg.com@apac.teams.ms;kolin.z@my-cpg.com<br>Multiple use ';' separation</td>
+			</tr>
+			</tbody>
+		</table>
 	</div>
-	<div class="form-group">
-		<label class="col-sm-2 control-label">[[#{webhook.method}]]：</label>
-		<div class="form-control-static" th:text="${pushMethod}">
-		</div>
-	</div>
-	<div class="form-group">
-		<label class="col-sm-2 control-label">[[#{operation.request.parameter}]]：</label>
-		<div class="form-control-static col-sm-9"><pre>
+	<h4>[[#{operation.request.json}]]：</h4>
+	<div>
+		<pre>
 			<code id="pushParam"></code>
-		</pre></div>
+		</pre>
 	</div>
-	<h4 class="form-header h4">[[#{webhook.cd}]]</h4>
-	<div class="form-group">
-		<label class="col-sm-2 control-label">[[#{webhook.url}]]：</label>
-		<div class="form-control-static" th:text="${cbUrl}">
-		</div>
+</div>
+
+<div class="block" style="min-height:100%;">
+	<h2 style="text-align: center">[[#{webhook.cd}]]</h2>
+	<h4>[[#{webhook.url}]]：</h4>
+	<div class="white-space" style="overflow:auto;" th:text="${cbUrl}"></div>
+	<h4>[[#{webhook.method}]]：</h4>
+	<div class="white-space" th:text="${method}"></div>
+	<h4>[[#{operation.request.form}]]：</h4>
+	<div class="white-space" style="overflow:auto;">
+		<table style="width:100%;" class="data_table">
+			<thead>
+			<tr>
+				<th>Parameter</th>
+				<th>Type</th>
+				<th>Required</th>
+				<th>Description</th>
+			</tr>
+			</thead>
+			<tbody>
+			<tr>
+				<td>reporter</td>
+				<td>String</td>
+				<td>Yes</td>
+				<td>Ex:kolin</td>
+			</tr>
+			<tr>
+				<td>job</td>
+				<td>Integer</td>
+				<td>No</td>
+				<td>AS Sql Job ID<br>Ex:999</td>
+			</tr>
+			<tr>
+				<td>elastic</td>
+				<td>Integer</td>
+				<td>No</td>
+				<td>AS Elastic Job ID<br>Ex:999</td>
+			</tr>
+			<tr>
+				<td>api</td>
+				<td>Integer</td>
+				<td>No</td>
+				<td>AS Api Job ID<br>Ex:999</td>
+			</tr>
+			</tbody>
+		</table>
 	</div>
-	<div class="form-group">
-		<label class="col-sm-2 control-label">[[#{webhook.method}]]：</label>
-		<div class="form-control-static" th:text="${cbMethod}">
-		</div>
+	<h4>[[#{operation.request.json}]]：</h4>
+	<div>
+		<pre>
+			<code id="cbParam"></code>
+		</pre>
 	</div>
-	<div class="form-group">
-		<label class="col-sm-2 control-label">[[#{operation.request.parameter}]]：</label>
-		<div class="form-control-static col-sm-9"><pre th:text="${cbParam}"></pre></div>
-	</div>
-</form>
+</div>
+
+<!--<form autocomplete="off" class="form-horizontal m-t">-->
+<!--	<h2 class="form-header h2">[[#{webhook.push}]]</h2>-->
+<!--	<div class="form-group">-->
+<!--		<label class="col-sm-2 control-label">[[#{webhook.url}]]：</label>-->
+<!--		<div class="form-control-static" th:text="${pushUrl}">-->
+<!--		</div>-->
+<!--	</div>-->
+<!--	<div class="form-group">-->
+<!--		<label class="col-sm-2 control-label">[[#{webhook.method}]]：</label>-->
+<!--		<div class="form-control-static" th:text="${pushMethod}">-->
+<!--		</div>-->
+<!--	</div>-->
+<!--	<div class="form-group">-->
+<!--		<label class="col-sm-2 control-label">[[#{operation.request.parameter}]]：</label>-->
+<!--		<div class="form-control-static col-sm-9"><pre>-->
+<!--			<code id="pushParam"></code>-->
+<!--		</pre></div>-->
+<!--	</div>-->
+<!--	<h4 class="form-header h4">[[#{webhook.cd}]]</h4>-->
+<!--	<div class="form-group">-->
+<!--		<label class="col-sm-2 control-label">[[#{webhook.url}]]：</label>-->
+<!--		<div class="form-control-static" th:text="${cbUrl}">-->
+<!--		</div>-->
+<!--	</div>-->
+<!--	<div class="form-group">-->
+<!--		<label class="col-sm-2 control-label">[[#{webhook.method}]]：</label>-->
+<!--		<div class="form-control-static" th:text="${cbMethod}">-->
+<!--		</div>-->
+<!--	</div>-->
+<!--	<div class="form-group">-->
+<!--		<label class="col-sm-2 control-label">[[#{operation.request.parameter}]]：</label>-->
+<!--		<div class="form-control-static col-sm-9"><pre th:text="${cbParam}"></pre></div>-->
+<!--	</div>-->
+<!--</form>-->
 
 <th:block th:include="include :: footer" />
 <th:block th:include="include :: jsonview-js" />
@@ -48,6 +209,13 @@
 			$("#pushParam").JSONView(pushParam);
 		} else {
 			$("#pushParam").text(pushParam);
+		}
+
+		var cbParam = [[${cbParam}]];
+		if ($.common.isNotEmpty(cbParam) && cbParam.length < 2000) {
+			$("#cbParam").JSONView(cbParam);
+		} else {
+			$("#cbParam").text(cbParam);
 		}
 	});
 </script>

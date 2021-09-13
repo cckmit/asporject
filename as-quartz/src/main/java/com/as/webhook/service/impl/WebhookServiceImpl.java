@@ -2,8 +2,10 @@ package com.as.webhook.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.as.common.constant.Constants;
+import com.as.common.constant.DictTypeConstants;
 import com.as.common.core.text.Convert;
 import com.as.common.utils.DateUtils;
+import com.as.common.utils.DictUtils;
 import com.as.common.utils.ExceptionUtil;
 import com.as.common.utils.StringUtils;
 import com.as.common.utils.spring.SpringUtils;
@@ -17,6 +19,7 @@ import com.as.quartz.service.IMoniJobService;
 import com.as.quartz.util.Mail;
 import com.as.quartz.util.ScheduleUtils;
 import com.as.webhook.constant.TypeConstants;
+import com.as.webhook.domain.CbObject;
 import com.as.webhook.domain.PushObject;
 import com.as.webhook.enums.ResultEnum;
 import com.as.webhook.mapper.WebhookMapper;
@@ -61,6 +64,7 @@ public class WebhookServiceImpl implements IWebhookService {
         pushObject.setCreateTime(date);
         pushObject.setIp(getIpAddress(request));
         pushObject.setReporter(reporter.toLowerCase());
+        pushObject.setMethod(DictUtils.getDictLabel(DictTypeConstants.API_JOB_METHOD, request.getMethod().toUpperCase()));
         //先储存log，获取record id
         webhookMapper.insertWebhookRecord(pushObject);
         String types = pushObject.getType();
@@ -142,9 +146,6 @@ public class WebhookServiceImpl implements IWebhookService {
             } else {
                 pushObject.setStatus(Constants.FAIL);
             }
-            if (StringUtils.isEmpty(pushObject.getType())) {
-                pushObject.setType("log");
-            }
             result.put("log", Result.success());
             result.put("recordId", pushObject.getId());
             pushObject.setMessage(JSONObject.toJSONString(result));
@@ -183,26 +184,28 @@ public class WebhookServiceImpl implements IWebhookService {
     }
 
     @Override
-    public Map<String, Object> run(String jobId, String elasticId, String apiId, String reporter, HttpServletRequest request) {
+    public Map<String, Object> run(CbObject cbObject, HttpServletRequest request) {
         Map<String, Object> result = new HashMap();
-        if (StringUtils.isEmpty(reporter) || !checkReporterIsExist(reporter)) {
+        if (StringUtils.isEmpty(cbObject.getReporter()) || !checkReporterIsExist(cbObject.getReporter())) {
             result.put(TypeConstants.ERROR, Result.result(ResultEnum.USER_EMPTY));
             return result;
         }
         StringBuilder type = new StringBuilder();
         StringBuilder remark = new StringBuilder();
+        StringBuilder asid = new StringBuilder();
         Map<String, Object> params = new HashMap<>();
         params.put("isWebhook", true);
         boolean flag = true;
-        if (StringUtils.isNotEmpty(jobId)) {
+        if (StringUtils.isNotEmpty(cbObject.getJob())) {
             try {
                 type.append(TypeConstants.JOB).append("/");
-                remark.append(TypeConstants.JOB).append("(").append(jobId).append(")").append("/");
-                MoniJob moniJob = jobService.selectMoniJobById(Long.valueOf(jobId));
+                remark.append(TypeConstants.JOB).append("(").append(cbObject.getJob()).append(")").append("/");
+                MoniJob moniJob = jobService.selectMoniJobById(Long.valueOf(cbObject.getJob()));
                 if (StringUtils.isNull(moniJob)) {
                     result.put(TypeConstants.JOB, Result.result(ResultEnum.JOB_EMPTY));
                     flag = false;
                 } else {
+                    asid.append(moniJob.getAsid()).append("/");
                     moniJob.setParams(params);
                     jobService.run(moniJob);
                     result.put(TypeConstants.JOB, Result.success());
@@ -212,15 +215,16 @@ public class WebhookServiceImpl implements IWebhookService {
                 flag = false;
             }
         }
-        if (StringUtils.isNotEmpty(elasticId)) {
+        if (StringUtils.isNotEmpty(cbObject.getElastic())) {
             type.append(TypeConstants.ELASTIC).append("/");
-            remark.append(TypeConstants.ELASTIC).append("(").append(elasticId).append(")").append("/");
+            remark.append(TypeConstants.ELASTIC).append("(").append(cbObject.getElastic()).append(")").append("/");
             try {
-                MoniElastic moniElastic = elasticService.selectMoniElasticById(Long.valueOf(elasticId));
+                MoniElastic moniElastic = elasticService.selectMoniElasticById(Long.valueOf(cbObject.getElastic()));
                 if (StringUtils.isNull(moniElastic)) {
                     result.put(TypeConstants.ELASTIC, Result.result(ResultEnum.ELASTIC_EMPTY));
                     flag = false;
                 } else {
+                    asid.append(moniElastic.getAsid()).append("/");
                     moniElastic.setParams(params);
                     elasticService.run(moniElastic);
                     result.put(TypeConstants.ELASTIC, Result.success());
@@ -230,15 +234,16 @@ public class WebhookServiceImpl implements IWebhookService {
                 flag = false;
             }
         }
-        if (StringUtils.isNotEmpty(apiId)) {
+        if (StringUtils.isNotEmpty(cbObject.getApi())) {
             type.append(TypeConstants.API).append("/");
-            remark.append(TypeConstants.API).append("(").append(apiId).append(")").append("/");
+            remark.append(TypeConstants.API).append("(").append(cbObject.getApi()).append(")").append("/");
             try {
-                MoniApi moniApi = apiService.selectMoniApiById(Long.valueOf(apiId));
+                MoniApi moniApi = apiService.selectMoniApiById(Long.valueOf(cbObject.getApi()));
                 if (StringUtils.isNull(moniApi)) {
                     result.put(TypeConstants.API, Result.result(ResultEnum.API_EMPTY));
                     flag = false;
                 } else {
+                    asid.append(moniApi.getAsid()).append("/");
                     moniApi.setParams(params);
                     apiService.run(moniApi);
                     result.put(TypeConstants.API, Result.success());
@@ -251,10 +256,16 @@ public class WebhookServiceImpl implements IWebhookService {
         if (StringUtils.isNotEmpty(type)) {
             PushObject pushObject = new PushObject();
             pushObject.setCreateTime(new Date());
-            pushObject.setReporter(reporter.toLowerCase());
+            pushObject.setReporter(cbObject.getReporter().toLowerCase());
+            pushObject.setMethod(DictUtils.getDictLabel(DictTypeConstants.API_JOB_METHOD, request.getMethod().toUpperCase()));
             pushObject.setTitle("webhook run job >> " + remark.substring(0, remark.length() - 1));
             pushObject.setType(type.substring(0, type.length() - 1));
-            pushObject.setRemark(remark.substring(0, remark.length() - 1));
+            if (StringUtils.isNotEmpty(remark)) {
+                pushObject.setRemark(remark.substring(0, remark.length() - 1));
+            }
+            if (StringUtils.isNotEmpty(asid)) {
+                pushObject.setAsid(asid.substring(0, asid.length() - 1));
+            }
             //先插入获取recordId
             webhookMapper.insertWebhookRecord(pushObject);
             result.put("recordId", pushObject.getId());
@@ -266,6 +277,8 @@ public class WebhookServiceImpl implements IWebhookService {
             }
             pushObject.setIp(getIpAddress(request));
             webhookMapper.updateWebhookRecord(pushObject);
+        } else {
+            result.put(TypeConstants.ERROR, Result.error());
         }
         return result;
     }
