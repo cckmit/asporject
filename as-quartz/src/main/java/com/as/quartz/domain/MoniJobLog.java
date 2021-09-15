@@ -89,6 +89,12 @@ public class MoniJobLog extends BaseEntity {
     @Excel(name = "操作者" , readConverterExp = "系统则为system")
     private String operator;
 
+    /**
+     * 是否告警
+     */
+    @Excel(name = "是否告警")
+    private String isAlert;
+
     private MoniJob moniJob;
 
     @Override

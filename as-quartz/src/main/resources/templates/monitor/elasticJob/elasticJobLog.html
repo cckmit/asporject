@@ -42,6 +42,14 @@
                                         th:value="${dict.dictValue}"></option>
                             </select>
                         </li>
+                        <li>
+                            <label>[[#{sql.job.is.alert}]]：</label>
+                            <select name="isAlert" th:with="type=${@dict.getType('sys_yes_no')}">
+                                <option value="">[[#{user.list.all}]]</option>
+                                <option th:each="dict : ${type}" th:text="#{${dict.dictLabel}}"
+                                        th:value="${dict.dictValue}"></option>
+                            </select>
+                        </li>
                         <li class="select-time">
                             <label>[[#{sql.job.execute.time}]]：</label>
                             <input type="text" class="time-input" id="startTime" th:placeholder="#{common.start.time}"
@@ -87,6 +95,7 @@
     var priorityDatas = [[${@dict.getType('job_priority_list')}]];
     var platformDatas = [[${@dict.getType('ub8_platform_type')}]];
     var alertStatusDatas = [[${@dict.getType('sys_normal_disable')}]];
+    var yesOrNoDatas = [[${@dict.getType('sys_yes_no')}]];
     var prefix = ctx + "monitor/elasticJobLog";
 
     $(function () {
@@ -177,6 +186,13 @@
                     title: i18n('sql.job.execute.status'),
                     formatter: function (value, row, index) {
                         return $.table.selectDictLabel(statusDatas, value);
+                    }
+                },
+                {
+                    field: 'isAlert',
+                    title: i18n('sql.job.is.alert'),
+                    formatter: function (value, row, index) {
+                        return $.table.selectDictLabel(yesOrNoDatas, value);
                     }
                 },
                 {

@@ -1,10 +1,13 @@
 package com.as.quartz.controller;
 
 import com.as.common.annotation.Log;
+import com.as.common.constant.Constants;
+import com.as.common.constant.DictTypeConstants;
 import com.as.common.core.controller.BaseController;
 import com.as.common.core.domain.AjaxResult;
 import com.as.common.core.page.TableDataInfo;
 import com.as.common.enums.BusinessType;
+import com.as.common.utils.DictUtils;
 import com.as.common.utils.ShiroUtils;
 import com.as.common.utils.StringUtils;
 import com.as.common.utils.poi.ExcelUtil;
@@ -23,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 自动API检测任务Controller
@@ -197,7 +201,7 @@ public class MoniApiController extends BaseController {
                 return success();
             }
         }
-        return error(String.valueOf(statusCode));
+        return error(statusCode + ", " + Objects.requireNonNull(response.body()).string());
     }
 
     /**
@@ -246,5 +250,34 @@ public class MoniApiController extends BaseController {
     public AjaxResult importTemplate() {
         ExcelUtil<MoniApi> util = new ExcelUtil<MoniApi>(MoniApi.class);
         return util.importTemplateExcel("API-DETECT");
+    }
+
+    /**
+     * 推送模板
+     *
+     * @param mmap
+     * @return
+     */
+    @RequiresPermissions("monitor:apiJob:view")
+    @GetMapping("/pushTemplate")
+    public String pushTemplate(ModelMap mmap) {
+        String apiTemplate = DictUtils.getDictRemark(DictTypeConstants.JOB_PUSH_TEMPLATE, Constants.DESCR_TEMPLATE_API);
+        mmap.put("template", apiTemplate);
+        return prefix + "/template";
+    }
+
+    /**
+     * 保存推送模板
+     *
+     * @param moniApi
+     * @return
+     */
+    @RequiresPermissions("monitor:apiJob:view")
+    @PostMapping("/pushTemplateSave")
+    @Log(title = "自动API检测任务", businessType = BusinessType.UPDATE)
+    @ResponseBody
+    public AjaxResult pushTemplateSave(MoniApi moniApi) {
+        String template = moniApi.getTelegramInfo();
+        return toAjax(moniApiService.updateTemplate(template));
     }
 }

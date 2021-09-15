@@ -74,24 +74,24 @@ public class WebhookServiceImpl implements IWebhookService {
                 if (TypeConstants.TG.equalsIgnoreCase(type)) {
 
                     if (StringUtils.isNotEmpty(pushObject.getTgId())) {
+                        String tgInfo = DictUtils.getDictRemark(DictTypeConstants.JOB_PUSH_TEMPLATE, Constants.DESCR_TEMPLATE_WEBHOOK);
                         String[] tgIds = pushObject.getTgId().split(";");
-                        StringBuilder tgInfo = new StringBuilder();
-                        tgInfo.append("*[webhook]* `").append(processStr(pushObject.getTitle())).append("`");
-                        if (StringUtils.isNotEmpty(pushObject.getTitle())) {
-                            tgInfo.append("\n").append("*CreateTime:* `").append(DateUtils.parseDateToStr(DateUtils.YYYY_MM_DD_HH_MM_SS, date)).append(" (").append(processStr(reporter.toLowerCase())).append(")`");
-                        }
-                        if (StringUtils.isNotEmpty(pushObject.getDescr())) {
-                            tgInfo.append("\n").append("*Descr:* `").append(processStr(pushObject.getDescr())).append("`");
-                        }
-                        if (StringUtils.isNotEmpty(pushObject.getRemark())) {
-                            tgInfo.append("\n").append("*Remark:* `").append(processStr(pushObject.getRemark())).append("`");
+                        if (StringUtils.isNotEmpty(tgInfo)) {
+                            tgInfo = tgInfo.replace("{type}", StringUtils.isNotEmpty(pushObject.getType()) ? pushObject.getType() : "log")
+                                    .replace("{title}", StringUtils.isNotEmpty(pushObject.getTitle()) ? ScheduleUtils.processStr(pushObject.getTitle()) : "")
+                                    .replace("{time}", DateUtils.parseDateToStr(DateUtils.YYYY_MM_DD_HH_MM_SS, date))
+                                    .replace("{reporter}", pushObject.getReporter())
+                                    .replace("{descr}", StringUtils.isNotEmpty(pushObject.getDescr()) ? ScheduleUtils.processStr(pushObject.getDescr()) : "")
+                                    .replace("{remark}", StringUtils.isNotEmpty(pushObject.getRemark()) ? ScheduleUtils.processStr(pushObject.getRemark()) : "");
+                        } else {
+                            tgInfo = "*Webhook push template is not set*";
                         }
                         for (String tgId : tgIds) {
                             try {
                                 String[] tgData = ScheduleUtils.getTgData(tgId, true);
                                 String bot = tgData[0];
                                 String chatId = tgData[1];
-                                SendResponse response = ScheduleUtils.sendMessage(bot, chatId, tgInfo.toString(), null);
+                                SendResponse response = ScheduleUtils.sendMessage(bot, chatId, tgInfo, null);
                                 if (response.isOk()) {
                                     result.put(type + "-" + tgId, Result.success());
                                 } else {
@@ -176,13 +176,6 @@ public class WebhookServiceImpl implements IWebhookService {
         return ip;
     }
 
-    private String processStr(String str) {
-        return str.replace("*", "\\*")
-                .replace("_", "\\_")
-                .replace("`", "\\`")
-                .replace("[", "\\[");
-    }
-
     @Override
     public Map<String, Object> run(CbObject cbObject, HttpServletRequest request) {
         Map<String, Object> result = new HashMap();
@@ -195,6 +188,7 @@ public class WebhookServiceImpl implements IWebhookService {
         StringBuilder asid = new StringBuilder();
         Map<String, Object> params = new HashMap<>();
         params.put("isWebhook", true);
+        params.put("operator", cbObject.getReporter());
         boolean flag = true;
         if (StringUtils.isNotEmpty(cbObject.getJob())) {
             try {
@@ -355,5 +349,10 @@ public class WebhookServiceImpl implements IWebhookService {
     @Override
     public int deleteWebhookRecordById(Long id) {
         return webhookMapper.deleteWebhookRecordById(id);
+    }
+
+    @Override
+    public int updateTemplate(String template) {
+        return webhookMapper.updateTemplate(template);
     }
 }

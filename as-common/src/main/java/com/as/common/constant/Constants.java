@@ -33,6 +33,16 @@ public class Constants
     public static final String ERROR = "2";
 
     /**
+     * 是
+     */
+    public static final String YES = "Y";
+
+    /**
+     * 否
+     */
+    public static final String NO = "N";
+
+    /**
      * 登录成功
      */
     public static final String LOGIN_SUCCESS = "Success";
@@ -116,4 +126,24 @@ public class Constants
      * 5.0平台
      */
     public static final String PLATFORM_2 = "5.0";
+
+    /**
+     * sql job push template
+     */
+    public static final String DESCR_TEMPLATE_JOB = "descr_template_job";
+
+    /**
+     * elastic job push template
+     */
+    public static final String DESCR_TEMPLATE_ELASTIC = "descr_template_elastic";
+
+    /**
+     * api job push template
+     */
+    public static final String DESCR_TEMPLATE_API = "descr_template_api";
+
+    /**
+     * webhook push template
+     */
+    public static final String DESCR_TEMPLATE_WEBHOOK = "descr_template_webhook";
 }

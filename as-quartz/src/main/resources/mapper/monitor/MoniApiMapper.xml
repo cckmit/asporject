@@ -186,4 +186,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <include refid="selectMoniApiVo"/>
     </select>
 
+    <update id="updateTemplate" parameterType="String">
+        update sys_dict_data
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="remark != null">remark = #{template},</if>
+        </trim>
+        where dict_code = 302 and dict_type = 'job_push_template' and dict_value = 'descr_template_api'
+    </update>
+
 </mapper>

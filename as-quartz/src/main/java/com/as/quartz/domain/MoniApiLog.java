@@ -91,6 +91,18 @@ public class MoniApiLog extends BaseEntity {
     @Excel(name = "操作者,系统则为system")
     private String operator;
 
+    /**
+     * 是否告警
+     */
+    @Excel(name = "是否告警")
+    private String isAlert;
+
+    /**
+     * 响应内容
+     */
+    @Excel(name = "响应内容")
+    private String response;
+
     private MoniApi moniApi;
 
     @Override

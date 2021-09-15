@@ -117,4 +117,9 @@ public class DictTypeConstants
      */
     public static final String API_JOB_CONTENT = "api_job_content";
 
+    /**
+     * 推送模板
+     */
+    public static final String JOB_PUSH_TEMPLATE = "job_push_template";
+
 }

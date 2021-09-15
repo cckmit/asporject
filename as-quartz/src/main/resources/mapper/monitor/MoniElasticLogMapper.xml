@@ -17,6 +17,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="alertStatus"    column="ALERT_STATUS"    />
         <result property="operator"    column="OPERATOR"    />
         <result property="exportResult"    column="EXPORT_RESULT"    />
+        <result property="isAlert"    column="IS_ALERT"    />
         <collection  property="moniElastic"   javaType="MoniElastic"   resultMap="moniElasticResult" />
     </resultMap>
 
@@ -30,7 +31,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 
     <sql id="selectMoniElasticLogVo">
-        select MEL.ID, MEL.ELASTIC_ID, MEL.START_TIME, MEL.END_TIME, MEL.EXPECTED_RESULT, MEL.EXECUTE_RESULT, MEL.EXCEPTION_LOG, MEL.EXECUTE_TIME, MEL.STATUS, MEL.ALERT_STATUS, MEL.OPERATOR, MEL.EXPORT_RESULT,
+        select MEL.ID, MEL.ELASTIC_ID, MEL.START_TIME, MEL.END_TIME, MEL.EXPECTED_RESULT, MEL.EXECUTE_RESULT, MEL.EXCEPTION_LOG, MEL.EXECUTE_TIME, MEL.STATUS, MEL.ALERT_STATUS, MEL.OPERATOR, MEL.EXPORT_RESULT, MEL.IS_ALERT,
         ME.EN_NAME, ME.CH_NAME, ME.DESCR, ME.PLATFORM, ME.PRIORITY, ME.ASID
         from moni_elastic_log MEL
         left join moni_elastic ME on MEL.ELASTIC_ID = ME.ID
@@ -50,6 +51,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                 AND date_format(MEL.START_TIME,'%y%m%d') &lt;= date_format(#{params.endStartTime},'%y%m%d')
             </if>
             <if test="status != null  and status != ''"> and MEL.STATUS = #{status}</if>
+            <if test="isAlert != null  and isAlert != ''"> and MEL.IS_ALERT = #{isAlert}</if>
         </where>
     </select>
     
@@ -64,7 +66,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
     <select id="selectMoniElasticLogListNoSuccess" resultMap="MoniElasticLogResult">
         <include refid="selectMoniElasticLogVo"/>
-        where MEL.STATUS != '0' and MEL.START_TIME &gt;= DATE_SUB(NOW(),INTERVAL 1 HOUR) and OPERATOR = 'system' order by MEL.START_TIME desc
+        where MEL.STATUS != '0' and MEL.START_TIME &gt;= DATE_SUB(NOW(),INTERVAL 1 HOUR) and (MEL.OPERATOR = 'system' or MEL.OPERATOR like '%webhook%') and MEL.IS_ALERT = 'Y' order by MEL.START_TIME desc
     </select>
         
     <insert id="insertMoniElasticLog" parameterType="MoniElasticLog" useGeneratedKeys="true" keyProperty="id">
@@ -81,6 +83,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="alertStatus != null">ALERT_STATUS,</if>
             <if test="operator != null">OPERATOR,</if>
             <if test="exportResult != null">EXPORT_RESULT,</if>
+            <if test="isAlert != null">IS_ALERT,</if>
          </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="elasticId != null">#{elasticId},</if>
@@ -94,6 +97,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="alertStatus != null">#{alertStatus},</if>
             <if test="operator != null">#{operator},</if>
             <if test="exportResult != null">#{exportResult},</if>
+            <if test="isAlert != null">#{isAlert},</if>
          </trim>
     </insert>
 
@@ -111,6 +115,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="alertStatus != null">ALERT_STATUS = #{alertStatus},</if>
             <if test="operator != null">OPERATOR = #{operator},</if>
             <if test="exportResult != null">EXPORT_RESULT = #{exportResult},</if>
+            <if test="isAlert != null">IS_ALERT = #{isAlert},</if>
         </trim>
         where ID = #{id}
     </update>

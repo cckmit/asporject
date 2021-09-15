@@ -64,4 +64,6 @@ public interface MoniElasticMapper {
      * @param moniElastic
      */
     int updateMoniElasticLastAlertTime(MoniElastic moniElastic);
+
+    int updateTemplate(String template);
 }

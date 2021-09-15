@@ -70,6 +70,10 @@ public class MoniElasticExecution extends AbstractQuartzJob {
 
     private Boolean isWebhook;
 
+    private String operator;
+
+    private StringBuilder exportInfo = new StringBuilder();
+
     /**
      * 执行方法
      *
@@ -109,18 +113,25 @@ public class MoniElasticExecution extends AbstractQuartzJob {
     }
 
     private void checkAndAlert() throws Exception {
-        if (resultIsExist()) {
+        moniElasticLog.setStatus(Constants.FAIL);
+        if ((!"system".equals(operator) && !isWebhook) || resultIsNotExist()) {
             //没有重复发生的LOG才发送TG告警，避免频繁发送
-            moniElasticLog.setStatus(Constants.FAIL);
-            moniElasticLog.setAlertStatus(Constants.SUCCESS);
+            if ("system".equals(operator) || isWebhook) {
+                //系统执行或webhook则设置为真实告警
+                moniElasticLog.setIsAlert(Constants.YES);
+                moniElasticLog.setAlertStatus(Constants.SUCCESS);
+                //系统执行才更新最后告警时间
+                moniElastic.setLastAlert(DateUtils.getNowDate());
+                SpringUtils.getBean(IMoniElasticService.class).updateMoniElasticLastAlertTime(moniElastic);
+            } else {
+                moniElasticLog.setIsAlert(Constants.NO);
+                moniElasticLog.setAlertStatus(Constants.FAIL);
+            }
             sendAlert();
-            //更新最后告警时间
-            moniElastic.setLastAlert(DateUtils.getNowDate());
-            SpringUtils.getBean(IMoniElasticService.class).updateMoniElasticLastAlertTime(moniElastic);
             //調用API
-            SpringUtils.getBean(IMoniApiService.class).doApi(moniElastic.getRelApi());
+            SpringUtils.getBean(IMoniApiService.class).doApi(moniElastic.getRelApi(), operator);
         } else {
-            moniElasticLog.setStatus(Constants.SUCCESS);
+            moniElasticLog.setIsAlert(Constants.NO);
             moniElasticLog.setAlertStatus(Constants.FAIL);
         }
     }
@@ -143,23 +154,27 @@ public class MoniElasticExecution extends AbstractQuartzJob {
                 }
                 if (exportFields.length > 1) {
                     exportResult.append("(").append(count).append(")");
+                    exportInfo.append("(").append(count).append(")");
                 }
                 if (StringUtils.isNotNull(jsonObjectTmp)) {
                     String tmpExportResult = jsonObjectTmp.getString(split[split.length - 1]);
                     if (StringUtils.isNotEmpty(tmpExportResult)) {
-                        if (tmpExportResult.length() > 500) {
-                            tmpExportResult = tmpExportResult.substring(0, 500) + "\n... more data not be showed";
-                        }
                         exportResult.append(exportField).append(":").append(tmpExportResult).append("\n");
+                        if (tmpExportResult.length() > 500) {
+                            tmpExportResult = tmpExportResult.substring(0, 500) + "\n... See more in log details";
+                        }
+                        exportInfo.append(exportField).append(":").append(tmpExportResult).append("\n");
                     } else {
                         exportResult.append(exportField).append(":").append("null").append("\n");
+                        exportInfo.append(exportField).append(":").append("null").append("\n");
                     }
                 } else {
                     exportResult.append(exportField).append(":").append("null").append("\n");
+                    exportInfo.append(exportField).append(":").append("null").append("\n");
                 }
                 count++;
             }
-            moniElasticLog.setExportResult(exportResult.substring(0, exportResult.length() - 2));
+            moniElasticLog.setExportResult(exportResult.substring(0, exportResult.length() - 1));
         }
     }
 
@@ -168,14 +183,14 @@ public class MoniElasticExecution extends AbstractQuartzJob {
      *
      * @return
      */
-    private boolean resultIsExist() {
+    private boolean resultIsNotExist() {
         try {
             //为0则不过滤
             if (moniElastic.getIgnoreAlert() == 0) {
                 return true;
             }
             DataSource masterDataSource = SpringUtils.getBean("masterDataSource");
-            String sql = "SELECT COUNT(*) FROM MONI_ELASTIC_LOG WHERE EXECUTE_RESULT = ? AND ELASTIC_ID = ? AND STATUS != '0' AND START_TIME > DATE_SUB(NOW(), INTERVAL ? MINUTE)";
+            String sql = "SELECT COUNT(*) FROM MONI_ELASTIC_LOG WHERE EXECUTE_RESULT = ? AND ELASTIC_ID = ? AND STATUS != '0' AND IS_ALERT = 'Y' AND START_TIME > DATE_SUB(NOW(), INTERVAL ? MINUTE)";
             JdbcTemplate jdbcTemplateMysql = new JdbcTemplate(masterDataSource);
             int row = jdbcTemplateMysql.queryForObject(sql, new Object[]{moniElasticLog.getExecuteResult(), moniElastic.getId(), moniElastic.getIgnoreAlert()}, Integer.class);
             return row == 0;
@@ -216,13 +231,22 @@ public class MoniElasticExecution extends AbstractQuartzJob {
         moniElastic = (MoniElastic) job;
         moniElasticLog.setStartTime(new Date());
         moniElasticLog.setElasticId(moniElastic.getId());
-        //此处先插入一条日志以获取日志id，方便后续使用
-        SpringUtils.getBean(IMoniElasticLogService.class).addJobLog(moniElasticLog);
+        setExpectedResult();
+        operator = (String) context.getMergedJobDataMap().get("operator");
+        if (StringUtils.isEmpty(operator)) {
+            operator = "system";
+        }
 
         isWebhook = (Boolean) context.getMergedJobDataMap().get("isWebhook");
         if (StringUtils.isNull(isWebhook)) {
             isWebhook = false;
         }
+        if (isWebhook) {
+            operator = "webhook(" + operator + ")";
+        }
+        moniElasticLog.setOperator(operator);
+        //此处先插入一条日志以获取日志id，方便后续使用
+        SpringUtils.getBean(IMoniElasticLogService.class).addJobLog(moniElasticLog);
         //输出日志
         log.info("[Elastic检测任务]任务ID:{},任务名称:{},准备执行",
                 moniElastic.getId(), moniElastic.getChName());
@@ -239,7 +263,7 @@ public class MoniElasticExecution extends AbstractQuartzJob {
         if (e != null) {
             moniElasticLog.setStatus(Constants.ERROR);
             moniElasticLog.setAlertStatus(Constants.SUCCESS);
-            moniElasticLog.setExceptionLog(ExceptionUtil.getExceptionMessage(e).replace("\"", "'"));
+            moniElasticLog.setExceptionLog(ExceptionUtil.getExceptionMessage(e));
         }
     }
 
@@ -254,13 +278,9 @@ public class MoniElasticExecution extends AbstractQuartzJob {
         moniElasticLog.setEndTime(new Date());
         long runTime = (moniElasticLog.getEndTime().getTime() - moniElasticLog.getStartTime().getTime()) / 1000;
         moniElasticLog.setExecuteTime(runTime);
-        String operator = (String) context.getMergedJobDataMap().get("operator");
-        if (StringUtils.isNotEmpty(operator)) {
-            moniElasticLog.setOperator(operator);
-        } else {
-            moniElasticLog.setOperator("system");
+        if (StringUtils.isEmpty(moniElasticLog.getExpectedResult())) {
+            setExpectedResult();
         }
-        setExpectedResult();
         //更新日志到数据库中
         SpringUtils.getBean(IMoniElasticLogService.class).updateMoniElasticLog(moniElasticLog);
         //输出日志
@@ -339,18 +359,31 @@ public class MoniElasticExecution extends AbstractQuartzJob {
         String chatId = tgData[1];
         String telegramInfo = moniElastic.getTelegramInfo();
         if (StringUtils.isNotEmpty(telegramInfo)) {
-            telegramInfo = telegramInfo.replace("{id}", String.valueOf(moniElastic.getId()))
-                    .replace("{descr}", StringUtils.isNotEmpty(moniElastic.getDescr()) ? moniElastic.getDescr() : "")
-                    .replace("{asid}", moniElastic.getAsid())
+            String descr = moniElastic.getDescr();
+            if (StringUtils.isNotEmpty(descr)) {
+                descr = descr.replace("{id}", String.valueOf(moniElastic.getId()))
+                        .replace("{asid}", moniElastic.getAsid())
+                        .replace("{zh_name}", ScheduleUtils.processStr(moniElastic.getChName()))
+                        .replace("{en_name}", ScheduleUtils.processStr(moniElastic.getEnName()))
+                        .replace("{platform}", DictUtils.getDictLabel(DictTypeConstants.UB8_PLATFORM_TYPE, moniElastic.getPlatform()));
+            } else {
+                descr = "descr is empty";
+            }
+            telegramInfo = telegramInfo.replace("{descr_template_elastic}", DictUtils.getDictRemark(DictTypeConstants.JOB_PUSH_TEMPLATE, Constants.DESCR_TEMPLATE_ELASTIC))
+                    .replace("{descr}", ScheduleUtils.processStr(descr))
+                    .replace("{id}", String.valueOf(moniElastic.getId()))
+                    .replace("{asid}", ScheduleUtils.processStr(moniElastic.getAsid()))
                     .replace("{priority}", "1".equals(moniElastic.getPriority()) ? "NU" : "URG")
-                    .replace("{zh_name}", moniElastic.getChName())
-                    .replace("{en_name}", moniElastic.getEnName())
-                    .replace("{platform}", DictUtils.getDictLabel(DictTypeConstants.UB8_PLATFORM_TYPE, moniElastic.getPlatform()))
-                    .replace("{result}", moniElasticLog.getExecuteResult().replace(";", ""))
+                    .replace("{zh_name}", ScheduleUtils.processStr(moniElastic.getChName()))
+                    .replace("{en_name}", ScheduleUtils.processStr(moniElastic.getEnName()))
+                    .replace("{platform}", ScheduleUtils.processStr(DictUtils.getDictLabel(DictTypeConstants.UB8_PLATFORM_TYPE, moniElastic.getPlatform())))
+                    .replace("{expect}", ScheduleUtils.processStr(moniElasticLog.getExpectedResult()))
+                    .replace("{result}", ScheduleUtils.processStr(moniElasticLog.getExecuteResult().replace(";", "")))
+                    .replace("{operator}", operator)
                     .replace("{env}", StringUtils.isNotEmpty(SpringUtils.getActiveProfile()) ? Objects.requireNonNull(SpringUtils.getActiveProfile()) : "")
-                    .replace("{export}", StringUtils.isNull(moniElasticLog.getExportResult()) ? "Export field is not set" : moniElasticLog.getExportResult());
+                    .replace("{export}", StringUtils.isEmpty(exportInfo) ? "Export field is not set" : ScheduleUtils.processStr(exportInfo.toString()));
         } else {
-            telegramInfo = "LOG Monitor ID(" + moniElastic.getId() + "),Notification content is not set";
+            telegramInfo = "*LOG Monitor ID\\(" + moniElastic.getId() + "\\),Notification content is not set*";
         }
 
         InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup(
@@ -359,7 +392,7 @@ public class MoniElasticExecution extends AbstractQuartzJob {
 
 
         TelegramBot messageBot = new TelegramBot.Builder(bot).okHttpClient(OkHttpUtils.getInstance()).build();
-        SendMessage sendMessage = new SendMessage(chatId, telegramInfo).parseMode(ParseMode.Markdown);
+        SendMessage sendMessage = new SendMessage(chatId, telegramInfo).parseMode(ParseMode.MarkdownV2);
         sendMessage.replyMarkup(inlineKeyboard);
 
         serversLoadTimes = 0;

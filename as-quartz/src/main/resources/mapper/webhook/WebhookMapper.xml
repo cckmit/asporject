@@ -128,4 +128,13 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 		select count(1) from sys_user where login_name=#{reporter} limit 1
 	</select>
 
+
+    <update id="updateTemplate" parameterType="String">
+        update sys_dict_data
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="remark != null">remark = #{template},</if>
+        </trim>
+        where dict_code = 303 and dict_type = 'job_push_template' and dict_value = 'descr_template_webhook'
+    </update>
+
 </mapper>

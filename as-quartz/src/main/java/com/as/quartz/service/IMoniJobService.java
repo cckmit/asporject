@@ -120,4 +120,6 @@ public interface IMoniJobService {
      */
     public String importJob(List<MoniJob> jobList, Boolean isUpdateSupport, String operName);
 
+    public int updateTemplate(String template);
+
 }

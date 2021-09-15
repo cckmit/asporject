@@ -40,6 +40,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -75,13 +76,13 @@ public class MoniJobExecution extends AbstractQuartzJob {
 
     private Integer messageId;
 
-    private File file;
-
     private String telegramInfo;
 
     private SendMessage sendMessage;
 
     private Boolean isWebhook;
+
+    private String operator;
 
     /**
      * 执行方法
@@ -97,31 +98,39 @@ public class MoniJobExecution extends AbstractQuartzJob {
         String exeResult = getResultTable(rowSet);
         log.info("执行结果:{}", exeResult);
         moniJobLog.setExecuteResult(exeResult);
-        if (resultIsExist()) {
-            //没有重复发生的LOG
-            if (ScheduleConstants.MATCH_NO_NEED.equals(moniJob.getAutoMatch())) {
-                moniJobLog.setStatus(Constants.SUCCESS);
-                moniJobLog.setAlertStatus(Constants.FAIL);
-            } else if (doMatch(rowSet)) {
-                moniJobLog.setStatus(Constants.SUCCESS);
-                moniJobLog.setAlertStatus(Constants.FAIL);
-            } else {
-                moniJobLog.setStatus(Constants.FAIL);
-                moniJobLog.setAlertStatus(Constants.SUCCESS);
+
+        if (ScheduleConstants.MATCH_NO_NEED.equals(moniJob.getAutoMatch())) {
+            moniJobLog.setStatus(Constants.SUCCESS);
+            moniJobLog.setAlertStatus(Constants.FAIL);
+        } else if (doMatch(rowSet)) {
+            moniJobLog.setStatus(Constants.SUCCESS);
+            moniJobLog.setAlertStatus(Constants.FAIL);
+        } else {
+            moniJobLog.setStatus(Constants.FAIL);
+            if ((!"system".equals(operator) && !isWebhook) || resultIsNotExist()) {
+                //没有重复发生的LOG
+                if ("system".equals(operator) || isWebhook) {
+                    //系统执行或webhook则设置为真实告警
+                    moniJobLog.setIsAlert(Constants.YES);
+                    moniJobLog.setAlertStatus(Constants.SUCCESS);
+                    //系统执行才更新最后告警时间
+                    moniJob.setLastAlert(DateUtils.getNowDate());
+                    SpringUtils.getBean(IMoniJobService.class).updateMoniJobLastAlertTime(moniJob);
+                } else {
+                    moniJobLog.setIsAlert(Constants.NO);
+                    moniJobLog.setAlertStatus(Constants.FAIL);
+                }
                 if (Constants.SUCCESS.equals(moniJob.getTelegramAlert())) {
                     sendTelegram();
                 }
-                //更新最后告警时间
-                moniJob.setLastAlert(DateUtils.getNowDate());
-                SpringUtils.getBean(IMoniJobService.class).updateMoniJobLastAlertTime(moniJob);
                 //关联导出
                 doExport(moniJob.getRelExport());
                 //調用API
-                SpringUtils.getBean(IMoniApiService.class).doApi(moniJob.getRelApi());
+                SpringUtils.getBean(IMoniApiService.class).doApi(moniJob.getRelApi(), operator);
+            } else {
+                moniJobLog.setIsAlert(Constants.NO);
+                moniJobLog.setAlertStatus(Constants.FAIL);
             }
-        } else {
-            moniJobLog.setStatus(Constants.SUCCESS);
-            moniJobLog.setAlertStatus(Constants.FAIL);
         }
     }
 
@@ -136,13 +145,21 @@ public class MoniJobExecution extends AbstractQuartzJob {
         moniJobLog.setStartTime(new Date());
         moniJobLog.setJobId(moniJob.getId());
         setExpectedResult();
-        //此处先插入一条日志以获取日志id，方便后续使用
-        SpringUtils.getBean(IMoniJobLogService.class).addJobLog(moniJobLog);
 
+        operator = (String) context.getMergedJobDataMap().get("operator");
+        if (StringUtils.isEmpty(operator)) {
+            operator = "system";
+        }
         isWebhook = (Boolean) context.getMergedJobDataMap().get("isWebhook");
         if (StringUtils.isNull(isWebhook)) {
             isWebhook = false;
         }
+        if (isWebhook) {
+            operator = "webhook(" + operator + ")";
+        }
+        moniJobLog.setOperator(operator);
+        //此处先插入一条日志以获取日志id，方便后续使用
+        SpringUtils.getBean(IMoniJobLogService.class).addJobLog(moniJobLog);
         //输出日志
         log.info("[SQL检测任务]任务ID:{},任务名称:{},准备执行",
                 moniJob.getId(), moniJob.getChName());
@@ -174,12 +191,6 @@ public class MoniJobExecution extends AbstractQuartzJob {
         moniJobLog.setEndTime(new Date());
         long runTime = (moniJobLog.getEndTime().getTime() - moniJobLog.getStartTime().getTime()) / 1000;
         moniJobLog.setExecuteTime(runTime);
-        String operator = (String) context.getMergedJobDataMap().get("operator");
-        if (StringUtils.isNotEmpty(operator)) {
-            moniJobLog.setOperator(operator);
-        } else {
-            moniJobLog.setOperator("system");
-        }
         if (StringUtils.isEmpty(moniJobLog.getExpectedResult())) {
             setExpectedResult();
         }
@@ -273,14 +284,14 @@ public class MoniJobExecution extends AbstractQuartzJob {
      *
      * @return
      */
-    private boolean resultIsExist() {
+    private boolean resultIsNotExist() {
         try {
             //为0则不过滤
             if (moniJob.getIgnoreAlert() == 0) {
                 return true;
             }
             DataSource masterDataSource = SpringUtils.getBean("masterDataSource");
-            String sql = "SELECT COUNT(*) FROM MONI_JOB_LOG WHERE EXECUTE_RESULT = ? AND JOB_ID = ? AND START_TIME > DATE_SUB(NOW(), INTERVAL ? MINUTE)";
+            String sql = "SELECT COUNT(*) FROM MONI_JOB_LOG WHERE EXECUTE_RESULT = ? AND JOB_ID = ? AND STATUS != '0' AND IS_ALERT = 'Y' AND START_TIME > DATE_SUB(NOW(), INTERVAL ? MINUTE)";
             JdbcTemplate jdbcTemplateMysql = new JdbcTemplate(masterDataSource);
             int row = jdbcTemplateMysql.queryForObject(sql, new Object[]{moniJobLog.getExecuteResult(), moniJob.getId(), moniJob.getIgnoreAlert()}, Integer.class);
             return row == 0;
@@ -394,12 +405,15 @@ public class MoniJobExecution extends AbstractQuartzJob {
      * @param relExport
      */
     private void doExport(String relExport) throws Exception {
+        Map<String, Object> params = new HashMap<>();
+        params.put("operator", operator);
         if (StringUtils.isNotEmpty(relExport)) {
             IMoniExportService moniExportService = SpringUtils.getBean(IMoniExportService.class);
             String[] ids = relExport.split(",");
             for (String id : ids) {
                 MoniExport moniExport = moniExportService.selectMoniExportById(Long.parseLong(id));
                 if (StringUtils.isNotNull(moniExport)) {
+                    moniExport.setParams(params);
                     moniExportService.run(moniExport);
                 } else {
                     throw new Exception("The related export job does not exist");
@@ -415,18 +429,29 @@ public class MoniJobExecution extends AbstractQuartzJob {
         chatId = tgData[1];
         telegramInfo = moniJob.getTelegramInfo();
         if (StringUtils.isNotEmpty(telegramInfo)) {
-            telegramInfo = telegramInfo.replace("{id}", String.valueOf(moniJob.getId()))
-                    .replace("{descr}", StringUtils.isNotEmpty(moniJob.getDescr()) ? moniJob.getDescr() : "")
-                    .replace("{asid}", moniJob.getAsid())
+            String descr = moniJob.getDescr();
+            if (StringUtils.isNotEmpty(descr)) {
+                descr = descr.replace("{id}", String.valueOf(moniJob.getId()))
+                        .replace("{asid}", moniJob.getAsid())
+                        .replace("{zh_name}", ScheduleUtils.processStr(moniJob.getChName()))
+                        .replace("{en_name}", ScheduleUtils.processStr(moniJob.getEnName()))
+                        .replace("{platform}", DictUtils.getDictLabel(DictTypeConstants.UB8_PLATFORM_TYPE, moniJob.getPlatform()));
+            } else {
+                descr = "descr is empty";
+            }
+            telegramInfo = telegramInfo.replace("{descr_template_job}", DictUtils.getDictRemark(DictTypeConstants.JOB_PUSH_TEMPLATE, Constants.DESCR_TEMPLATE_JOB))
+                    .replace("{descr}", ScheduleUtils.processStr(descr))
+                    .replace("{id}", String.valueOf(moniJob.getId()))
+                    .replace("{asid}", ScheduleUtils.processStr(moniJob.getAsid()))
                     .replace("{priority}", "1".equals(moniJob.getPriority()) ? "NU" : "URG")
-                    .replace("{zh_name}", moniJob.getChName())
-                    .replace("{en_name}", moniJob.getEnName())
-                    .replace("{platform}", DictUtils.getDictLabel(DictTypeConstants.UB8_PLATFORM_TYPE, moniJob.getPlatform()))
-                    .replace("{result}", "")
-                    .replace("{env}", StringUtils.isNotEmpty(SpringUtils.getActiveProfile()) ? Objects.requireNonNull(SpringUtils.getActiveProfile()) : "")
-                    .replace("{export}", "");
+                    .replace("{zh_name}", ScheduleUtils.processStr(moniJob.getChName()))
+                    .replace("{en_name}", ScheduleUtils.processStr(moniJob.getEnName()))
+                    .replace("{platform}", ScheduleUtils.processStr(DictUtils.getDictLabel(DictTypeConstants.UB8_PLATFORM_TYPE, moniJob.getPlatform())))
+                    .replace("{expect}", ScheduleUtils.processStr(moniJobLog.getExpectedResult()))
+                    .replace("{operator}", operator)
+                    .replace("{env}", StringUtils.isNotEmpty(SpringUtils.getActiveProfile()) ? Objects.requireNonNull(SpringUtils.getActiveProfile()) : "");
         } else {
-            telegramInfo = "DB Monitor ID(" + moniJob.getId() + "),Notification content is not set";
+            telegramInfo = "*DB Monitor ID\\(" + moniJob.getId() + "\\),Notification content is not set*";
         }
 
         String imgPath = createImg();
@@ -436,7 +461,7 @@ public class MoniJobExecution extends AbstractQuartzJob {
                 new InlineKeyboardButton("LOG Details").url(ASConfig.getAsDomain().concat(LOG_DETAIL_URL).concat(String.valueOf(moniJobLog.getId()))));
 
 
-        file = new File(imgPath);
+        File file = new File(imgPath);
         BufferedImage bufferedImage;
         int width = 1501;
         int height = 1501;
@@ -450,7 +475,7 @@ public class MoniJobExecution extends AbstractQuartzJob {
 
         TelegramBot telegramBot = new TelegramBot.Builder(bot).okHttpClient(OkHttpUtils.getInstance()).build();
 
-        sendMessage = new SendMessage(chatId, telegramInfo).parseMode(ParseMode.Markdown);
+        sendMessage = new SendMessage(chatId, telegramInfo).parseMode(ParseMode.MarkdownV2);
         sendMessage.replyMarkup(inlineKeyboard);
         try {
             SendResponse response = ScheduleUtils.sendMessage(bot, chatId, telegramInfo, inlineKeyboard);
@@ -464,12 +489,12 @@ public class MoniJobExecution extends AbstractQuartzJob {
         //图片长宽不超过1500则发送图片，否则发送附件
         if (width <= 1500 && height <= 1500) {
             SendPhoto sendPhoto = new SendPhoto(chatId, file);
-            sendPhoto.caption(telegramInfo).parseMode(ParseMode.Markdown);
+            sendPhoto.caption(telegramInfo).parseMode(ParseMode.MarkdownV2);
             sendPhoto.replyMarkup(inlineKeyboard);
             sendPhoto(telegramBot, sendPhoto);
         } else {
             SendDocument sendDocument = new SendDocument(chatId, file);
-            sendDocument.caption(telegramInfo).parseMode(ParseMode.Markdown);
+            sendDocument.caption(telegramInfo).parseMode(ParseMode.MarkdownV2);
             sendDocument.replyMarkup(inlineKeyboard);
             sendDocument(telegramBot, sendDocument);
         }
@@ -554,7 +579,7 @@ public class MoniJobExecution extends AbstractQuartzJob {
     private void deleteMessage(TelegramBot bot) {
         if (StringUtils.isNotNull(messageId)) {
             telegramInfo = telegramInfo + "\n\n" + "*This message will be deleted in 5 seconds*";
-            EditMessageText editMessageText = new EditMessageText(chatId, messageId, telegramInfo).parseMode(ParseMode.Markdown);
+            EditMessageText editMessageText = new EditMessageText(chatId, messageId, telegramInfo).parseMode(ParseMode.MarkdownV2);
             bot.execute(editMessageText);
             try {
                 Thread.sleep(5000);

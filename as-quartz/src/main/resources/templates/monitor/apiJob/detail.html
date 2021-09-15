@@ -50,8 +50,10 @@
 	<h2>[[#{api.job.expected.code}]]：</h2>
 	<div class="white-space" style="overflow:auto;" th:text="${jobLog.expectedCode}"></div>
 	<h2>[[#{sql.job.execution.result}]]：</h2>
+	<div class="white-space" th:text="${jobLog.executeResult}"></div>
+	<h2>[[#{api.job.response}]]：</h2>
 	<div class="white-space">
-		<pre th:text="${jobLog.executeResult}"></pre>
+		<pre th:text="${jobLog.response}"></pre>
 	</div>
 	<h2 th:style="'display:' + ${#strings.isEmpty(jobLog.exceptionLog) ? 'none' : 'block'}">[[#{sql.job.log.exception}]]：</h2>
 	<div class="white-space" th:style="'display:' + ${#strings.isEmpty(jobLog.exceptionLog) ? 'none' : 'block'}">

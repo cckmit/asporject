@@ -58,4 +58,6 @@ public interface WebhookMapper {
 
     public int checkReporterIsExist(String reporter);
 
+    int updateTemplate(String template);
+
 }

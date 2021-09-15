@@ -1,10 +1,13 @@
 package com.as.quartz.controller;
 
 import com.as.common.annotation.Log;
+import com.as.common.constant.Constants;
+import com.as.common.constant.DictTypeConstants;
 import com.as.common.core.controller.BaseController;
 import com.as.common.core.domain.AjaxResult;
 import com.as.common.core.page.TableDataInfo;
 import com.as.common.enums.BusinessType;
+import com.as.common.utils.DictUtils;
 import com.as.common.utils.ShiroUtils;
 import com.as.common.utils.StringUtils;
 import com.as.common.utils.poi.ExcelUtil;
@@ -228,5 +231,34 @@ public class MoniJobController extends BaseController {
     public AjaxResult importTemplate() {
         ExcelUtil<MoniJob> util = new ExcelUtil<MoniJob>(MoniJob.class);
         return util.importTemplateExcel("SQL-Detect");
+    }
+
+    /**
+     * 推送模板
+     *
+     * @param mmap
+     * @return
+     */
+    @RequiresPermissions("monitor:sqlJob:view")
+    @GetMapping("/pushTemplate")
+    public String pushTemplate(ModelMap mmap) {
+        String apiTemplate = DictUtils.getDictRemark(DictTypeConstants.JOB_PUSH_TEMPLATE, Constants.DESCR_TEMPLATE_JOB);
+        mmap.put("template", apiTemplate);
+        return prefix + "/template";
+    }
+
+    /**
+     * 保存推送模板
+     *
+     * @param moniJob
+     * @return
+     */
+    @RequiresPermissions("monitor:sqlJob:view")
+    @PostMapping("/pushTemplateSave")
+    @Log(title = "SQL检测任务", businessType = BusinessType.UPDATE)
+    @ResponseBody
+    public AjaxResult pushTemplateSave(MoniJob moniJob) {
+        String template = moniJob.getTelegramInfo();
+        return toAjax(moniJobService.updateTemplate(template));
     }
 }

@@ -62,4 +62,6 @@ public interface MoniJobMapper {
      * @param moniJob
      */
     int updateMoniJobLastAlertTime(MoniJob moniJob);
+
+    int updateTemplate(String template);
 }

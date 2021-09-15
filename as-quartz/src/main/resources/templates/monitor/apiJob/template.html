@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" >
+<head>
+    <th:block th:include="include :: header('自动API检测任务推送模板')" />
+    <style type="text/css">
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+<body class="white-bg">
+    <div class="wrapper wrapper-content animated fadeInRight ibox-content">
+        <form autocomplete="off" class="form-horizontal m" id="form-template-edit">
+            <div class="form-group">
+                <label class="col-sm-2 control-label">[[#{api.job.template.field}]]：</label>
+                <div class="col-sm-9">
+                    <input class="form-control" type="text" value="{descr_template_api}" readonly disabled>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label is-required">[[#{api.job.template}]]：</label>
+                <div class="col-sm-9">
+                    <textarea name="telegramInfo" class="form-control" rows="10" required>[[*{template}]]</textarea>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">[[#{webhook.descr}]]：</label>
+                <div class="col-sm-9 form-control-static">
+                    <pre th:text="#{api.job.tg.info}"></pre>
+                </div>
+            </div>
+        </form>
+    </div>
+    <th:block th:include="include :: footer" />
+    <script th:inline="javascript">
+        var prefix = ctx + "monitor/apiJob";
+
+        function submitHandler() {
+            if ($.validate.form()) {
+                $.ajax({
+                    url: prefix + "/pushTemplateSave",
+                    data: $('#form-template-edit').serialize(),
+                    type: "post",
+                    success: function(result) {
+                        if (result.code == web_status.SUCCESS) {
+                            layer.msg(i18n('api.job.template.save'), {
+                                icon: 1,
+                                time: 500,
+                                shade: [0.1, '#8F8F8F']
+                            },function() {
+                                refreshCache();
+                                $.modal.close()
+                            });
+                        } else {
+                            alert(result.msg);
+                        }
+                    }
+                })
+            }
+        }
+
+        /** 刷新字典缓存 */
+        function refreshCache() {
+            $.operate.get(ctx + "system/dict/refreshCache");
+        }
+    </script>
+</body>
+</html>

@@ -16,6 +16,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="status"    column="STATUS"    />
         <result property="alertStatus"    column="ALERT_STATUS"    />
         <result property="operator"    column="OPERATOR"    />
+        <result property="isAlert"    column="IS_ALERT"    />
         <collection  property="moniJob"   javaType="MoniJob"   resultMap="moniJobResult" />
     </resultMap>
 
@@ -29,7 +30,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 
     <sql id="selectMoniJobLogVo">
-        select MJL.ID, MJL.JOB_ID, MJL.START_TIME, MJL.END_TIME, MJL.EXECUTE_RESULT, MJL.EXPECTED_RESULT, MJL.EXCEPTION_LOG, MJL.EXECUTE_TIME, MJL.STATUS, MJL.ALERT_STATUS, MJL.OPERATOR,
+        select MJL.ID, MJL.JOB_ID, MJL.START_TIME, MJL.END_TIME, MJL.EXECUTE_RESULT, MJL.EXPECTED_RESULT, MJL.EXCEPTION_LOG, MJL.EXECUTE_TIME, MJL.STATUS, MJL.ALERT_STATUS, MJL.OPERATOR, MJL.IS_ALERT,
         MJ.EN_NAME, MJ.CH_NAME, MJ.DESCR, MJ.PLATFORM, MJ.PRIORITY, MJ.ASID
         from moni_job_log MJL
         left join moni_job MJ on MJL.JOB_ID = MJ.ID
@@ -49,6 +50,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                 AND date_format( MJL.START_TIME,'%y%m%d') &lt;= date_format(#{params.endStartTime},'%y%m%d')
             </if>
             <if test="status != null  and status != ''"> and MJL.STATUS = #{status}</if>
+            <if test="isAlert != null  and isAlert != ''"> and MJL.IS_ALERT = #{isAlert}</if>
         </where>
     </select>
 
@@ -68,7 +70,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
     <select id="selectMoniJobLogListNoSuccess" resultMap="MoniJobLogResult">
         <include refid="selectMoniJobLogVo"/>
-        where MJL.STATUS != '0' and MJL.START_TIME &gt;= DATE_SUB(NOW(),INTERVAL 1 HOUR) and OPERATOR = 'system' order by MJL.START_TIME desc
+        where MJL.STATUS != '0' and MJL.START_TIME &gt;= DATE_SUB(NOW(),INTERVAL 1 HOUR) and (MJL.OPERATOR = 'system' or MJL.OPERATOR like '%webhook%') and MJL.IS_ALERT = 'Y' order by MJL.START_TIME desc
     </select>
     
     <select id="selectMoniJobLogById" parameterType="Long" resultMap="MoniJobLogResult">
@@ -93,6 +95,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="status != null">STATUS,</if>
             <if test="alertStatus != null">ALERT_STATUS,</if>
             <if test="operator != null">OPERATOR,</if>
+            <if test="isAlert != null">IS_ALERT,</if>
          </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="jobId != null">#{jobId},</if>
@@ -105,6 +108,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="status != null">#{status},</if>
             <if test="alertStatus != null">#{alertStatus},</if>
             <if test="operator != null">#{operator},</if>
+            <if test="isAlert != null">#{isAlert},</if>
          </trim>
     </insert>
 
@@ -120,6 +124,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="status != null">STATUS = #{status},</if>
             <if test="alertStatus != null">ALERT_STATUS = #{alertStatus},</if>
             <if test="operator != null">OPERATOR = #{operator},</if>
+            <if test="isAlert != null">IS_ALERT = #{isAlert},</if>
         </trim>
         where ID = #{id}
     </update>

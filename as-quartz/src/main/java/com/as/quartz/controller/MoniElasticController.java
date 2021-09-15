@@ -1,10 +1,13 @@
 package com.as.quartz.controller;
 
 import com.as.common.annotation.Log;
+import com.as.common.constant.Constants;
+import com.as.common.constant.DictTypeConstants;
 import com.as.common.core.controller.BaseController;
 import com.as.common.core.domain.AjaxResult;
 import com.as.common.core.page.TableDataInfo;
 import com.as.common.enums.BusinessType;
+import com.as.common.utils.DictUtils;
 import com.as.common.utils.ShiroUtils;
 import com.as.common.utils.StringUtils;
 import com.as.common.utils.poi.ExcelUtil;
@@ -219,5 +222,34 @@ public class MoniElasticController extends BaseController {
     public AjaxResult importTemplate() {
         ExcelUtil<MoniElastic> util = new ExcelUtil<MoniElastic>(MoniElastic.class);
         return util.importTemplateExcel("ELASTIC-JOB");
+    }
+
+    /**
+     * 推送模板
+     *
+     * @param mmap
+     * @return
+     */
+    @RequiresPermissions("monitor:elasticJob:view")
+    @GetMapping("/pushTemplate")
+    public String pushTemplate(ModelMap mmap) {
+        String apiTemplate = DictUtils.getDictRemark(DictTypeConstants.JOB_PUSH_TEMPLATE, Constants.DESCR_TEMPLATE_ELASTIC);
+        mmap.put("template", apiTemplate);
+        return prefix + "/template";
+    }
+
+    /**
+     * 保存推送模板
+     *
+     * @param moniElastic
+     * @return
+     */
+    @RequiresPermissions("monitor:elasticJob:view")
+    @PostMapping("/pushTemplateSave")
+    @Log(title = "ElasticSearch任务", businessType = BusinessType.UPDATE)
+    @ResponseBody
+    public AjaxResult pushTemplateSave(MoniElastic moniElastic) {
+        String template = moniElastic.getTelegramInfo();
+        return toAjax(moniElasticService.updateTemplate(template));
     }
 }

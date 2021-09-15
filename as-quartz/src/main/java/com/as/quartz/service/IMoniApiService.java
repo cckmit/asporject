@@ -3,9 +3,7 @@ package com.as.quartz.service;
 import com.as.quartz.domain.MoniApi;
 import okhttp3.Response;
 import org.quartz.SchedulerException;
-import org.springframework.http.ResponseEntity;
 
-import java.io.IOException;
 import java.util.List;
 
 /**
@@ -126,7 +124,7 @@ public interface IMoniApiService {
      *
      * @param relApi
      */
-    public void doApi(String relApi) throws Exception;
+    public void doApi(String relApi, String operator) throws Exception;
 
     /**
      * 导入JOB数据
@@ -137,4 +135,6 @@ public interface IMoniApiService {
      * @return 结果
      */
     public String importJob(List<MoniApi> jobList, Boolean isUpdateSupport, String operName);
+
+    public int updateTemplate(String template);
 }

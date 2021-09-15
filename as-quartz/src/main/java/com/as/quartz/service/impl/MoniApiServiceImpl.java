@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -256,12 +257,14 @@ public class MoniApiServiceImpl implements IMoniApiService {
         JobDataMap dataMap = new JobDataMap();
         try {
             Boolean isWebhook = false;
+            String operator = null;
             Map<String, Object> params = job.getParams();
             if (StringUtils.isNotEmpty(params)) {
                 isWebhook = (Boolean) params.get("isWebhook");
+                operator = (String) params.get("operator");
             }
             dataMap.put("isWebhook", isWebhook);
-            dataMap.put("operator", ShiroUtils.getLoginName());
+            dataMap.put("operator", StringUtils.isNotEmpty(operator) ? operator : ShiroUtils.getLoginName());
         } catch (Exception e) {
             //时ShiroUtils.getLoginName()会异常，此处吞掉异常继续执行調用API
         }
@@ -357,12 +360,15 @@ public class MoniApiServiceImpl implements IMoniApiService {
      */
     @Override
     @Transactional
-    public void doApi(String relApi) throws Exception {
+    public void doApi(String relApi, String operator) throws Exception {
+        Map<String, Object> params = new HashMap<>();
+        params.put("operator", operator);
         if (StringUtils.isNotEmpty(relApi)) {
             String[] ids = relApi.split(",");
             for (String id : ids) {
                 MoniApi moniApi = selectMoniApiById(Long.parseLong(id));
                 if (StringUtils.isNotNull(moniApi)) {
+                    moniApi.setParams(params);
                     run(moniApi);
                 } else {
                     throw new Exception("The related api job does not exist");
@@ -425,5 +431,10 @@ public class MoniApiServiceImpl implements IMoniApiService {
             successMsg.insert(0, MessageUtils.message("import.success.info", successNum));
         }
         return successMsg.toString();
+    }
+
+    @Override
+    public int updateTemplate(String template) {
+        return moniApiMapper.updateTemplate(template);
     }
 }

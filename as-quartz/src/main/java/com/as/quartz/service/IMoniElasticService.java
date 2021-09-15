@@ -137,4 +137,7 @@ public interface IMoniElasticService {
      * @return 结果
      */
     public String importJob(List<MoniElastic> jobList, Boolean isUpdateSupport, String operName);
+
+
+    public int updateTemplate(String template);
 }

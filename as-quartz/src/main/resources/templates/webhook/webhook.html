@@ -70,8 +70,11 @@
                 <a class="btn btn-warning" onclick="$.table.exportExcel()" shiro:hasPermission="as:webhook:export">
                     <i class="fa fa-download"></i> [[#{common.export}]]
                 </a>
-                <a class="btn btn-info" onclick="hookDetail()" shiro:hasPermission="as:webhook:detail">
+                <a class="btn btn-success" onclick="hookDetail()" shiro:hasPermission="as:webhook:detail">
                     <i class="fa fa-navicon"></i> [[#{webhook.info}]]
+                </a>
+                <a class="btn btn-info" onclick="pushTemplate()" shiro:hasPermission="monitor:sqlJob:view">
+                    <i class="fa fa-navicon"></i> [[#{api.job.template}]]
                 </a>
             </div>
             <div class="col-sm-12 select-table table-striped">
@@ -182,6 +185,13 @@
         function hookDetail() {
             var url = prefix + '/hookDetail';
             var tabName = i18n('webhook.info');
+            $.modal.open(tabName, url);
+        }
+
+        /* 推送模板 */
+        function pushTemplate() {
+            var url = prefix + '/pushTemplate';
+            var tabName = i18n('api.job.template');
             $.modal.open(tabName, url);
         }
 

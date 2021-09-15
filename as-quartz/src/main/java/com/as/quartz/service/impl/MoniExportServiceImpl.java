@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 自动报表任务Service业务层处理
@@ -236,7 +237,12 @@ public class MoniExportServiceImpl implements IMoniExportService {
         // 参数
         JobDataMap dataMap = new JobDataMap();
         try {
-            dataMap.put("operator", ShiroUtils.getLoginName());
+            String operator = null;
+            Map<String, Object> params = job.getParams();
+            if (StringUtils.isNotEmpty(params)) {
+                operator = (String) params.get("operator");
+            }
+            dataMap.put("operator", StringUtils.isNotEmpty(operator) ? operator : ShiroUtils.getLoginName());
         } catch (Exception e) {
             //关联导出时ShiroUtils.getLoginName()会异常，此处吞掉异常继续执行
         }

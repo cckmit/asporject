@@ -2,10 +2,13 @@ package com.as.webhook.controller;
 
 import com.as.common.annotation.Log;
 import com.as.common.config.ASConfig;
+import com.as.common.constant.Constants;
+import com.as.common.constant.DictTypeConstants;
 import com.as.common.core.controller.BaseController;
 import com.as.common.core.domain.AjaxResult;
 import com.as.common.core.page.TableDataInfo;
 import com.as.common.enums.BusinessType;
+import com.as.common.utils.DictUtils;
 import com.as.common.utils.poi.ExcelUtil;
 import com.as.webhook.domain.PushObject;
 import com.as.webhook.service.IWebhookService;
@@ -112,5 +115,33 @@ public class ASHookManageController extends BaseController {
         mmap.put("cbUrl", ASConfig.getAsDomain() + "/webhook/cb");
         mmap.put("cbParam", "{\"reporter\":\"kolin\",\"job\":999,\"elastic\":999,\"api\":999}");
         return prefix + "/hookDetail";
+    }
+
+    /**
+     * 推送模板
+     *
+     * @param mmap
+     * @return
+     */
+    @RequiresPermissions("as:webhook:view")
+    @GetMapping("/pushTemplate")
+    public String pushTemplate(ModelMap mmap) {
+        String apiTemplate = DictUtils.getDictRemark(DictTypeConstants.JOB_PUSH_TEMPLATE, Constants.DESCR_TEMPLATE_WEBHOOK);
+        mmap.put("template", apiTemplate);
+        return prefix + "/template";
+    }
+
+    /**
+     * 保存推送模板
+     *
+     * @param template
+     * @return
+     */
+    @RequiresPermissions("as:webhook:view")
+    @GetMapping("/pushTemplateSave")
+    @Log(title = "webhook请求记录", businessType = BusinessType.UPDATE)
+    @ResponseBody
+    public AjaxResult pushTemplateSave(@RequestParam(name = "template") String template) {
+        return toAjax(webhookService.updateTemplate(template));
     }
 }

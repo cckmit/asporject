@@ -16,6 +16,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="status"    column="STATUS"    />
         <result property="alertStatus"    column="ALERT_STATUS"    />
         <result property="operator"    column="OPERATOR"    />
+        <result property="isAlert"    column="IS_ALERT"    />
+        <result property="response"    column="RESPONSE"    />
         <collection  property="moniApi"   javaType="MoniApi"   resultMap="moniApiResult" />
     </resultMap>
 
@@ -29,7 +31,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 
     <sql id="selectMoniApiLogVo">
-        select MAL.ID, MAL.API_ID, MAL.START_TIME, MAL.END_TIME, MAL.EXPECTED_CODE, MAL.EXECUTE_RESULT, MAL.EXCEPTION_LOG, MAL.EXECUTE_TIME, MAL.STATUS, MAL.ALERT_STATUS, MAL.OPERATOR,
+        select MAL.ID, MAL.API_ID, MAL.START_TIME, MAL.END_TIME, MAL.EXPECTED_CODE, MAL.EXECUTE_RESULT, MAL.EXCEPTION_LOG, MAL.EXECUTE_TIME, MAL.STATUS, MAL.ALERT_STATUS, MAL.OPERATOR, MAL.IS_ALERT, MAL.RESPONSE,
         MA.EN_NAME, MA.CH_NAME, MA.DESCR, MA.PLATFORM, MA.PRIORITY,MA.ASID
         from moni_api_log MAL
         left join moni_api MA on MAL.API_ID = MA.ID
@@ -49,6 +51,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                 AND date_format(MAL.START_TIME,'%y%m%d') &lt;= date_format(#{params.endStartTime},'%y%m%d')
             </if>
             <if test="status != null  and status != ''"> and MAL.STATUS = #{status}</if>
+            <if test="isAlert != null  and isAlert != ''"> and MAL.IS_ALERT = #{isAlert}</if>
         </where>
     </select>
     
@@ -63,7 +66,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
     <select id="selectMoniApiLogListNoSuccess" resultMap="MoniApiLogResult">
         <include refid="selectMoniApiLogVo"/>
-        where MAL.STATUS != '0' and MAL.START_TIME &gt;= DATE_SUB(NOW(),INTERVAL 1 HOUR) and OPERATOR = 'system' order by MAL.START_TIME desc
+        where MAL.STATUS != '0' and MAL.START_TIME &gt;= DATE_SUB(NOW(),INTERVAL 1 HOUR) and (MAL.OPERATOR = 'system' or MAL.OPERATOR like '%webhook%') and MAL.IS_ALERT = 'Y' order by MAL.START_TIME desc
     </select>
         
     <insert id="insertMoniApiLog" parameterType="MoniApiLog" useGeneratedKeys="true" keyProperty="id">
@@ -79,6 +82,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="status != null">STATUS,</if>
             <if test="alertStatus != null">ALERT_STATUS,</if>
             <if test="operator != null">OPERATOR,</if>
+            <if test="isAlert != null">IS_ALERT,</if>
+            <if test="response != null">RESPONSE,</if>
          </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="apiId != null">#{apiId},</if>
@@ -91,6 +96,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="status != null">#{status},</if>
             <if test="alertStatus != null">#{alertStatus},</if>
             <if test="operator != null">#{operator},</if>
+            <if test="isAlert != null">#{isAlert},</if>
+            <if test="response != null">#{response},</if>
          </trim>
     </insert>
 
@@ -107,6 +114,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="status != null">STATUS = #{status},</if>
             <if test="alertStatus != null">ALERT_STATUS = #{alertStatus},</if>
             <if test="operator != null">OPERATOR = #{operator},</if>
+            <if test="isAlert != null">IS_ALERT = #{isAlert},</if>
+            <if test="response != null">RESPONSE = #{response},</if>
         </trim>
         where ID = #{id}
     </update>

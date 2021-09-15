@@ -255,12 +255,14 @@ public class MoniJobServiceImpl implements IMoniJobService {
         JobDataMap dataMap = new JobDataMap();
         try {
             Boolean isWebhook = false;
+            String operator = null;
             Map<String, Object> params = job.getParams();
             if (StringUtils.isNotEmpty(params)) {
                 isWebhook = (Boolean) params.get("isWebhook");
+                operator = (String) params.get("operator");
             }
             dataMap.put("isWebhook", isWebhook);
-            dataMap.put("operator", ShiroUtils.getLoginName());
+            dataMap.put("operator", StringUtils.isNotEmpty(operator) ? operator : ShiroUtils.getLoginName());
         } catch (Exception e) {
             // do nothing
         }
@@ -323,4 +325,9 @@ public class MoniJobServiceImpl implements IMoniJobService {
         return successMsg.toString();
     }
 
+
+    @Override
+    public int updateTemplate(String template) {
+        return moniJobMapper.updateTemplate(template);
+    }
 }

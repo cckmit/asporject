@@ -118,7 +118,7 @@ public class ScheduleUtils {
      */
     public static SendResponse sendMessage(String bot, String chatId, String telegramInfo, InlineKeyboardMarkup inlineKeyboard) {
         TelegramBot messageBot = new TelegramBot.Builder(bot).okHttpClient(OkHttpUtils.getInstance()).build();
-        SendMessage sendMessage = new SendMessage(chatId, telegramInfo).parseMode(ParseMode.Markdown);
+        SendMessage sendMessage = new SendMessage(chatId, telegramInfo).parseMode(ParseMode.MarkdownV2);
         if (StringUtils.isNotNull(inlineKeyboard)) {
             sendMessage.replyMarkup(inlineKeyboard);
         }
@@ -151,5 +151,27 @@ public class ScheduleUtils {
 //        return documentBot.execute(sendDocument);
 //    }
 
+
+    public static String processStr(String str) {
+        return str.replace("\\", "")
+                .replace("*", "\\*")
+                .replace("_", "\\_")
+                .replace("`", "\\`")
+                .replace("]", "\\]")
+                .replace("[", "\\[")
+                .replace("(", "\\(")
+                .replace(")", "\\)")
+                .replace("~", "\\~")
+                .replace(">", "\\>")
+                .replace("#", "\\#")
+                .replace("+", "\\+")
+                .replace("-", "\\-")
+                .replace("=", "\\=")
+                .replace("|", "\\|")
+                .replace("{", "\\{")
+                .replace("}", "\\}")
+                .replace(".", "\\.")
+                .replace("!", "\\!");
+    }
 
 }

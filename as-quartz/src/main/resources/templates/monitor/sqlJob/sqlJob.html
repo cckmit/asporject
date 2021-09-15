@@ -100,6 +100,9 @@
             <a class="btn btn-success" onclick="javascript:jobLog()" shiro:hasPermission="monitor:sqlJobLog:view">
                 <i class="fa fa-list"></i> [[#{sql.job.log.log}]]
             </a>
+            <a class="btn btn-info" onclick="pushTemplate()" shiro:hasPermission="monitor:sqlJob:view">
+                <i class="fa fa-navicon"></i> [[#{api.job.template}]]
+            </a>
         </div>
         <div class="col-sm-12 select-table table-striped">
             <table id="bootstrap-table"></table>
@@ -357,6 +360,13 @@
             tabName = i18n('sql.job.sql.task.log') + "(" + jobId + ")";
         }
         $.modal.openTab(tabName, url);
+    }
+
+    /* 推送模板 */
+    function pushTemplate() {
+        var url = prefix + '/pushTemplate';
+        var tabName = i18n('api.job.template');
+        $.modal.open(tabName, url);
     }
 </script>
 </body>

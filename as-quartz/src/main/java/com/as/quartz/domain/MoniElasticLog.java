@@ -93,6 +93,12 @@ public class MoniElasticLog extends BaseEntity {
     @Excel(name = "导出内容")
     private String exportResult;
 
+    /**
+     * 是否告警
+     */
+    @Excel(name = "是否告警")
+    private String isAlert;
+
     private MoniElastic moniElastic;
 
     @Override
