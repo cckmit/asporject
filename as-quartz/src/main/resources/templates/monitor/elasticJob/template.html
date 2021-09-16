@@ -19,14 +19,12 @@
                 </div>
             </div>
             <div class="form-group">
-                <label class="col-sm-2 control-label is-required">[[#{api.job.template}]]：</label>
-                <div class="col-sm-9">
+                <div class="col-sm-12">
                     <textarea name="telegramInfo" class="form-control" rows="10" required>[[*{template}]]</textarea>
                 </div>
             </div>
             <div class="form-group">
-                <label class="col-sm-2 control-label">[[#{webhook.descr}]]：</label>
-                <div class="col-sm-9 form-control-static">
+                <div class="col-sm-12 form-control-static">
                     <pre th:text="#{elastic.job.tg.info}"></pre>
                 </div>
             </div>

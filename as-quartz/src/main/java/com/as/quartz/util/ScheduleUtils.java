@@ -1,16 +1,25 @@
 package com.as.quartz.util;
 
+import com.as.common.config.ASConfig;
 import com.as.common.constant.DictTypeConstants;
 import com.as.common.constant.ScheduleConstants;
 import com.as.common.utils.DictUtils;
 import com.as.common.utils.StringUtils;
 import com.as.common.utils.spring.SpringUtils;
+import com.as.webhook.utils.SubStrUtil;
 import com.pengrad.telegrambot.TelegramBot;
+import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.model.request.ParseMode;
+import com.pengrad.telegrambot.request.DeleteMessage;
+import com.pengrad.telegrambot.request.SendDocument;
 import com.pengrad.telegrambot.request.SendMessage;
+import com.pengrad.telegrambot.request.SendPhoto;
 import com.pengrad.telegrambot.response.SendResponse;
 import org.quartz.*;
+
+import java.io.File;
+import java.util.List;
 
 /**
  * 定时任务工具类
@@ -18,6 +27,9 @@ import org.quartz.*;
  * @author kolin
  */
 public class ScheduleUtils {
+    //详见tg bot api文档：https://core.telegram.org/bots/api#formatting-options
+    public static ParseMode parseMode = ParseMode.MarkdownV2;
+
     /**
      * 得到quartz任务类
      *
@@ -113,43 +125,83 @@ public class ScheduleUtils {
         return tgData;
     }
 
+    public static InlineKeyboardMarkup getInlineKeyboardMarkup(String jobUrl, String logUrl, String jobId, String logId) {
+        return new InlineKeyboardMarkup(
+                new InlineKeyboardButton("JOB Details").url(ASConfig.getAsDomain().concat(jobUrl).concat(jobId)),
+                new InlineKeyboardButton("LOG Details").url(ASConfig.getAsDomain().concat(logUrl).concat(logId)));
+    }
+
     /**
      * 发送tg告警 文字
      */
     public static SendResponse sendMessage(String bot, String chatId, String telegramInfo, InlineKeyboardMarkup inlineKeyboard) {
         TelegramBot messageBot = new TelegramBot.Builder(bot).okHttpClient(OkHttpUtils.getInstance()).build();
-        SendMessage sendMessage = new SendMessage(chatId, telegramInfo).parseMode(ParseMode.MarkdownV2);
+        SendMessage sendMessage = new SendMessage(chatId, telegramInfo).parseMode(parseMode);
         if (StringUtils.isNotNull(inlineKeyboard)) {
             sendMessage.replyMarkup(inlineKeyboard);
         }
         return messageBot.execute(sendMessage);
     }
-//
-//    /**
-//     * 发送tg告警 图片
-//     */
-//    public static SendResponse sendPhoto(String bot, String chatId, String telegramInfo, InlineKeyboardMarkup inlineKeyboard, File file) {
-//        TelegramBot photoBot = new TelegramBot.Builder(bot).okHttpClient(okHttpClient).build();
-//        SendPhoto sendPhoto = new SendPhoto(chatId, file);
-//        sendPhoto.caption(telegramInfo).parseMode(ParseMode.Markdown);
-//        if (StringUtils.isNotNull(inlineKeyboard)) {
-//            sendPhoto.replyMarkup(inlineKeyboard);
-//        }
-//        return photoBot.execute(sendPhoto);
-//    }
-//
-//    /**
-//     * 发送tg告警 文件形式
-//     */
-//    public static SendResponse sendDocument(String bot, String chatId, String telegramInfo, InlineKeyboardMarkup inlineKeyboard, File file) {
-//        TelegramBot documentBot = new TelegramBot.Builder(bot).okHttpClient(okHttpClient).build();
-//        SendDocument sendDocument = new SendDocument(chatId, file);
-//        sendDocument.caption(telegramInfo).parseMode(ParseMode.Markdown);
-//        if (StringUtils.isNotNull(inlineKeyboard)) {
-//            sendDocument.replyMarkup(inlineKeyboard);
-//        }
-//        return documentBot.execute(sendDocument);
-//    }
+
+    /**
+     * webhook tg push
+     */
+    public static SendResponse sendMessageForWebhook(String bot, String chatId, String telegramInfo) {
+        TelegramBot messageBot = new TelegramBot.Builder(bot).okHttpClient(OkHttpUtils.getInstance()).build();
+        SendMessage sendMessage = new SendMessage(chatId, telegramInfo).parseMode(parseMode);
+        SendResponse response = null;
+        try {
+            response = messageBot.execute(sendMessage);
+            return response;
+        } catch (Exception e) {
+            //发送失败拆分字符后重新发送一次
+            TelegramBot resendBot = new TelegramBot.Builder(bot).okHttpClient(OkHttpUtils.getInstance()).build();
+            int length = 500;
+            if (telegramInfo.length() > length) {
+                List<String> telegramInfoList = SubStrUtil.getStrList(telegramInfo, length);
+                for (String info : telegramInfoList) {
+                    SendMessage resendMessage = new SendMessage(chatId, processStr(info)).parseMode(parseMode);
+                    response = resendBot.execute(resendMessage);
+                }
+                return response;
+            } else {
+                throw e;
+            }
+        }
+    }
+
+    /**
+     * 发送tg告警 图片
+     */
+    public static SendResponse sendPhoto(String bot, String chatId, String telegramInfo, InlineKeyboardMarkup inlineKeyboard, File file) {
+        TelegramBot photoBot = new TelegramBot.Builder(bot).okHttpClient(OkHttpUtils.getInstance()).build();
+        SendPhoto sendPhoto = new SendPhoto(chatId, file);
+        sendPhoto.caption(telegramInfo).parseMode(parseMode);
+        if (StringUtils.isNotNull(inlineKeyboard)) {
+            sendPhoto.replyMarkup(inlineKeyboard);
+        }
+        return photoBot.execute(sendPhoto);
+    }
+
+    /**
+     * 发送tg告警 文件形式
+     */
+    public static SendResponse sendDocument(String bot, String chatId, String telegramInfo, InlineKeyboardMarkup inlineKeyboard, File file) {
+        TelegramBot documentBot = new TelegramBot.Builder(bot).okHttpClient(OkHttpUtils.getInstance()).build();
+        SendDocument sendDocument = new SendDocument(chatId, file);
+        sendDocument.caption(telegramInfo).parseMode(parseMode);
+        if (StringUtils.isNotNull(inlineKeyboard)) {
+            sendDocument.replyMarkup(inlineKeyboard);
+        }
+        return documentBot.execute(sendDocument);
+    }
+
+    public static void deleteMessage(TelegramBot bot, String chatId, Integer messageId) {
+        if (StringUtils.isNotNull(messageId)) {
+            DeleteMessage deleteMessage = new DeleteMessage(chatId, messageId);
+            bot.execute(deleteMessage);
+        }
+    }
 
 
     public static String processStr(String str) {
@@ -173,5 +225,4 @@ public class ScheduleUtils {
                 .replace(".", "\\.")
                 .replace("!", "\\!");
     }
-
 }

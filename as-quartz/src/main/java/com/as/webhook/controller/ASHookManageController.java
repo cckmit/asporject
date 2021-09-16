@@ -124,11 +124,11 @@ public class ASHookManageController extends BaseController {
      * @return
      */
     @RequiresPermissions("as:webhook:view")
-    @GetMapping("/pushTemplate")
-    public String pushTemplate(ModelMap mmap) {
+    @GetMapping("/tgPushTemplate")
+    public String tgPushTemplate(ModelMap mmap) {
         String apiTemplate = DictUtils.getDictRemark(DictTypeConstants.JOB_PUSH_TEMPLATE, Constants.DESCR_TEMPLATE_WEBHOOK);
         mmap.put("template", apiTemplate);
-        return prefix + "/template";
+        return prefix + "/tgTemplate";
     }
 
     /**
@@ -138,10 +138,38 @@ public class ASHookManageController extends BaseController {
      * @return
      */
     @RequiresPermissions("as:webhook:view")
-    @GetMapping("/pushTemplateSave")
+    @GetMapping("/tgPushTemplateSave")
     @Log(title = "webhook请求记录", businessType = BusinessType.UPDATE)
     @ResponseBody
-    public AjaxResult pushTemplateSave(@RequestParam(name = "template") String template) {
-        return toAjax(webhookService.updateTemplate(template));
+    public AjaxResult tgPushTemplateSave(@RequestParam(name = "template") String template) {
+        return toAjax(webhookService.updateTgTemplate(template));
+    }
+
+    /**
+     * 推送模板
+     *
+     * @param mmap
+     * @return
+     */
+    @RequiresPermissions("as:webhook:view")
+    @GetMapping("/mailPushTemplate")
+    public String mailPushTemplate(ModelMap mmap) {
+        String apiTemplate = DictUtils.getDictRemark(DictTypeConstants.JOB_PUSH_TEMPLATE, Constants.MAIL_TEMPLATE_WEBHOOK);
+        mmap.put("template", apiTemplate);
+        return prefix + "/mailTemplate";
+    }
+
+    /**
+     * 保存推送模板
+     *
+     * @param template
+     * @return
+     */
+    @RequiresPermissions("as:webhook:view")
+    @GetMapping("/mailPushTemplateSave")
+    @Log(title = "webhook请求记录", businessType = BusinessType.UPDATE)
+    @ResponseBody
+    public AjaxResult mailPushTemplateSave(@RequestParam(name = "template") String template) {
+        return toAjax(webhookService.updateMailTemplate(template));
     }
 }

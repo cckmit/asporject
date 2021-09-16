@@ -63,6 +63,8 @@ public interface IWebhookService {
 
     public boolean checkReporterIsExist(String reporter);
 
-    public int updateTemplate(String template);
+    public int updateTgTemplate(String template);
+
+    public int updateMailTemplate(String template);
 
 }

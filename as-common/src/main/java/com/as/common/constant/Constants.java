@@ -146,4 +146,9 @@ public class Constants
      * webhook push template
      */
     public static final String DESCR_TEMPLATE_WEBHOOK = "descr_template_webhook";
+
+    /**
+     * webhook mail push template
+     */
+    public static final String MAIL_TEMPLATE_WEBHOOK = "mail_template_webhook";
 }

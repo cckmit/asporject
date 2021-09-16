@@ -200,7 +200,9 @@ public class JobServiceImpl implements IJobService {
         //主題
         messageHelper.setSubject(mail.getSubject());
         //內容
-        if (mail.getContent() != null) {
+        if (StringUtils.isNotEmpty(mail.getTemplate())) {
+            messageHelper.setText(mail.getTemplate(), true);
+        } else {
             messageHelper.setText(mail.getContent());
         }
 

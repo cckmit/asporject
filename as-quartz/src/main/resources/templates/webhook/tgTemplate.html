@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh" xmlns:th="http://www.thymeleaf.org" >
 <head>
-    <th:block th:include="include :: header('SQL任务推送模板')" />
+    <th:block th:include="include :: header('webhook推送模板')" />
     <style type="text/css">
         pre {
             white-space: pre-wrap;
@@ -13,33 +13,27 @@
     <div class="wrapper wrapper-content animated fadeInRight ibox-content">
         <form autocomplete="off" class="form-horizontal m" id="form-template-edit">
             <div class="form-group">
-                <label class="col-sm-2 control-label">[[#{api.job.template.field}]]：</label>
-                <div class="col-sm-9">
-                    <input class="form-control" type="text" value="{descr_template_job}" readonly disabled>
-                </div>
-            </div>
-            <div class="form-group">
                 <div class="col-sm-12">
-                    <textarea name="telegramInfo" class="form-control" rows="10" required>[[*{template}]]</textarea>
+                    <textarea name="template" class="form-control" rows="10" required>[[*{template}]]</textarea>
                 </div>
             </div>
             <div class="form-group">
                 <div class="col-sm-12 form-control-static">
-                    <pre th:text="#{sql.job.tg.info.info}"></pre>
+                    <pre th:text="#{webhook.job.tg.info}"></pre>
                 </div>
             </div>
         </form>
     </div>
     <th:block th:include="include :: footer" />
     <script th:inline="javascript">
-        var prefix = ctx + "monitor/sqlJob";
+        var prefix = ctx + "as/webhook";
 
         function submitHandler() {
             if ($.validate.form()) {
                 $.ajax({
-                    url: prefix + "/pushTemplateSave",
+                    url: prefix + "/tgPushTemplateSave",
                     data: $('#form-template-edit').serialize(),
-                    type: "post",
+                    type: "get",
                     success: function(result) {
                         if (result.code == web_status.SUCCESS) {
                             layer.msg(i18n('api.job.template.save'), {

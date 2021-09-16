@@ -1,6 +1,5 @@
 package com.as.quartz.job;
 
-import com.as.common.config.ASConfig;
 import com.as.common.constant.Constants;
 import com.as.common.constant.DictTypeConstants;
 import com.as.common.constant.ScheduleConstants;
@@ -19,10 +18,7 @@ import com.as.quartz.util.OkHttpUtils;
 import com.as.quartz.util.ScheduleUtils;
 import com.pengrad.telegrambot.Callback;
 import com.pengrad.telegrambot.TelegramBot;
-import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
-import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
-import com.pengrad.telegrambot.model.request.ParseMode;
-import com.pengrad.telegrambot.request.*;
+import com.pengrad.telegrambot.request.SendMessage;
 import com.pengrad.telegrambot.response.SendResponse;
 import gui.ava.html.image.generator.HtmlImageGenerator;
 import org.quartz.DisallowConcurrentExecution;
@@ -38,7 +34,6 @@ import javax.sql.DataSource;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.net.SocketTimeoutException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -62,13 +57,9 @@ public class MoniJobExecution extends AbstractQuartzJob {
     private static final String LOG_DETAIL_URL = "/monitor/sqlJobLog/detail/";
     private static final String JOB_DETAIL_URL = "/monitor/sqlJob/detail/";
 
-    private MoniJobLog moniJobLog = new MoniJobLog();
+    private final MoniJobLog moniJobLog = new MoniJobLog();
 
     private MoniJob moniJob = new MoniJob();
-
-    private int serversLoadTimes;
-
-    private static final int maxLoadTimes = 3; // 最大重连次数
 
     private String bot;
 
@@ -78,11 +69,17 @@ public class MoniJobExecution extends AbstractQuartzJob {
 
     private String telegramInfo;
 
-    private SendMessage sendMessage;
+    private String telegramInfoSpare;
 
     private Boolean isWebhook;
 
     private String operator;
+
+    private int width;
+
+    private int height;
+
+    private File file;
 
     /**
      * 执行方法
@@ -440,7 +437,6 @@ public class MoniJobExecution extends AbstractQuartzJob {
                 descr = "descr is empty";
             }
             telegramInfo = telegramInfo.replace("{descr_template_job}", DictUtils.getDictRemark(DictTypeConstants.JOB_PUSH_TEMPLATE, Constants.DESCR_TEMPLATE_JOB))
-                    .replace("{descr}", ScheduleUtils.processStr(descr))
                     .replace("{id}", String.valueOf(moniJob.getId()))
                     .replace("{asid}", ScheduleUtils.processStr(moniJob.getAsid()))
                     .replace("{priority}", "1".equals(moniJob.getPriority()) ? "NU" : "URG")
@@ -450,154 +446,68 @@ public class MoniJobExecution extends AbstractQuartzJob {
                     .replace("{expect}", ScheduleUtils.processStr(moniJobLog.getExpectedResult()))
                     .replace("{operator}", operator)
                     .replace("{env}", StringUtils.isNotEmpty(SpringUtils.getActiveProfile()) ? Objects.requireNonNull(SpringUtils.getActiveProfile()) : "");
+            //备用推送消息，去除descr,一般descr太长会造成推送超时，缩短推送文本长度，遇到time out时推送此文本
+            telegramInfoSpare = telegramInfo.replace("{descr}", "View descr in log details");
+            //默认推送模板
+            telegramInfo = telegramInfo.replace("{descr}", ScheduleUtils.processStr(descr));
         } else {
             telegramInfo = "*DB Monitor ID\\(" + moniJob.getId() + "\\),Notification content is not set*";
+            telegramInfoSpare = "*DB Monitor ID\\(" + moniJob.getId() + "\\),Notification content is not set*";
         }
 
         String imgPath = createImg();
 
-        InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup(
-                new InlineKeyboardButton("JOB Details").url(ASConfig.getAsDomain().concat(JOB_DETAIL_URL).concat(String.valueOf(moniJob.getId()))),
-                new InlineKeyboardButton("LOG Details").url(ASConfig.getAsDomain().concat(LOG_DETAIL_URL).concat(String.valueOf(moniJobLog.getId()))));
-
-
-        File file = new File(imgPath);
+        file = new File(imgPath);
         BufferedImage bufferedImage;
-        int width = 1501;
-        int height = 1501;
         try {
             bufferedImage = ImageIO.read(file);
             width = bufferedImage.getWidth();
             height = bufferedImage.getHeight();
         } catch (Exception e) {
-            //异常忽略，继续往下执行
+            width = 1500;
+            height = 1500;
         }
 
-        TelegramBot telegramBot = new TelegramBot.Builder(bot).okHttpClient(OkHttpUtils.getInstance()).build();
-
-        sendMessage = new SendMessage(chatId, telegramInfo).parseMode(ParseMode.MarkdownV2);
-        sendMessage.replyMarkup(inlineKeyboard);
-        try {
-            SendResponse response = ScheduleUtils.sendMessage(bot, chatId, telegramInfo, inlineKeyboard);
-            if (response.isOk()) {
-                messageId = response.message().messageId();
-            }
-        } catch (Exception e) {
-
-        }
-
-        //图片长宽不超过1500则发送图片，否则发送附件
-        if (width <= 1500 && height <= 1500) {
-            SendPhoto sendPhoto = new SendPhoto(chatId, file);
-            sendPhoto.caption(telegramInfo).parseMode(ParseMode.MarkdownV2);
-            sendPhoto.replyMarkup(inlineKeyboard);
-            sendPhoto(telegramBot, sendPhoto);
-        } else {
-            SendDocument sendDocument = new SendDocument(chatId, file);
-            sendDocument.caption(telegramInfo).parseMode(ParseMode.MarkdownV2);
-            sendDocument.replyMarkup(inlineKeyboard);
-            sendDocument(telegramBot, sendDocument);
-        }
+        //为避免延迟发送或发送超时，先发送简短的备用推送
+        SendMessage sendMessage = new SendMessage(chatId, telegramInfoSpare).parseMode(ScheduleUtils.parseMode);
+        sendMessage.replyMarkup(ScheduleUtils.getInlineKeyboardMarkup(JOB_DETAIL_URL, LOG_DETAIL_URL, String.valueOf(moniJob.getId()), String.valueOf(moniJobLog.getId())));
+        sendMessage(sendMessage);
     }
 
-    private void sendPhoto(TelegramBot photoBot, SendPhoto sendPhoto) {
-        serversLoadTimes = 5;
-        photoBot.execute(sendPhoto, new Callback<SendPhoto, SendResponse>() {
-            @Override
-            public void onResponse(SendPhoto request, SendResponse response) {
-                if (response.isOk()) {
-                    MoniJobLog jobLog = new MoniJobLog();
-                    jobLog.setId(moniJobLog.getId());
-                    jobLog.setStatus(Constants.FAIL);
-                    SpringUtils.getBean(IMoniJobLogService.class).updateJobLog(jobLog);
-                    deleteMessage(photoBot);
-                } else {
-                    //图片文件发送失败则发送文字消息
-                    if (StringUtils.isNull(messageId)) {
-                        sendMessage();
-                    }
-                    log.error("DB jobId：{},JobName：{},telegram发送图片失败", moniJob.getId(), moniJob.getChName());
-                }
-            }
-
-            @Override
-            public void onFailure(SendPhoto request, IOException e) {
-                //失败重发
-                if (e instanceof SocketTimeoutException && serversLoadTimes < maxLoadTimes) {
-                    serversLoadTimes++;
-                    photoBot.execute(sendPhoto, this);
-                    log.error("DB jobId：{},JobName：{},telegram图片超时重发,第{}次", moniJob.getId(), moniJob.getChName(), serversLoadTimes);
-                } else {
-                    //图片文件发送失败则发送文字消息
-                    if (StringUtils.isNull(messageId)) {
-                        sendMessage();
-                    }
-                    log.error("DB jobId：{},JobName：{},telegram发送图片异常,{}", moniJob.getId(), moniJob.getChName(), ExceptionUtil.getExceptionMessage(e));
-                }
-            }
-        });
-    }
-
-    private void sendDocument(TelegramBot documentBot, SendDocument sendDocument) {
-        serversLoadTimes = 5;
-        documentBot.execute(sendDocument, new Callback<SendDocument, SendResponse>() {
-            @Override
-            public void onResponse(SendDocument request, SendResponse response) {
-                if (response.isOk()) {
-                    MoniJobLog jobLog = new MoniJobLog();
-                    jobLog.setId(moniJobLog.getId());
-                    jobLog.setStatus(Constants.FAIL);
-                    SpringUtils.getBean(IMoniJobLogService.class).updateJobLog(jobLog);
-                    deleteMessage(documentBot);
-                } else {
-                    //图片文件发送失败则发送文字消息
-                    if (StringUtils.isNull(messageId)) {
-                        sendMessage();
-                    }
-                    log.error("DB jobId：{},JobName：{},telegram发送附件失败", moniJob.getId(), moniJob.getChName());
-                }
-            }
-
-            @Override
-            public void onFailure(SendDocument request, IOException e) {
-                //失败重发
-                if (e instanceof SocketTimeoutException && serversLoadTimes < maxLoadTimes) {
-                    serversLoadTimes++;
-                    documentBot.execute(sendDocument, this);
-                    log.error("DB jobId：{},JobName：{},telegram附件超时重发,第{}次", moniJob.getId(), moniJob.getChName(), serversLoadTimes);
-                } else {
-                    //图片文件发送失败则发送文字消息
-                    if (StringUtils.isNull(messageId)) {
-                        sendMessage();
-                    }
-                    log.error("DB jobId：{},JobName：{},telegram发送附件异常,{}", moniJob.getId(), moniJob.getChName(), ExceptionUtil.getExceptionMessage(e));
-                }
-            }
-        });
-    }
-
-    private void deleteMessage(TelegramBot bot) {
-        if (StringUtils.isNotNull(messageId)) {
-            telegramInfo = telegramInfo + "\n\n" + "*This message will be deleted in 5 seconds*";
-            EditMessageText editMessageText = new EditMessageText(chatId, messageId, telegramInfo).parseMode(ParseMode.MarkdownV2);
-            bot.execute(editMessageText);
-            try {
-                Thread.sleep(5000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            DeleteMessage deleteMessage = new DeleteMessage(chatId, messageId);
-            bot.execute(deleteMessage);
-        }
-    }
-
-    private void sendMessage() {
-        serversLoadTimes = 0;
+    private void sendMessage(SendMessage sendMessage) {
         TelegramBot messageBot = new TelegramBot.Builder(bot).okHttpClient(OkHttpUtils.getInstance()).build();
         messageBot.execute(sendMessage, new Callback<SendMessage, SendResponse>() {
             @Override
             public void onResponse(SendMessage request, SendResponse response) {
-                if (!response.isOk()) {
+                if (response.isOk()) {
+                    messageId = response.message().messageId();
+                    try {
+                        //继续发送模板消息
+                        response = ScheduleUtils.sendMessage(bot, chatId, telegramInfo,
+                                ScheduleUtils.getInlineKeyboardMarkup(JOB_DETAIL_URL, LOG_DETAIL_URL, String.valueOf(moniJob.getId()), String.valueOf(moniJobLog.getId())));
+                        if (response.isOk()) {
+//                           //模板消息推送成功则删除之前发送的备用消息
+                            ScheduleUtils.deleteMessage(messageBot, chatId, messageId);
+                            //重新记录消息ID
+                            messageId = response.message().messageId();
+                            //继续发送图文消息
+                            //图片长宽不超过1500则发送图片，否则发送附件
+                            if (width < 1500 && height < 1500) {
+                                response = ScheduleUtils.sendPhoto(bot, chatId, telegramInfo,
+                                        ScheduleUtils.getInlineKeyboardMarkup(JOB_DETAIL_URL, LOG_DETAIL_URL, String.valueOf(moniJob.getId()), String.valueOf(moniJobLog.getId())), file);
+                            } else {
+                                response = ScheduleUtils.sendDocument(bot, chatId, telegramInfo,
+                                        ScheduleUtils.getInlineKeyboardMarkup(JOB_DETAIL_URL, LOG_DETAIL_URL, String.valueOf(moniJob.getId()), String.valueOf(moniJobLog.getId())), file);
+                            }
+                            if (response.isOk()) {
+                                //图文消息推送成功则删除之前发送的模板消息
+                                ScheduleUtils.deleteMessage(messageBot, chatId, messageId);
+                            }
+                        }
+                    } catch (Exception e) {
+                        log.error("DB jobId：{},JobName：{},telegram推送信息异常,{}", moniJob.getId(), moniJob.getChName(), ExceptionUtil.getExceptionMessage(e));
+                    }
+                } else {
                     moniJobLog.setExceptionLog("Telegram send message error: ".concat(response.description()));
                     SpringUtils.getBean(IMoniJobLogService.class).updateJobLog(moniJobLog);
                     log.error("DB jobId：{},JobName：{},telegram发送信息失败", moniJob.getId(), moniJob.getChName());
@@ -606,17 +516,10 @@ public class MoniJobExecution extends AbstractQuartzJob {
 
             @Override
             public void onFailure(SendMessage request, IOException e) {
-                //失败重发
-                if (e instanceof SocketTimeoutException && serversLoadTimes < maxLoadTimes) {
-                    serversLoadTimes++;
-                    messageBot.execute(sendMessage, this);
-                    log.error("DB jobId：{},JobName：{},telegram信息超时重发,第{}次", moniJob.getId(), moniJob.getChName(), serversLoadTimes);
-                } else {
-                    moniJobLog.setStatus(Constants.ERROR);
-                    moniJobLog.setExceptionLog("Telegram send message error: ".concat(ExceptionUtil.getExceptionMessage(e).replace("\"", "'")));
-                    SpringUtils.getBean(IMoniJobLogService.class).updateJobLog(moniJobLog);
-                    log.error("DB jobId：{},JobName：{},telegram发送信息异常,{}", moniJob.getId(), moniJob.getChName(), ExceptionUtil.getExceptionMessage(e));
-                }
+                moniJobLog.setStatus(Constants.ERROR);
+                moniJobLog.setExceptionLog("Telegram send message error: ".concat(ExceptionUtil.getExceptionMessage(e)));
+                SpringUtils.getBean(IMoniJobLogService.class).updateJobLog(moniJobLog);
+                log.error("DB jobId：{},JobName：{},telegram发送信息异常,{}", moniJob.getId(), moniJob.getChName(), ExceptionUtil.getExceptionMessage(e));
             }
         });
     }
