@@ -1,6 +1,7 @@
 package com.as.webhook.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.as.common.config.ASConfig;
 import com.as.common.constant.Constants;
 import com.as.common.constant.DictTypeConstants;
 import com.as.common.core.text.Convert;
@@ -25,6 +26,8 @@ import com.as.webhook.enums.ResultEnum;
 import com.as.webhook.mapper.WebhookMapper;
 import com.as.webhook.service.IWebhookService;
 import com.as.webhook.utils.Result;
+import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
+import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.response.SendResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -38,6 +41,8 @@ import java.util.Map;
 
 @Service
 public class WebhookServiceImpl implements IWebhookService {
+
+    private static final String LOG_DETAIL_URL = "/as/webhook/detail/";
 
     @Autowired
     private WebhookMapper webhookMapper;
@@ -77,7 +82,13 @@ public class WebhookServiceImpl implements IWebhookService {
                         String tgInfo = DictUtils.getDictRemark(DictTypeConstants.JOB_PUSH_TEMPLATE, Constants.DESCR_TEMPLATE_WEBHOOK);
                         String[] tgIds = pushObject.getTgId().split(";");
                         if (StringUtils.isNotEmpty(tgInfo)) {
-                            tgInfo = getInfo(pushObject, date, tgInfo);
+                            tgInfo = tgInfo.replace("{recordId}", String.valueOf(pushObject.getId()))
+                                    .replace("{type}", StringUtils.isNotEmpty(pushObject.getType()) ? pushObject.getType() : "log")
+                                    .replace("{title}", StringUtils.isNotEmpty(pushObject.getTitle()) ? ScheduleUtils.processStr(pushObject.getTitle()) : "")
+                                    .replace("{time}", DateUtils.parseDateToStr(DateUtils.YYYY_MM_DD_HH_MM_SS, date))
+                                    .replace("{reporter}", pushObject.getReporter())
+                                    .replace("{descr}", StringUtils.isNotEmpty(pushObject.getDescr()) ? ScheduleUtils.processStr(pushObject.getDescr()) : "")
+                                    .replace("{remark}", StringUtils.isNotEmpty(pushObject.getRemark()) ? ScheduleUtils.processStr(pushObject.getRemark()) : "");
                         } else {
                             tgInfo = "*Webhook push template is not set*";
                         }
@@ -86,7 +97,9 @@ public class WebhookServiceImpl implements IWebhookService {
                                 String[] tgData = ScheduleUtils.getTgData(tgId, true);
                                 String bot = tgData[0];
                                 String chatId = tgData[1];
-                                SendResponse response = ScheduleUtils.sendMessageForWebhook(bot, chatId, tgInfo);
+                                InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup(
+                                        new InlineKeyboardButton("Record Details").url(ASConfig.getAsDomain().concat(LOG_DETAIL_URL).concat(String.valueOf(pushObject.getId()))));
+                                SendResponse response = ScheduleUtils.sendMessageForWebhook(bot, chatId, tgInfo, inlineKeyboardMarkup);
                                 if (response.isOk()) {
                                     result.put(type + "-" + tgId, Result.success());
                                 } else {
@@ -115,7 +128,13 @@ public class WebhookServiceImpl implements IWebhookService {
                             mail.setSubject("[webhook] " + title);
                             String mailInfo = DictUtils.getDictRemark(DictTypeConstants.JOB_PUSH_TEMPLATE, Constants.MAIL_TEMPLATE_WEBHOOK);
                             if (StringUtils.isNotEmpty(mailInfo)) {
-                                mailInfo = getInfo(pushObject, date, mailInfo);
+                                mailInfo = mailInfo.replace("{recordId}", String.valueOf(pushObject.getId()))
+                                        .replace("{type}", StringUtils.isNotEmpty(pushObject.getType()) ? pushObject.getType() : "log")
+                                        .replace("{title}", StringUtils.isNotEmpty(pushObject.getTitle()) ? pushObject.getTitle() : "")
+                                        .replace("{time}", DateUtils.parseDateToStr(DateUtils.YYYY_MM_DD_HH_MM_SS, date))
+                                        .replace("{reporter}", pushObject.getReporter())
+                                        .replace("{descr}", StringUtils.isNotEmpty(pushObject.getDescr()) ? pushObject.getDescr() : "")
+                                        .replace("{remark}", StringUtils.isNotEmpty(pushObject.getRemark()) ? pushObject.getRemark() : "");
                                 mail.setTemplate(mailInfo);
                             } else {
                                 StringBuilder body = new StringBuilder();
@@ -156,15 +175,6 @@ public class WebhookServiceImpl implements IWebhookService {
             result.put("log", Result.result(ResultEnum.LOG_ERROR, ExceptionUtil.getRootErrorMessage(e)));
         }
         return result;
-    }
-
-    private String getInfo(PushObject pushObject, Date date, String info) {
-        return info.replace("{type}", StringUtils.isNotEmpty(pushObject.getType()) ? pushObject.getType() : "log")
-                .replace("{title}", StringUtils.isNotEmpty(pushObject.getTitle()) ? ScheduleUtils.processStr(pushObject.getTitle()) : "")
-                .replace("{time}", DateUtils.parseDateToStr(DateUtils.YYYY_MM_DD_HH_MM_SS, date))
-                .replace("{reporter}", pushObject.getReporter())
-                .replace("{descr}", StringUtils.isNotEmpty(pushObject.getDescr()) ? ScheduleUtils.processStr(pushObject.getDescr()) : "")
-                .replace("{remark}", StringUtils.isNotEmpty(pushObject.getRemark()) ? ScheduleUtils.processStr(pushObject.getRemark()) : "");
     }
 
     private String getIpAddress(HttpServletRequest request) {

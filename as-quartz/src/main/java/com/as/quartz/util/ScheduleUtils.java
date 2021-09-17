@@ -146,9 +146,12 @@ public class ScheduleUtils {
     /**
      * webhook tg push
      */
-    public static SendResponse sendMessageForWebhook(String bot, String chatId, String telegramInfo) {
+    public static SendResponse sendMessageForWebhook(String bot, String chatId, String telegramInfo, InlineKeyboardMarkup inlineKeyboard) {
         TelegramBot messageBot = new TelegramBot.Builder(bot).okHttpClient(OkHttpUtils.getInstance()).build();
         SendMessage sendMessage = new SendMessage(chatId, telegramInfo).parseMode(parseMode);
+        if (StringUtils.isNotNull(inlineKeyboard)) {
+            sendMessage.replyMarkup(inlineKeyboard);
+        }
         SendResponse response = null;
         try {
             response = messageBot.execute(sendMessage);
@@ -159,8 +162,15 @@ public class ScheduleUtils {
             int length = 500;
             if (telegramInfo.length() > length) {
                 List<String> telegramInfoList = SubStrUtil.getStrList(telegramInfo, length);
+                int count = 0;
                 for (String info : telegramInfoList) {
+                    count++;
                     SendMessage resendMessage = new SendMessage(chatId, processStr(info)).parseMode(parseMode);
+                    if (count == telegramInfoList.size()) {
+                        if (StringUtils.isNotNull(inlineKeyboard)) {
+                            resendMessage.replyMarkup(inlineKeyboard);
+                        }
+                    }
                     response = resendBot.execute(resendMessage);
                 }
                 return response;
