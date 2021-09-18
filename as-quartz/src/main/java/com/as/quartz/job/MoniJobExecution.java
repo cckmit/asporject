@@ -34,6 +34,7 @@ import javax.sql.DataSource;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.net.SocketTimeoutException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -80,6 +81,10 @@ public class MoniJobExecution extends AbstractQuartzJob {
     private int height;
 
     private File file;
+
+    private int serversLoadTimes;
+
+    private static final int maxLoadTimes = 3; // 最大重连次数
 
     /**
      * 执行方法
@@ -475,6 +480,7 @@ public class MoniJobExecution extends AbstractQuartzJob {
     }
 
     private void sendMessage(SendMessage sendMessage) {
+        serversLoadTimes = 0;
         TelegramBot messageBot = new TelegramBot.Builder(bot).okHttpClient(OkHttpUtils.getInstance()).build();
         messageBot.execute(sendMessage, new Callback<SendMessage, SendResponse>() {
             @Override
@@ -510,16 +516,23 @@ public class MoniJobExecution extends AbstractQuartzJob {
                 } else {
                     moniJobLog.setExceptionLog("Telegram send message error: ".concat(response.description()));
                     SpringUtils.getBean(IMoniJobLogService.class).updateJobLog(moniJobLog);
-                    log.error("DB jobId：{},JobName：{},telegram发送信息失败", moniJob.getId(), moniJob.getChName());
+                    log.error("DB jobId：{},JobName：{},推送内容：{},telegram发送信息失败", moniJob.getId(), telegramInfoSpare, moniJob.getChName());
                 }
             }
 
             @Override
             public void onFailure(SendMessage request, IOException e) {
-                moniJobLog.setStatus(Constants.ERROR);
-                moniJobLog.setExceptionLog("Telegram send message error: ".concat(ExceptionUtil.getExceptionMessage(e)));
-                SpringUtils.getBean(IMoniJobLogService.class).updateJobLog(moniJobLog);
-                log.error("DB jobId：{},JobName：{},telegram发送信息异常,{}", moniJob.getId(), moniJob.getChName(), ExceptionUtil.getExceptionMessage(e));
+                //失败重发
+                if (e instanceof SocketTimeoutException && serversLoadTimes < maxLoadTimes) {
+                    serversLoadTimes++;
+                    messageBot.execute(sendMessage, this);
+                    log.error("DB jobId：{},JobName：{},telegram信息超时重发,第{}次", moniJob.getId(), moniJob.getChName(), serversLoadTimes);
+                } else {
+                    moniJobLog.setStatus(Constants.ERROR);
+                    moniJobLog.setExceptionLog("Telegram send message error: ".concat(ExceptionUtil.getExceptionMessage(e)));
+                    SpringUtils.getBean(IMoniJobLogService.class).updateJobLog(moniJobLog);
+                    log.error("DB jobId：{},JobName：{},推送内容：{},telegram发送信息异常,{}", moniJob.getId(), moniJob.getChName(), telegramInfoSpare, ExceptionUtil.getExceptionMessage(e));
+                }
             }
         });
     }

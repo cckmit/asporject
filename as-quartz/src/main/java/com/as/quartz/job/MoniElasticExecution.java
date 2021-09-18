@@ -33,6 +33,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.sql.DataSource;
 import java.io.IOException;
+import java.net.SocketTimeoutException;
 import java.util.Date;
 import java.util.Map;
 import java.util.Objects;
@@ -66,6 +67,10 @@ public class MoniElasticExecution extends AbstractQuartzJob {
     private final StringBuilder exportInfo = new StringBuilder();
 
     private String telegramInfo;
+
+    private int serversLoadTimes;
+
+    private static final int maxLoadTimes = 3; // 最大重连次数
 
     /**
      * 执行方法
@@ -390,6 +395,7 @@ public class MoniElasticExecution extends AbstractQuartzJob {
         SendMessage sendMessage = new SendMessage(chatId, telegramInfoSpare).parseMode(ScheduleUtils.parseMode);
         sendMessage.replyMarkup(ScheduleUtils.getInlineKeyboardMarkup(JOB_DETAIL_URL, LOG_DETAIL_URL, String.valueOf(moniElastic.getId()), String.valueOf(moniElasticLog.getId())));
 
+        serversLoadTimes = 0;
         messageBot.execute(sendMessage, new Callback<SendMessage, SendResponse>() {
             @Override
             public void onResponse(SendMessage request, SendResponse response) {
@@ -410,17 +416,24 @@ public class MoniElasticExecution extends AbstractQuartzJob {
                 } else {
                     moniElasticLog.setExceptionLog("Telegram send message error: ".concat(response.description()));
                     SpringUtils.getBean(IMoniElasticLogService.class).updateMoniElasticLog(moniElasticLog);
-                    log.error("Log jobId：{},JobName：{},telegram发送信息失败", moniElastic.getId(), moniElastic.getChName());
+                    log.error("Log jobId：{},JobName：{},推送内容：{},telegram发送信息失败", moniElastic.getId(), moniElastic.getChName(), telegramInfoSpare);
                 }
             }
 
             @Override
             public void onFailure(SendMessage request, IOException e) {
-                log.info("{},telegram发送失败,{}", moniElastic.getChName(), ExceptionUtil.getExceptionMessage(e));
-                moniElasticLog.setStatus(Constants.ERROR);
-                moniElasticLog.setExceptionLog("Telegram send message error: ".concat(ExceptionUtil.getExceptionMessage(e)));
-                SpringUtils.getBean(IMoniElasticLogService.class).updateMoniElasticLog(moniElasticLog);
-                log.error("Log jobId：{},JobName：{},telegram发送信息异常,{}", moniElastic.getId(), moniElastic.getChName(), ExceptionUtil.getExceptionMessage(e));
+                //失败重发
+                if (e instanceof SocketTimeoutException && serversLoadTimes < maxLoadTimes) {
+                    serversLoadTimes++;
+                    messageBot.execute(sendMessage, this);
+                    log.error("Log jobId：{},JobName：{},telegram信息超时重发,第{}次", moniElastic.getId(), moniElastic.getChName(), serversLoadTimes);
+                } else {
+                    log.info("{},telegram发送失败,{}", moniElastic.getChName(), ExceptionUtil.getExceptionMessage(e));
+                    moniElasticLog.setStatus(Constants.ERROR);
+                    moniElasticLog.setExceptionLog("Telegram send message error: ".concat(ExceptionUtil.getExceptionMessage(e)));
+                    SpringUtils.getBean(IMoniElasticLogService.class).updateMoniElasticLog(moniElasticLog);
+                    log.error("Log jobId：{},JobName：{},推送内容：{},telegram发送信息异常,{}", moniElastic.getId(), moniElastic.getChName(), telegramInfoSpare, ExceptionUtil.getExceptionMessage(e));
+                }
             }
         });
     }

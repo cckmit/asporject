@@ -26,6 +26,7 @@ import com.as.webhook.enums.ResultEnum;
 import com.as.webhook.mapper.WebhookMapper;
 import com.as.webhook.service.IWebhookService;
 import com.as.webhook.utils.Result;
+import com.as.webhook.utils.ThreadUtils;
 import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.response.SendResponse;
@@ -37,6 +38,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Future;
 
 
 @Service
@@ -57,124 +59,127 @@ public class WebhookServiceImpl implements IWebhookService {
     private IMoniApiService apiService;
 
     @Override
-    public Map<String, Object> doPush(PushObject pushObject, HttpServletRequest request) {
-        Map<String, Object> result = new HashMap();
-        String reporter = pushObject.getReporter();
-        if (StringUtils.isEmpty(reporter) || !checkReporterIsExist(reporter)) {
-            result.put(TypeConstants.ERROR, Result.result(ResultEnum.USER_EMPTY));
-            return result;
-        }
-        boolean flag = true;
-        Date date = new Date();
-        pushObject.setCreateTime(date);
-        pushObject.setIp(getIpAddress(request));
-        pushObject.setReporter(reporter.toLowerCase());
-        pushObject.setMethod(DictUtils.getDictLabel(DictTypeConstants.API_JOB_METHOD, request.getMethod().toUpperCase()));
-        //先储存log，获取record id
-        webhookMapper.insertWebhookRecord(pushObject);
-        String types = pushObject.getType();
-        if (StringUtils.isNotEmpty(types)) {
-            String[] typeArr = types.split("/");
-            for (String type : typeArr) {
-                if (TypeConstants.TG.equalsIgnoreCase(type)) {
+    public Map<String, Object> doPush(PushObject pushObject, HttpServletRequest request) throws Exception {
+        Future<Map<String, Object>> future = ThreadUtils.getInstance().submit(() -> {
+            Map<String, Object> result = new HashMap();
+            String reporter = pushObject.getReporter();
+            if (StringUtils.isEmpty(reporter) || !checkReporterIsExist(reporter)) {
+                result.put(TypeConstants.ERROR, Result.result(ResultEnum.USER_EMPTY));
+                return result;
+            }
+            boolean flag = true;
+            Date date = new Date();
+            pushObject.setCreateTime(date);
+            pushObject.setIp(getIpAddress(request));
+            pushObject.setReporter(reporter.toLowerCase());
+            pushObject.setMethod(DictUtils.getDictLabel(DictTypeConstants.API_JOB_METHOD, request.getMethod().toUpperCase()));
+            //先储存log，获取record id
+            webhookMapper.insertWebhookRecord(pushObject);
+            String types = pushObject.getType();
+            if (StringUtils.isNotEmpty(types)) {
+                String[] typeArr = types.split("/");
+                for (String type : typeArr) {
+                    if (TypeConstants.TG.equalsIgnoreCase(type)) {
 
-                    if (StringUtils.isNotEmpty(pushObject.getTgId())) {
-                        String tgInfo = DictUtils.getDictRemark(DictTypeConstants.JOB_PUSH_TEMPLATE, Constants.DESCR_TEMPLATE_WEBHOOK);
-                        String[] tgIds = pushObject.getTgId().split(";");
-                        if (StringUtils.isNotEmpty(tgInfo)) {
-                            tgInfo = tgInfo.replace("{recordId}", String.valueOf(pushObject.getId()))
-                                    .replace("{type}", StringUtils.isNotEmpty(pushObject.getType()) ? pushObject.getType() : "log")
-                                    .replace("{title}", StringUtils.isNotEmpty(pushObject.getTitle()) ? ScheduleUtils.processStr(pushObject.getTitle()) : "")
-                                    .replace("{time}", DateUtils.parseDateToStr(DateUtils.YYYY_MM_DD_HH_MM_SS, date))
-                                    .replace("{reporter}", pushObject.getReporter())
-                                    .replace("{descr}", StringUtils.isNotEmpty(pushObject.getDescr()) ? ScheduleUtils.processStr(pushObject.getDescr()) : "")
-                                    .replace("{remark}", StringUtils.isNotEmpty(pushObject.getRemark()) ? ScheduleUtils.processStr(pushObject.getRemark()) : "");
-                        } else {
-                            tgInfo = "*Webhook push template is not set*";
-                        }
-                        for (String tgId : tgIds) {
-                            try {
-                                String[] tgData = ScheduleUtils.getTgData(tgId, true);
-                                String bot = tgData[0];
-                                String chatId = tgData[1];
-                                InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup(
-                                        new InlineKeyboardButton("Record Details").url(ASConfig.getAsDomain().concat(LOG_DETAIL_URL).concat(String.valueOf(pushObject.getId()))));
-                                SendResponse response = ScheduleUtils.sendMessageForWebhook(bot, chatId, tgInfo, inlineKeyboardMarkup);
-                                if (response.isOk()) {
-                                    result.put(type + "-" + tgId, Result.success());
-                                } else {
-                                    flag = false;
-                                    result.put(type + "-" + tgId, Result.result(ResultEnum.TG_ERROR, response.description()));
-                                }
-                            } catch (Exception e) {
-                                flag = false;
-                                result.put(type + "-" + tgId, Result.result(ResultEnum.TG_ERROR, ExceptionUtil.getRootErrorMessage(e)));
-                            }
-                        }
-                    } else {
-                        flag = false;
-                        result.put(type, Result.result(ResultEnum.TG_EMPTY));
-                    }
-
-                } else if (TypeConstants.MAIL.equalsIgnoreCase(type)) {
-                    try {
-                        if (StringUtils.isNotEmpty(pushObject.getMailAdd())) {
-                            Mail mail = new Mail();
-                            mail.setTo(pushObject.getMailAdd().split(";"));
-                            String title = pushObject.getTitle();
-                            if (StringUtils.isEmpty(title)) {
-                                title = "";
-                            }
-                            mail.setSubject("[webhook] " + title);
-                            String mailInfo = DictUtils.getDictRemark(DictTypeConstants.JOB_PUSH_TEMPLATE, Constants.MAIL_TEMPLATE_WEBHOOK);
-                            if (StringUtils.isNotEmpty(mailInfo)) {
-                                mailInfo = mailInfo.replace("{recordId}", String.valueOf(pushObject.getId()))
+                        if (StringUtils.isNotEmpty(pushObject.getTgId())) {
+                            String tgInfo = DictUtils.getDictRemark(DictTypeConstants.JOB_PUSH_TEMPLATE, Constants.DESCR_TEMPLATE_WEBHOOK);
+                            String[] tgIds = pushObject.getTgId().split(";");
+                            if (StringUtils.isNotEmpty(tgInfo)) {
+                                tgInfo = tgInfo.replace("{recordId}", String.valueOf(pushObject.getId()))
                                         .replace("{type}", StringUtils.isNotEmpty(pushObject.getType()) ? pushObject.getType() : "log")
-                                        .replace("{title}", StringUtils.isNotEmpty(pushObject.getTitle()) ? pushObject.getTitle() : "")
+                                        .replace("{title}", StringUtils.isNotEmpty(pushObject.getTitle()) ? ScheduleUtils.processStr(pushObject.getTitle()) : "")
                                         .replace("{time}", DateUtils.parseDateToStr(DateUtils.YYYY_MM_DD_HH_MM_SS, date))
                                         .replace("{reporter}", pushObject.getReporter())
-                                        .replace("{descr}", StringUtils.isNotEmpty(pushObject.getDescr()) ? pushObject.getDescr() : "")
-                                        .replace("{remark}", StringUtils.isNotEmpty(pushObject.getRemark()) ? pushObject.getRemark() : "");
-                                mail.setTemplate(mailInfo);
+                                        .replace("{descr}", StringUtils.isNotEmpty(pushObject.getDescr()) ? ScheduleUtils.processStr(pushObject.getDescr()) : "")
+                                        .replace("{remark}", StringUtils.isNotEmpty(pushObject.getRemark()) ? ScheduleUtils.processStr(pushObject.getRemark()) : "");
                             } else {
-                                StringBuilder body = new StringBuilder();
-                                body.append("[webhook] ").append(title);
-                                body.append("\n").append("CreateTime: ").append(DateUtils.parseDateToStr(DateUtils.YYYY_MM_DD_HH_MM_SS, date)).append(" (").append(reporter.toLowerCase()).append(")");
-                                if (StringUtils.isNotEmpty(pushObject.getDescr())) {
-                                    body.append("\n").append("Descr: ").append(pushObject.getDescr());
-                                }
-                                if (StringUtils.isNotEmpty(pushObject.getRemark())) {
-                                    body.append("\n").append("Remark: ").append(pushObject.getRemark());
-                                }
-                                mail.setContent(body.toString());
+                                tgInfo = "*Webhook push template is not set*";
                             }
-
-                            SpringUtils.getBean(IJobService.class).sendEmail(mail);
-                            result.put(type, Result.success());
+                            for (String tgId : tgIds) {
+                                try {
+                                    String[] tgData = ScheduleUtils.getTgData(tgId, true);
+                                    String bot = tgData[0];
+                                    String chatId = tgData[1];
+                                    InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup(
+                                            new InlineKeyboardButton("Record Details").url(ASConfig.getAsDomain().concat(LOG_DETAIL_URL).concat(String.valueOf(pushObject.getId()))));
+                                    SendResponse response = ScheduleUtils.sendMessageForWebhook(bot, chatId, tgInfo, inlineKeyboardMarkup);
+                                    if (response.isOk()) {
+                                        result.put(type + "-" + tgId, Result.success());
+                                    } else {
+                                        flag = false;
+                                        result.put(type + "-" + tgId, Result.result(ResultEnum.TG_ERROR, response.description()));
+                                    }
+                                } catch (Exception e) {
+                                    flag = false;
+                                    result.put(type + "-" + tgId, Result.result(ResultEnum.TG_ERROR, ExceptionUtil.getRootErrorMessage(e)));
+                                }
+                            }
                         } else {
                             flag = false;
-                            result.put(type, Result.result(ResultEnum.MAIL_EMPTY));
+                            result.put(type, Result.result(ResultEnum.TG_EMPTY));
                         }
-                    } catch (Exception e) {
-                        result.put(type, Result.result(ResultEnum.MAIL_ERROR, StringUtils.isEmpty(ExceptionUtil.getRootErrorMessage(e)) || "null".equals(ExceptionUtil.getRootErrorMessage(e)) ? e.getMessage() : ExceptionUtil.getRootErrorMessage(e)));
+
+                    } else if (TypeConstants.MAIL.equalsIgnoreCase(type)) {
+                        try {
+                            if (StringUtils.isNotEmpty(pushObject.getMailAdd())) {
+                                Mail mail = new Mail();
+                                mail.setTo(pushObject.getMailAdd().split(";"));
+                                String title = pushObject.getTitle();
+                                if (StringUtils.isEmpty(title)) {
+                                    title = "";
+                                }
+                                mail.setSubject("[webhook] " + title);
+                                String mailInfo = DictUtils.getDictRemark(DictTypeConstants.JOB_PUSH_TEMPLATE, Constants.MAIL_TEMPLATE_WEBHOOK);
+                                if (StringUtils.isNotEmpty(mailInfo)) {
+                                    mailInfo = mailInfo.replace("{recordId}", String.valueOf(pushObject.getId()))
+                                            .replace("{type}", StringUtils.isNotEmpty(pushObject.getType()) ? pushObject.getType() : "log")
+                                            .replace("{title}", StringUtils.isNotEmpty(pushObject.getTitle()) ? pushObject.getTitle() : "")
+                                            .replace("{time}", DateUtils.parseDateToStr(DateUtils.YYYY_MM_DD_HH_MM_SS, date))
+                                            .replace("{reporter}", pushObject.getReporter())
+                                            .replace("{descr}", StringUtils.isNotEmpty(pushObject.getDescr()) ? pushObject.getDescr() : "")
+                                            .replace("{remark}", StringUtils.isNotEmpty(pushObject.getRemark()) ? pushObject.getRemark() : "");
+                                    mail.setTemplate(mailInfo);
+                                } else {
+                                    StringBuilder body = new StringBuilder();
+                                    body.append("[webhook] ").append(title);
+                                    body.append("\n").append("CreateTime: ").append(DateUtils.parseDateToStr(DateUtils.YYYY_MM_DD_HH_MM_SS, date)).append(" (").append(reporter.toLowerCase()).append(")");
+                                    if (StringUtils.isNotEmpty(pushObject.getDescr())) {
+                                        body.append("\n").append("Descr: ").append(pushObject.getDescr());
+                                    }
+                                    if (StringUtils.isNotEmpty(pushObject.getRemark())) {
+                                        body.append("\n").append("Remark: ").append(pushObject.getRemark());
+                                    }
+                                    mail.setContent(body.toString());
+                                }
+
+                                SpringUtils.getBean(IJobService.class).sendEmail(mail);
+                                result.put(type, Result.success());
+                            } else {
+                                flag = false;
+                                result.put(type, Result.result(ResultEnum.MAIL_EMPTY));
+                            }
+                        } catch (Exception e) {
+                            result.put(type, Result.result(ResultEnum.MAIL_ERROR, StringUtils.isEmpty(ExceptionUtil.getRootErrorMessage(e)) || "null".equals(ExceptionUtil.getRootErrorMessage(e)) ? e.getMessage() : ExceptionUtil.getRootErrorMessage(e)));
+                        }
                     }
                 }
             }
-        }
-        try {
-            if (flag) {
-                pushObject.setStatus(Constants.SUCCESS);
-            } else {
-                pushObject.setStatus(Constants.FAIL);
+            try {
+                if (flag) {
+                    pushObject.setStatus(Constants.SUCCESS);
+                } else {
+                    pushObject.setStatus(Constants.FAIL);
+                }
+                result.put("log", Result.success());
+                result.put("recordId", pushObject.getId());
+                pushObject.setMessage(JSONObject.toJSONString(result));
+                webhookMapper.updateWebhookRecord(pushObject);
+            } catch (Exception e) {
+                result.put("log", Result.result(ResultEnum.LOG_ERROR, ExceptionUtil.getRootErrorMessage(e)));
             }
-            result.put("log", Result.success());
-            result.put("recordId", pushObject.getId());
-            pushObject.setMessage(JSONObject.toJSONString(result));
-            webhookMapper.updateWebhookRecord(pushObject);
-        } catch (Exception e) {
-            result.put("log", Result.result(ResultEnum.LOG_ERROR, ExceptionUtil.getRootErrorMessage(e)));
-        }
-        return result;
+            return result;
+        });
+        return future.get();
     }
 
     private String getIpAddress(HttpServletRequest request) {
