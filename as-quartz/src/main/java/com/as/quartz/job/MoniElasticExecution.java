@@ -2,6 +2,7 @@ package com.as.quartz.job;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.as.common.config.ASConfig;
 import com.as.common.constant.Constants;
 import com.as.common.constant.DictTypeConstants;
 import com.as.common.constant.ScheduleConstants;
@@ -356,6 +357,7 @@ public class MoniElasticExecution extends AbstractQuartzJob {
         String bot = tgData[0];
         String chatId = tgData[1];
         telegramInfo = moniElastic.getTelegramInfo();
+        String telegramInfoRemoveMarkdown = telegramInfo;
         String telegramInfoSpare;
         if (StringUtils.isNotEmpty(telegramInfo)) {
             String descr = moniElastic.getDescr();
@@ -368,6 +370,22 @@ public class MoniElasticExecution extends AbstractQuartzJob {
             } else {
                 descr = "descr is empty";
             }
+            telegramInfoRemoveMarkdown = ScheduleUtils.removeMarkdown(telegramInfoRemoveMarkdown.replace("{descr_template_elastic}", DictUtils.getDictRemark(DictTypeConstants.JOB_PUSH_TEMPLATE, Constants.DESCR_TEMPLATE_ELASTIC)))
+                    .replace("{id}", String.valueOf(moniElastic.getId()))
+                    .replace("{asid}", moniElastic.getAsid())
+                    .replace("{priority}", "1".equals(moniElastic.getPriority()) ? "NU" : "URG")
+                    .replace("{zhname}", moniElastic.getChName())
+                    .replace("{enname}", moniElastic.getEnName())
+                    .replace("{platform}", DictUtils.getDictLabel(DictTypeConstants.UB8_PLATFORM_TYPE, moniElastic.getPlatform()))
+                    .replace("{expect}", moniElasticLog.getExpectedResult())
+                    .replace("{result}", moniElasticLog.getExecuteResult().replace(";", ""))
+                    .replace("{operator}", operator)
+                    .replace("{env}", StringUtils.isNotEmpty(SpringUtils.getActiveProfile()) ? Objects.requireNonNull(SpringUtils.getActiveProfile()) : "")
+                    .replace("{descr}", "View descr in log details")
+                    .replace("{export}", "View export in log details")
+                    .concat("\nLong text cannot be sent,please view log details:").concat(ASConfig.getAsDomain()).concat(LOG_DETAIL_URL).concat(String.valueOf(moniElasticLog.getId()));
+
+
             telegramInfo = telegramInfo.replace("{descr_template_elastic}", DictUtils.getDictRemark(DictTypeConstants.JOB_PUSH_TEMPLATE, Constants.DESCR_TEMPLATE_ELASTIC))
                     .replace("{id}", String.valueOf(moniElastic.getId()))
                     .replace("{asid}", ScheduleUtils.processStr(moniElastic.getAsid()))
@@ -381,8 +399,8 @@ public class MoniElasticExecution extends AbstractQuartzJob {
                     .replace("{env}", StringUtils.isNotEmpty(SpringUtils.getActiveProfile()) ? Objects.requireNonNull(SpringUtils.getActiveProfile()) : "");
 
             //备用推送消息，去除descr,export,一般descr,export太长会造成推送超时，缩短推送文本长度，遇到time out时推送此文本
-            telegramInfoSpare = telegramInfo.replace("{descr}", "View descr in log details")
-                    .replace("{export}", "View export in log details");
+            telegramInfoSpare = telegramInfo.replace("{descr}", "Long text cannot be sent,please view descr in log details")
+                    .replace("{export}", "Long text cannot be sent,please view export in log details");
             //默认推送模板
             telegramInfo = telegramInfo.replace("{descr}", ScheduleUtils.processStr(descr))
                     .replace("{export}", StringUtils.isEmpty(exportInfo) ? "Export field is not set" : ScheduleUtils.processStr(exportInfo.toString()));
@@ -392,8 +410,8 @@ public class MoniElasticExecution extends AbstractQuartzJob {
         }
 
         TelegramBot messageBot = new TelegramBot.Builder(bot).okHttpClient(OkHttpUtils.getInstance()).build();
-        SendMessage sendMessage = new SendMessage(chatId, telegramInfoSpare).parseMode(ScheduleUtils.parseMode);
-        sendMessage.replyMarkup(ScheduleUtils.getInlineKeyboardMarkup(JOB_DETAIL_URL, LOG_DETAIL_URL, String.valueOf(moniElastic.getId()), String.valueOf(moniElasticLog.getId())));
+        SendMessage sendMessage = new SendMessage(chatId, telegramInfoRemoveMarkdown);
+//        sendMessage.replyMarkup(ScheduleUtils.getInlineKeyboardMarkup(JOB_DETAIL_URL, LOG_DETAIL_URL, String.valueOf(moniElastic.getId()), String.valueOf(moniElasticLog.getId())));
 
         serversLoadTimes = 0;
         messageBot.execute(sendMessage, new Callback<SendMessage, SendResponse>() {
@@ -403,12 +421,23 @@ public class MoniElasticExecution extends AbstractQuartzJob {
                     //记录消息id
                     Integer messageId = response.message().messageId();
                     try {
-                        //继续发送模板消息
-                        response = ScheduleUtils.sendMessage(bot, chatId, telegramInfo,
+                        //继续发送缩减版的模板消息
+                        response = ScheduleUtils.sendMessage(bot, chatId, telegramInfoSpare,
                                 ScheduleUtils.getInlineKeyboardMarkup(JOB_DETAIL_URL, LOG_DETAIL_URL, String.valueOf(moniElastic.getId()), String.valueOf(moniElasticLog.getId())));
                         if (response.isOk()) {
-                            //模板消息推送成功则删除之前发送的备用消息
+                            //模板消息推送成功则删除上一个消息
                             ScheduleUtils.deleteMessage(messageBot, chatId, messageId);
+                            //重新记录消息ID
+                            messageId = response.message().messageId();
+
+                            //继续发送模板消息
+                            response = ScheduleUtils.sendMessage(bot, chatId, telegramInfo,
+                                    ScheduleUtils.getInlineKeyboardMarkup(JOB_DETAIL_URL, LOG_DETAIL_URL, String.valueOf(moniElastic.getId()), String.valueOf(moniElasticLog.getId())));
+
+                            if (response.isOk()){
+                                //模板消息发送成功则删除上一个消息
+                                ScheduleUtils.deleteMessage(messageBot, chatId, messageId);
+                            }
                         }
                     } catch (Exception e) {
                         log.error("Log jobId：{},JobName：{},telegram推送信息异常,{}", moniElastic.getId(), moniElastic.getChName(), ExceptionUtil.getExceptionMessage(e));

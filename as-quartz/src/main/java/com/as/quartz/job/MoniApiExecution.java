@@ -1,5 +1,6 @@
 package com.as.quartz.job;
 
+import com.as.common.config.ASConfig;
 import com.as.common.constant.Constants;
 import com.as.common.constant.DictTypeConstants;
 import com.as.common.utils.DateUtils;
@@ -236,6 +237,7 @@ public class MoniApiExecution extends AbstractQuartzJob {
         String bot = tgData[0];
         String chatId = tgData[1];
         telegramInfo = moniApi.getTelegramInfo();
+        String telegramInfoRemoveMarkdown = telegramInfo;
         String telegramInfoSpare;
         if (StringUtils.isNotEmpty(telegramInfo)) {
             String descr = moniApi.getDescr();
@@ -251,6 +253,23 @@ public class MoniApiExecution extends AbstractQuartzJob {
             if (responseBody.length() > 500) {
                 responseBody = responseBody.substring(0, 500) + "... See more in log details";
             }
+
+            telegramInfoRemoveMarkdown = ScheduleUtils.removeMarkdown(telegramInfoRemoveMarkdown.replace("{descr_template_api}", DictUtils.getDictRemark(DictTypeConstants.JOB_PUSH_TEMPLATE, Constants.DESCR_TEMPLATE_API)))
+                    .replace("{id}", String.valueOf(moniApi.getId()))
+                    .replace("{asid}", moniApi.getAsid())
+                    .replace("{priority}", "1".equals(moniApi.getPriority()) ? "NU" : "URG")
+                    .replace("{zhname}", moniApi.getChName())
+                    .replace("{enname}", moniApi.getEnName())
+                    .replace("{platform}", DictUtils.getDictLabel(DictTypeConstants.UB8_PLATFORM_TYPE, moniApi.getPlatform()))
+                    .replace("{url}", moniApi.getUrl())
+                    .replace("{expect}", moniApi.getExpectedCode())
+                    .replace("{result}", result)
+                    .replace("{operator}", operator)
+                    .replace("{env}", StringUtils.isNotEmpty(SpringUtils.getActiveProfile()) ? Objects.requireNonNull(SpringUtils.getActiveProfile()) : "")
+                    .replace("{descr}", "View descr in log details")
+                    .replace("{response}", "View response in log details")
+                    .concat("\nLong text cannot be sent,please view log details:").concat(ASConfig.getAsDomain()).concat(LOG_DETAIL_URL).concat(String.valueOf(moniApiLog.getId()));
+
             telegramInfo = telegramInfo.replace("{descr_template_api}", DictUtils.getDictRemark(DictTypeConstants.JOB_PUSH_TEMPLATE, Constants.DESCR_TEMPLATE_API))
                     .replace("{id}", String.valueOf(moniApi.getId()))
                     .replace("{asid}", ScheduleUtils.processStr(moniApi.getAsid()))
@@ -265,8 +284,8 @@ public class MoniApiExecution extends AbstractQuartzJob {
                     .replace("{env}", StringUtils.isNotEmpty(SpringUtils.getActiveProfile()) ? Objects.requireNonNull(SpringUtils.getActiveProfile()) : "");
 
             //备用推送消息，去除descr,response,一般descr,response太长会造成推送超时，缩短推送文本长度，遇到time out时推送此文本
-            telegramInfoSpare = telegramInfo.replace("{descr}", "View descr in log details")
-                    .replace("{response}", "View response in log details");
+            telegramInfoSpare = telegramInfo.replace("{descr}", "Long text cannot be sent,please view descr in log details")
+                    .replace("{response}", "Long text cannot be sent,please view response in log details");
             //默认推送模板
             telegramInfo = telegramInfo.replace("{descr}", ScheduleUtils.processStr(descr))
                     .replace("{response}", ScheduleUtils.processStr(responseBody));
@@ -276,8 +295,8 @@ public class MoniApiExecution extends AbstractQuartzJob {
         }
 
         TelegramBot messageBot = new TelegramBot.Builder(bot).okHttpClient(OkHttpUtils.getInstance()).build();
-        SendMessage sendMessage = new SendMessage(chatId, telegramInfoSpare).parseMode(ScheduleUtils.parseMode);
-        sendMessage.replyMarkup(ScheduleUtils.getInlineKeyboardMarkup(JOB_DETAIL_URL, LOG_DETAIL_URL, String.valueOf(moniApi.getId()), String.valueOf(moniApiLog.getId())));
+        SendMessage sendMessage = new SendMessage(chatId, telegramInfoRemoveMarkdown);
+//        sendMessage.replyMarkup(ScheduleUtils.getInlineKeyboardMarkup(JOB_DETAIL_URL, LOG_DETAIL_URL, String.valueOf(moniApi.getId()), String.valueOf(moniApiLog.getId())));
         serversLoadTimes = 0;
         messageBot.execute(sendMessage, new Callback<SendMessage, SendResponse>() {
             @Override
@@ -286,12 +305,24 @@ public class MoniApiExecution extends AbstractQuartzJob {
                     //记录消息id
                     Integer messageId = response.message().messageId();
                     try {
-                        //继续发送模板消息
-                        response = ScheduleUtils.sendMessage(bot, chatId, telegramInfo,
+                        //继续发送缩减版的模板消息
+                        response = ScheduleUtils.sendMessage(bot, chatId, telegramInfoSpare,
                                 ScheduleUtils.getInlineKeyboardMarkup(JOB_DETAIL_URL, LOG_DETAIL_URL, String.valueOf(moniApi.getId()), String.valueOf(moniApiLog.getId())));
                         if (response.isOk()) {
-                            //模板消息推送成功则删除之前发送的备用消息
+                            //模板消息推送成功则删除上一个消息
                             ScheduleUtils.deleteMessage(messageBot, chatId, messageId);
+
+                            //重新记录消息ID
+                            messageId = response.message().messageId();
+
+                            //继续发送模板消息
+                            response = ScheduleUtils.sendMessage(bot, chatId, telegramInfo,
+                                    ScheduleUtils.getInlineKeyboardMarkup(JOB_DETAIL_URL, LOG_DETAIL_URL, String.valueOf(moniApi.getId()), String.valueOf(moniApiLog.getId())));
+
+                            if (response.isOk()) {
+                                //模板消息发送成功则删除上一个消息
+                                ScheduleUtils.deleteMessage(messageBot, chatId, messageId);
+                            }
                         }
                     } catch (Exception e) {
                         log.error("API jobId：{},JobName：{},telegram推送信息异常,{}", moniApi.getId(), moniApi.getChName(), ExceptionUtil.getExceptionMessage(e));

@@ -235,4 +235,13 @@ public class ScheduleUtils {
                 .replace(".", "\\.")
                 .replace("!", "\\!");
     }
+
+    public static String removeMarkdown(String str) {
+        return str.replace("\\", "")
+                .replace("*", "")
+                .replace("_", "")
+                .replace("__", "")
+                .replace("`", "")
+                .replace("~", "");
+    }
 }
