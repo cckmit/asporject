@@ -414,8 +414,10 @@ public class MoniElasticExecution extends AbstractQuartzJob {
                         log.error("Log jobId：{},JobName：{},telegram推送信息异常,{}", moniElastic.getId(), moniElastic.getChName(), ExceptionUtil.getExceptionMessage(e));
                     }
                 } else {
-                    moniElasticLog.setExceptionLog("Telegram send message error: ".concat(response.description()));
-                    SpringUtils.getBean(IMoniElasticLogService.class).updateMoniElasticLog(moniElasticLog);
+                    MoniElasticLog jobLog = new MoniElasticLog();
+                    jobLog.setId(moniElasticLog.getId());
+                    jobLog.setExceptionLog("Telegram send message error: ".concat(response.description()));
+                    SpringUtils.getBean(IMoniElasticLogService.class).updateMoniElasticLog(jobLog);
                     log.error("Log jobId：{},JobName：{},推送内容：{},telegram发送信息失败", moniElastic.getId(), moniElastic.getChName(), telegramInfoSpare);
                 }
             }
@@ -429,9 +431,11 @@ public class MoniElasticExecution extends AbstractQuartzJob {
                     log.error("Log jobId：{},JobName：{},telegram信息超时重发,第{}次", moniElastic.getId(), moniElastic.getChName(), serversLoadTimes);
                 } else {
                     log.info("{},telegram发送失败,{}", moniElastic.getChName(), ExceptionUtil.getExceptionMessage(e));
-                    moniElasticLog.setStatus(Constants.ERROR);
-                    moniElasticLog.setExceptionLog("Telegram send message error: ".concat(ExceptionUtil.getExceptionMessage(e)));
-                    SpringUtils.getBean(IMoniElasticLogService.class).updateMoniElasticLog(moniElasticLog);
+                    MoniElasticLog jobLog = new MoniElasticLog();
+                    jobLog.setId(moniElasticLog.getId());
+                    jobLog.setStatus(Constants.ERROR);
+                    jobLog.setExceptionLog("Telegram send message error: ".concat(ExceptionUtil.getExceptionMessage(e)));
+                    SpringUtils.getBean(IMoniElasticLogService.class).updateMoniElasticLog(jobLog);
                     log.error("Log jobId：{},JobName：{},推送内容：{},telegram发送信息异常,{}", moniElastic.getId(), moniElastic.getChName(), telegramInfoSpare, ExceptionUtil.getExceptionMessage(e));
                 }
             }

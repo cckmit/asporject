@@ -297,8 +297,10 @@ public class MoniApiExecution extends AbstractQuartzJob {
                         log.error("API jobId：{},JobName：{},telegram推送信息异常,{}", moniApi.getId(), moniApi.getChName(), ExceptionUtil.getExceptionMessage(e));
                     }
                 } else {
-                    moniApiLog.setExceptionLog("Telegram send message error: ".concat(response.description()));
-                    SpringUtils.getBean(IMoniApiLogService.class).updateMoniApiLog(moniApiLog);
+                    MoniApiLog jobLog = new MoniApiLog();
+                    jobLog.setId(moniApiLog.getId());
+                    jobLog.setExceptionLog("Telegram send message error: ".concat(response.description()));
+                    SpringUtils.getBean(IMoniApiLogService.class).updateMoniApiLog(jobLog);
                     log.error("API jobId：{},JobName：{},推送内容：{},telegram发送信息失败", moniApi.getId(), moniApi.getChName(), telegramInfoSpare);
                 }
             }
@@ -311,9 +313,11 @@ public class MoniApiExecution extends AbstractQuartzJob {
                     messageBot.execute(sendMessage, this);
                     log.error("API jobId：{},JobName：{},telegram信息超时重发,第{}次", moniApi.getId(), moniApi.getChName(), serversLoadTimes);
                 } else {
-                    moniApiLog.setStatus(Constants.ERROR);
-                    moniApiLog.setExceptionLog("Telegram send message error: ".concat(ExceptionUtil.getExceptionMessage(e)));
-                    SpringUtils.getBean(IMoniApiLogService.class).updateMoniApiLog(moniApiLog);
+                    MoniApiLog jobLog = new MoniApiLog();
+                    jobLog.setId(moniApiLog.getId());
+                    jobLog.setStatus(Constants.ERROR);
+                    jobLog.setExceptionLog("Telegram send message error: ".concat(ExceptionUtil.getExceptionMessage(e)));
+                    SpringUtils.getBean(IMoniApiLogService.class).updateMoniApiLog(jobLog);
                     log.error("API jobId：{},JobName：{},推送内容：{},telegram发送信息异常,{}", moniApi.getId(), moniApi.getChName(), telegramInfoSpare, ExceptionUtil.getExceptionMessage(e));
                 }
             }
