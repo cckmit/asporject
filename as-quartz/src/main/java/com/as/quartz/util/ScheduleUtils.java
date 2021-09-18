@@ -158,19 +158,12 @@ public class ScheduleUtils {
             return response;
         } catch (Exception e) {
             //发送失败拆分字符后重新发送一次
-            TelegramBot resendBot = new TelegramBot.Builder(bot).okHttpClient(OkHttpUtils.getInstance()).build();
             int length = 500;
             if (telegramInfo.length() > length) {
                 List<String> telegramInfoList = SubStrUtil.getStrList(telegramInfo, length);
-                int count = 0;
                 for (String info : telegramInfoList) {
-                    count++;
-                    SendMessage resendMessage = new SendMessage(chatId, processStr(info)).parseMode(parseMode);
-                    if (count == telegramInfoList.size()) {
-                        if (StringUtils.isNotNull(inlineKeyboard)) {
-                            resendMessage.replyMarkup(inlineKeyboard);
-                        }
-                    }
+                    TelegramBot resendBot = new TelegramBot.Builder(bot).okHttpClient(OkHttpUtils.getInstance()).build();
+                    SendMessage resendMessage = new SendMessage(chatId, removeMarkdown(info));
                     response = resendBot.execute(resendMessage);
                 }
                 return response;
