@@ -8,6 +8,7 @@ import com.as.common.core.domain.AjaxResult;
 import com.as.common.core.page.TableDataInfo;
 import com.as.common.enums.BusinessType;
 import com.as.common.utils.DictUtils;
+import com.as.common.utils.ExceptionUtil;
 import com.as.common.utils.ShiroUtils;
 import com.as.common.utils.StringUtils;
 import com.as.common.utils.poi.ExcelUtil;
@@ -26,7 +27,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-import java.util.Objects;
 
 /**
  * 自动API检测任务Controller
@@ -191,17 +191,27 @@ public class MoniApiController extends BaseController {
      */
     @PostMapping("/test")
     @ResponseBody
-    public AjaxResult test(MoniApi job) throws Exception {
-        Response response = moniApiService.doUrlCheck(job);
-        int statusCode = response.code();
-        String expectedCode = job.getExpectedCode();
-        String[] expectedCodes = expectedCode.split(",");
-        for (String code : expectedCodes) {
-            if (statusCode == Integer.parseInt(code)) {
-                return success();
+    public AjaxResult test(MoniApi job) {
+        StringBuilder result = new StringBuilder();
+        try {
+            Response response = moniApiService.doUrlCheck(job);
+            int statusCode = response.code();
+            result.append(statusCode);
+            okhttp3.ResponseBody body = response.body();
+            if (StringUtils.isNotNull(body) && StringUtils.isNotEmpty(body.string())) {
+                result.append(",").append(body.string());
             }
+            String expectedCode = job.getExpectedCode();
+            String[] expectedCodes = expectedCode.split(",");
+            for (String code : expectedCodes) {
+                if (statusCode == Integer.parseInt(code)) {
+                    return success();
+                }
+            }
+        } catch (Exception e) {
+            result.append(ExceptionUtil.getRootErrorMessage(e));
         }
-        return error(statusCode + ", " + Objects.requireNonNull(response.body()).string());
+        return error(result.toString());
     }
 
     /**
