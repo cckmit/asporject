@@ -197,9 +197,12 @@ public class MoniApiController extends BaseController {
             Response response = moniApiService.doUrlCheck(job);
             int statusCode = response.code();
             result.append(statusCode);
-            okhttp3.ResponseBody body = response.body();
-            if (StringUtils.isNotNull(body) && StringUtils.isNotEmpty(body.string())) {
-                result.append(",").append(body.string());
+            okhttp3.ResponseBody responseBody = response.body();
+            if (StringUtils.isNotNull(responseBody)) {
+                String body = responseBody.string();
+                if (StringUtils.isNotEmpty(body)) {
+                    result.append(",").append(body);
+                }
             }
             String expectedCode = job.getExpectedCode();
             String[] expectedCodes = expectedCode.split(",");

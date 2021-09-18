@@ -38,7 +38,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Future;
 
 
 @Service
@@ -60,21 +59,23 @@ public class WebhookServiceImpl implements IWebhookService {
 
     @Override
     public Map<String, Object> doPush(PushObject pushObject, HttpServletRequest request) throws Exception {
-        Future<Map<String, Object>> future = ThreadUtils.getInstance().submit(() -> {
-            Map<String, Object> result = new HashMap();
-            String reporter = pushObject.getReporter();
-            if (StringUtils.isEmpty(reporter) || !checkReporterIsExist(reporter)) {
-                result.put(TypeConstants.ERROR, Result.result(ResultEnum.USER_EMPTY));
-                return result;
-            }
+        Map<String, Object> result = new HashMap();
+        String reporter = pushObject.getReporter();
+        if (StringUtils.isEmpty(reporter) || !checkReporterIsExist(reporter)) {
+            result.put(TypeConstants.ERROR, Result.result(ResultEnum.USER_EMPTY));
+            return result;
+        }
+        Date date = new Date();
+        pushObject.setCreateTime(date);
+        pushObject.setIp(getIpAddress(request));
+        pushObject.setReporter(reporter.toLowerCase());
+        pushObject.setMethod(DictUtils.getDictLabel(DictTypeConstants.API_JOB_METHOD, request.getMethod().toUpperCase()));
+        //先储存log，获取record id
+        webhookMapper.insertWebhookRecord(pushObject);
+        result.put("recordId", pushObject.getId());
+        //避免卡很久返回504，这里开启线程执行
+        ThreadUtils.getInstance().submit(() -> {
             boolean flag = true;
-            Date date = new Date();
-            pushObject.setCreateTime(date);
-            pushObject.setIp(getIpAddress(request));
-            pushObject.setReporter(reporter.toLowerCase());
-            pushObject.setMethod(DictUtils.getDictLabel(DictTypeConstants.API_JOB_METHOD, request.getMethod().toUpperCase()));
-            //先储存log，获取record id
-            webhookMapper.insertWebhookRecord(pushObject);
             String types = pushObject.getType();
             if (StringUtils.isNotEmpty(types)) {
                 String[] typeArr = types.split("/");
@@ -171,15 +172,13 @@ public class WebhookServiceImpl implements IWebhookService {
                     pushObject.setStatus(Constants.FAIL);
                 }
                 result.put("log", Result.success());
-                result.put("recordId", pushObject.getId());
                 pushObject.setMessage(JSONObject.toJSONString(result));
                 webhookMapper.updateWebhookRecord(pushObject);
             } catch (Exception e) {
                 result.put("log", Result.result(ResultEnum.LOG_ERROR, ExceptionUtil.getRootErrorMessage(e)));
             }
-            return result;
         });
-        return future.get();
+        return result;
     }
 
     private String getIpAddress(HttpServletRequest request) {
