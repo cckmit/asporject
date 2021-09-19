@@ -71,7 +71,7 @@ public class MoniElasticExecution extends AbstractQuartzJob {
 
     private int serversLoadTimes;
 
-    private static final int maxLoadTimes = 3; // 最大重连次数
+    private static final int maxLoadTimes = 5; // 最大重连次数
 
     /**
      * 执行方法
