@@ -87,7 +87,7 @@ public class MoniJobExecution extends AbstractQuartzJob {
 
     private int serversLoadTimes;
 
-    private static final int maxLoadTimes = 1; // 最大重连次数
+    private static final int maxLoadTimes = 3; // 最大重连次数
 
     /**
      * 执行方法
