@@ -68,7 +68,7 @@ public class MoniApiExecution extends AbstractQuartzJob {
 
     private int serversLoadTimes;
 
-    private static final int maxLoadTimes = 3; // 最大重连次数
+    private static final int maxLoadTimes = 1; // 最大重连次数
 
     /**
      * 执行方法
@@ -237,7 +237,7 @@ public class MoniApiExecution extends AbstractQuartzJob {
         String bot = tgData[0];
         String chatId = tgData[1];
         telegramInfo = moniApi.getTelegramInfo();
-        String telegramInfoRemoveMarkdown = telegramInfo;
+        String telegramInfoRemoveMarkdown;
         String telegramInfoSpare;
         if (StringUtils.isNotEmpty(telegramInfo)) {
             String descr = moniApi.getDescr();
@@ -254,7 +254,7 @@ public class MoniApiExecution extends AbstractQuartzJob {
                 responseBody = responseBody.substring(0, 500) + "... See more in log details";
             }
 
-            telegramInfoRemoveMarkdown = ScheduleUtils.removeMarkdown(telegramInfoRemoveMarkdown.replace("{descr_template_api}", DictUtils.getDictRemark(DictTypeConstants.JOB_PUSH_TEMPLATE, Constants.DESCR_TEMPLATE_API)))
+            telegramInfoRemoveMarkdown = ScheduleUtils.removeMarkdown(telegramInfo.replace("{descr_template_api}", DictUtils.getDictRemark(DictTypeConstants.JOB_PUSH_TEMPLATE, Constants.DESCR_TEMPLATE_API)))
                     .replace("{id}", String.valueOf(moniApi.getId()))
                     .replace("{asid}", moniApi.getAsid())
                     .replace("{priority}", "1".equals(moniApi.getPriority()) ? "NU" : "URG")
@@ -292,6 +292,7 @@ public class MoniApiExecution extends AbstractQuartzJob {
         } else {
             telegramInfo = "*API Monitor ID\\(" + moniApi.getId() + "\\),Notification content is not set*";
             telegramInfoSpare = "*API Monitor ID\\(" + moniApi.getId() + "\\),Notification content is not set*";
+            telegramInfoRemoveMarkdown = "API Monitor ID(" + moniApi.getId() + "),Notification content is not set";
         }
 
         TelegramBot messageBot = new TelegramBot.Builder(bot).okHttpClient(OkHttpUtils.getInstance()).build();
@@ -332,7 +333,7 @@ public class MoniApiExecution extends AbstractQuartzJob {
                     jobLog.setId(moniApiLog.getId());
                     jobLog.setExceptionLog("Telegram send message error: ".concat(response.description()));
                     SpringUtils.getBean(IMoniApiLogService.class).updateMoniApiLog(jobLog);
-                    log.error("API jobId：{},JobName：{},推送内容：{},telegram发送信息失败", moniApi.getId(), moniApi.getChName(), telegramInfoSpare);
+                    log.error("API jobId：{},JobName：{},推送内容：{},telegram发送信息失败", moniApi.getId(), moniApi.getChName(), telegramInfoRemoveMarkdown);
                 }
             }
 
@@ -341,7 +342,8 @@ public class MoniApiExecution extends AbstractQuartzJob {
                 //失败重发
                 if (e instanceof SocketTimeoutException && serversLoadTimes < maxLoadTimes) {
                     serversLoadTimes++;
-                    messageBot.execute(sendMessage, this);
+                    TelegramBot resendBot = new TelegramBot.Builder(bot).okHttpClient(OkHttpUtils.getInstance()).build();
+                    resendBot.execute(sendMessage, this);
                     log.error("API jobId：{},JobName：{},telegram信息超时重发,第{}次", moniApi.getId(), moniApi.getChName(), serversLoadTimes);
                 } else {
                     MoniApiLog jobLog = new MoniApiLog();
@@ -349,7 +351,7 @@ public class MoniApiExecution extends AbstractQuartzJob {
                     jobLog.setStatus(Constants.ERROR);
                     jobLog.setExceptionLog("Telegram send message error: ".concat(ExceptionUtil.getExceptionMessage(e)));
                     SpringUtils.getBean(IMoniApiLogService.class).updateMoniApiLog(jobLog);
-                    log.error("API jobId：{},JobName：{},推送内容：{},telegram发送信息异常,{}", moniApi.getId(), moniApi.getChName(), telegramInfoSpare, ExceptionUtil.getExceptionMessage(e));
+                    log.error("API jobId：{},JobName：{},推送内容：{},telegram发送信息异常,{}", moniApi.getId(), moniApi.getChName(), telegramInfoRemoveMarkdown, ExceptionUtil.getExceptionMessage(e));
                 }
             }
         });

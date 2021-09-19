@@ -297,7 +297,11 @@ public class MoniApiServiceImpl implements IMoniApiService {
                     String[] bodyArray = bodies.split("\r\n");
                     for (String param : bodyArray) {
                         String[] value = param.split(":");
-                        getParam.append(value[0]).append("=").append(value[1]).append("&");
+                        getParam.append(value[0]).append("=");
+                        if (value.length > 1) {
+                            getParam.append(value[1]);
+                        }
+                        getParam.append("&");
                     }
                 }
                 if (StringUtils.isNotEmpty(getParam)) {
@@ -324,7 +328,11 @@ public class MoniApiServiceImpl implements IMoniApiService {
                     String[] bodyArray = bodies.split("\r\n");
                     for (String param : bodyArray) {
                         String[] value = param.split(":");
-                        form.add(value[0], value[1]);
+                        if (value.length > 1) {
+                            form.add(value[0], value[1]);
+                        } else {
+                            form.add(value[0], "");
+                        }
                     }
                 }
             } catch (Exception e) {
