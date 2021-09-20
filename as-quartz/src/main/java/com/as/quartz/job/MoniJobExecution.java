@@ -1,6 +1,5 @@
 package com.as.quartz.job;
 
-import com.as.common.config.ASConfig;
 import com.as.common.constant.Constants;
 import com.as.common.constant.DictTypeConstants;
 import com.as.common.constant.ScheduleConstants;
@@ -71,9 +70,7 @@ public class MoniJobExecution extends AbstractQuartzJob {
 
     private String telegramInfo;
 
-    private String telegramInfoSpare;
-
-    private String telegramInfoRemoveMarkdown;
+    private String telegramInfoFirst;
 
     private Boolean isWebhook;
 
@@ -87,7 +84,7 @@ public class MoniJobExecution extends AbstractQuartzJob {
 
     private int serversLoadTimes;
 
-    private static final int maxLoadTimes = 5; // 最大重连次数
+    private static final int maxLoadTimes = 3; // 最大重连次数
 
     /**
      * 执行方法
@@ -433,7 +430,7 @@ public class MoniJobExecution extends AbstractQuartzJob {
         bot = tgData[0];
         chatId = tgData[1];
         telegramInfo = moniJob.getTelegramInfo();
-        telegramInfoRemoveMarkdown = telegramInfo;
+        StringBuilder telegramInfoFirstBuilder = new StringBuilder();
         if (StringUtils.isNotEmpty(telegramInfo)) {
             String descr = moniJob.getDescr();
             if (StringUtils.isNotEmpty(descr)) {
@@ -446,18 +443,21 @@ public class MoniJobExecution extends AbstractQuartzJob {
                 descr = "descr is empty";
             }
 
-            telegramInfoRemoveMarkdown = ScheduleUtils.removeMarkdown(telegramInfoRemoveMarkdown.replace("{descr_template_job}", DictUtils.getDictRemark(DictTypeConstants.JOB_PUSH_TEMPLATE, Constants.DESCR_TEMPLATE_JOB)))
+            telegramInfoFirstBuilder.append("*__Operator:__* `{operator}` \\[`{platform}`/`{env}`\\]\n")
+                    .append("*__MonitorID:__* `{id}` / `{asid}` \\(`{priority}`\\)\n")
+                    .append("*__JobName:__* `{en_name}`/`{zh_name}`\n")
+                    .append("*_\\.\\.\\. See more in log details_*");
+
+            //备用推送消息，去除descr,一般descr太长会造成推送超时，缩短推送文本长度，遇到time out时推送此文本
+            telegramInfoFirst = telegramInfoFirstBuilder.toString()
                     .replace("{id}", String.valueOf(moniJob.getId()))
-                    .replace("{asid}", moniJob.getAsid())
+                    .replace("{asid}", ScheduleUtils.processStr(moniJob.getAsid()))
                     .replace("{priority}", "1".equals(moniJob.getPriority()) ? "NU" : "URG")
-                    .replace("{zhname}", moniJob.getChName())
-                    .replace("{enname}", moniJob.getEnName())
-                    .replace("{platform}", DictUtils.getDictLabel(DictTypeConstants.UB8_PLATFORM_TYPE, moniJob.getPlatform()))
-                    .replace("{expect}", moniJobLog.getExpectedResult())
+                    .replace("{zh_name}", ScheduleUtils.processStr(moniJob.getChName()))
+                    .replace("{en_name}", ScheduleUtils.processStr(moniJob.getEnName()))
+                    .replace("{platform}", ScheduleUtils.processStr(DictUtils.getDictLabel(DictTypeConstants.UB8_PLATFORM_TYPE, moniJob.getPlatform())))
                     .replace("{operator}", operator)
-                    .replace("{env}", StringUtils.isNotEmpty(SpringUtils.getActiveProfile()) ? Objects.requireNonNull(SpringUtils.getActiveProfile()) : "")
-                    .replace("{descr}", "View descr in log details")
-                    .concat("\nLong text and photo cannot be sent,please view log details:").concat(ASConfig.getAsDomain()).concat(LOG_DETAIL_URL).concat(String.valueOf(moniJobLog.getId()));
+                    .replace("{env}", StringUtils.isNotEmpty(SpringUtils.getActiveProfile()) ? Objects.requireNonNull(SpringUtils.getActiveProfile()) : "");
 
             telegramInfo = telegramInfo.replace("{descr_template_job}", DictUtils.getDictRemark(DictTypeConstants.JOB_PUSH_TEMPLATE, Constants.DESCR_TEMPLATE_JOB))
                     .replace("{id}", String.valueOf(moniJob.getId()))
@@ -468,15 +468,12 @@ public class MoniJobExecution extends AbstractQuartzJob {
                     .replace("{platform}", ScheduleUtils.processStr(DictUtils.getDictLabel(DictTypeConstants.UB8_PLATFORM_TYPE, moniJob.getPlatform())))
                     .replace("{expect}", ScheduleUtils.processStr(moniJobLog.getExpectedResult()))
                     .replace("{operator}", operator)
-                    .replace("{env}", StringUtils.isNotEmpty(SpringUtils.getActiveProfile()) ? Objects.requireNonNull(SpringUtils.getActiveProfile()) : "");
-            //备用推送消息，去除descr,一般descr太长会造成推送超时，缩短推送文本长度，遇到time out时推送此文本
-            telegramInfoSpare = telegramInfo.replace("{descr}", "Long text and photo cannot be sent, please view descr in log details");
-            //默认推送模板
-            telegramInfo = telegramInfo.replace("{descr}", ScheduleUtils.processStr(descr));
+                    .replace("{env}", StringUtils.isNotEmpty(SpringUtils.getActiveProfile()) ? Objects.requireNonNull(SpringUtils.getActiveProfile()) : "")
+                    .replace("{descr}", ScheduleUtils.processStr(descr));
+
         } else {
             telegramInfo = "*DB Monitor ID\\(" + moniJob.getId() + "\\),Notification content is not set*";
-            telegramInfoSpare = "*DB Monitor ID\\(" + moniJob.getId() + "\\),Notification content is not set*";
-            telegramInfoRemoveMarkdown = "DB Monitor ID(" + moniJob.getId() + "),Notification content is not set";
+            telegramInfoFirst = telegramInfo;
         }
 
         String imgPath = createImg();
@@ -492,9 +489,9 @@ public class MoniJobExecution extends AbstractQuartzJob {
             height = 1500;
         }
 
-        //为避免延迟发送或发送超时，先发送简短的备用推送
-        SendMessage sendMessage = new SendMessage(chatId, telegramInfoRemoveMarkdown);
-//        sendMessage.replyMarkup(ScheduleUtils.getInlineKeyboardMarkup(JOB_DETAIL_URL, LOG_DETAIL_URL, String.valueOf(moniJob.getId()), String.valueOf(moniJobLog.getId())));
+        //为避免延迟发送或发送超时，先发送简短的消息
+        SendMessage sendMessage = new SendMessage(chatId, telegramInfoFirst).parseMode(ScheduleUtils.parseMode);
+        sendMessage.replyMarkup(ScheduleUtils.getInlineKeyboardMarkup(JOB_DETAIL_URL, LOG_DETAIL_URL, String.valueOf(moniJob.getId()), String.valueOf(moniJobLog.getId())));
         sendMessage(sendMessage);
     }
 
@@ -507,38 +504,28 @@ public class MoniJobExecution extends AbstractQuartzJob {
                 if (response.isOk()) {
                     messageId = response.message().messageId();
                     try {
-                        //继续发送缩减版模板消息
-                        response = ScheduleUtils.sendMessage(bot, chatId, telegramInfoSpare,
+                        //继续发送正常消息
+                        response = ScheduleUtils.sendMessage(bot, chatId, telegramInfo,
                                 ScheduleUtils.getInlineKeyboardMarkup(JOB_DETAIL_URL, LOG_DETAIL_URL, String.valueOf(moniJob.getId()), String.valueOf(moniJobLog.getId())));
                         if (response.isOk()) {
-//                           //缩减版模板消息推送成功则删除上一个消息
+//                           //正常消息推送成功则删除上一个简短消息
                             ScheduleUtils.deleteMessage(messageBot, chatId, messageId);
                             //重新记录消息ID
                             messageId = response.message().messageId();
 
-                            //继续发送模板消息
-                            response = ScheduleUtils.sendMessage(bot, chatId, telegramInfo,
-                                    ScheduleUtils.getInlineKeyboardMarkup(JOB_DETAIL_URL, LOG_DETAIL_URL, String.valueOf(moniJob.getId()), String.valueOf(moniJobLog.getId())));
+                            //继续发送图文消息
+                            //图片长宽不超过1500则发送图片，否则发送附件
+                            if (width < 1500 && height < 1500) {
+                                response = ScheduleUtils.sendPhoto(bot, chatId, telegramInfo,
+                                        ScheduleUtils.getInlineKeyboardMarkup(JOB_DETAIL_URL, LOG_DETAIL_URL, String.valueOf(moniJob.getId()), String.valueOf(moniJobLog.getId())), file);
+                            } else {
+                                response = ScheduleUtils.sendDocument(bot, chatId, telegramInfo,
+                                        ScheduleUtils.getInlineKeyboardMarkup(JOB_DETAIL_URL, LOG_DETAIL_URL, String.valueOf(moniJob.getId()), String.valueOf(moniJobLog.getId())), file);
+                            }
 
                             if (response.isOk()) {
-                                //模板消息推送成功则删除上一个消息
+                                //图文消息推送成功则删除上一个消息
                                 ScheduleUtils.deleteMessage(messageBot, chatId, messageId);
-                                //重新记录消息ID
-                                messageId = response.message().messageId();
-
-                                //继续发送图文消息
-                                //图片长宽不超过1500则发送图片，否则发送附件
-                                if (width < 1500 && height < 1500) {
-                                    response = ScheduleUtils.sendPhoto(bot, chatId, telegramInfo,
-                                            ScheduleUtils.getInlineKeyboardMarkup(JOB_DETAIL_URL, LOG_DETAIL_URL, String.valueOf(moniJob.getId()), String.valueOf(moniJobLog.getId())), file);
-                                } else {
-                                    response = ScheduleUtils.sendDocument(bot, chatId, telegramInfo,
-                                            ScheduleUtils.getInlineKeyboardMarkup(JOB_DETAIL_URL, LOG_DETAIL_URL, String.valueOf(moniJob.getId()), String.valueOf(moniJobLog.getId())), file);
-                                }
-                                if (response.isOk()) {
-                                    //图文消息推送成功则删除之前发送的模板消息
-                                    ScheduleUtils.deleteMessage(messageBot, chatId, messageId);
-                                }
                             }
                         }
                     } catch (Exception e) {
@@ -549,7 +536,7 @@ public class MoniJobExecution extends AbstractQuartzJob {
                     jobLog.setId(moniJobLog.getId());
                     jobLog.setExceptionLog("Telegram send message error: ".concat(response.description()));
                     SpringUtils.getBean(IMoniJobLogService.class).updateJobLog(jobLog);
-                    log.error("DB jobId：{},JobName：{},推送内容：{},telegram发送信息失败", moniJob.getId(), telegramInfoRemoveMarkdown, moniJob.getChName());
+                    log.error("DB jobId：{},JobName：{},推送内容：{},telegram发送信息失败", moniJob.getId(), telegramInfoFirst, moniJob.getChName());
                 }
             }
 
@@ -560,14 +547,14 @@ public class MoniJobExecution extends AbstractQuartzJob {
                     serversLoadTimes++;
                     TelegramBot resendBot = new TelegramBot.Builder(bot).okHttpClient(OkHttpUtils.getInstance()).build();
                     resendBot.execute(sendMessage, this);
-                    log.error("DB jobId：{},JobName：{},telegram信息超时重发,第{}次", moniJob.getId(), moniJob.getChName(), serversLoadTimes);
+                    log.error("DB jobId：{},JobName：{},推送内容：{},telegram信息超时重发,第{}次", moniJob.getId(), moniJob.getChName(), telegramInfoFirst, serversLoadTimes);
                 } else {
                     MoniJobLog jobLog = new MoniJobLog();
                     jobLog.setId(moniJobLog.getId());
                     jobLog.setStatus(Constants.ERROR);
                     jobLog.setExceptionLog("Telegram send message error: ".concat(ExceptionUtil.getExceptionMessage(e)));
                     SpringUtils.getBean(IMoniJobLogService.class).updateJobLog(jobLog);
-                    log.error("DB jobId：{},JobName：{},推送内容：{},telegram发送信息异常,{}", moniJob.getId(), moniJob.getChName(), telegramInfoRemoveMarkdown, ExceptionUtil.getExceptionMessage(e));
+                    log.error("DB jobId：{},JobName：{},推送内容：{},telegram发送信息异常,{}", moniJob.getId(), moniJob.getChName(), telegramInfoFirst, ExceptionUtil.getExceptionMessage(e));
                 }
             }
         });

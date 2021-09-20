@@ -1,6 +1,5 @@
 package com.as.quartz.job;
 
-import com.as.common.config.ASConfig;
 import com.as.common.constant.Constants;
 import com.as.common.constant.DictTypeConstants;
 import com.as.common.utils.DateUtils;
@@ -66,9 +65,11 @@ public class MoniApiExecution extends AbstractQuartzJob {
 
     private String telegramInfo;
 
+    private String telegramInfoFirst;
+
     private int serversLoadTimes;
 
-    private static final int maxLoadTimes = 5; // 最大重连次数
+    private static final int maxLoadTimes = 3; // 最大重连次数
 
     /**
      * 执行方法
@@ -237,8 +238,7 @@ public class MoniApiExecution extends AbstractQuartzJob {
         String bot = tgData[0];
         String chatId = tgData[1];
         telegramInfo = moniApi.getTelegramInfo();
-        String telegramInfoRemoveMarkdown;
-        String telegramInfoSpare;
+        StringBuilder telegramInfoFirstBuilder = new StringBuilder();
         if (StringUtils.isNotEmpty(telegramInfo)) {
             String descr = moniApi.getDescr();
             if (StringUtils.isNotEmpty(descr)) {
@@ -254,21 +254,21 @@ public class MoniApiExecution extends AbstractQuartzJob {
                 responseBody = responseBody.substring(0, 500) + "... See more in log details";
             }
 
-            telegramInfoRemoveMarkdown = ScheduleUtils.removeMarkdown(telegramInfo.replace("{descr_template_api}", DictUtils.getDictRemark(DictTypeConstants.JOB_PUSH_TEMPLATE, Constants.DESCR_TEMPLATE_API)))
+            telegramInfoFirstBuilder.append("*__Operator:__* `{operator}` \\[`{platform}`/`{env}`\\]\n")
+                    .append("*__MonitorID:__* `{id}` / `{asid}` \\(`{priority}`\\)\n")
+                    .append("*__JobName:__* `{en_name}`/`{zh_name}`\n")
+                    .append("*_\\.\\.\\. See more in log details_*");
+
+            //备用推送消息，去除descr,response,一般descr,response太长会造成推送超时，缩短推送文本长度，遇到time out时推送此文本
+            telegramInfoFirst = telegramInfoFirstBuilder.toString()
                     .replace("{id}", String.valueOf(moniApi.getId()))
-                    .replace("{asid}", moniApi.getAsid())
+                    .replace("{asid}", ScheduleUtils.processStr(moniApi.getAsid()))
                     .replace("{priority}", "1".equals(moniApi.getPriority()) ? "NU" : "URG")
-                    .replace("{zhname}", moniApi.getChName())
-                    .replace("{enname}", moniApi.getEnName())
-                    .replace("{platform}", DictUtils.getDictLabel(DictTypeConstants.UB8_PLATFORM_TYPE, moniApi.getPlatform()))
-                    .replace("{url}", moniApi.getUrl())
-                    .replace("{expect}", moniApi.getExpectedCode())
-                    .replace("{result}", result)
+                    .replace("{zh_name}", ScheduleUtils.processStr(moniApi.getChName()))
+                    .replace("{en_name}", ScheduleUtils.processStr(moniApi.getEnName()))
+                    .replace("{platform}", ScheduleUtils.processStr(DictUtils.getDictLabel(DictTypeConstants.UB8_PLATFORM_TYPE, moniApi.getPlatform())))
                     .replace("{operator}", operator)
-                    .replace("{env}", StringUtils.isNotEmpty(SpringUtils.getActiveProfile()) ? Objects.requireNonNull(SpringUtils.getActiveProfile()) : "")
-                    .replace("{descr}", "View descr in log details")
-                    .replace("{response}", "View response in log details")
-                    .concat("\nLong text cannot be sent,please view log details:").concat(ASConfig.getAsDomain()).concat(LOG_DETAIL_URL).concat(String.valueOf(moniApiLog.getId()));
+                    .replace("{env}", StringUtils.isNotEmpty(SpringUtils.getActiveProfile()) ? Objects.requireNonNull(SpringUtils.getActiveProfile()) : "");
 
             telegramInfo = telegramInfo.replace("{descr_template_api}", DictUtils.getDictRemark(DictTypeConstants.JOB_PUSH_TEMPLATE, Constants.DESCR_TEMPLATE_API))
                     .replace("{id}", String.valueOf(moniApi.getId()))
@@ -281,23 +281,18 @@ public class MoniApiExecution extends AbstractQuartzJob {
                     .replace("{expect}", moniApi.getExpectedCode())
                     .replace("{result}", result)
                     .replace("{operator}", operator)
-                    .replace("{env}", StringUtils.isNotEmpty(SpringUtils.getActiveProfile()) ? Objects.requireNonNull(SpringUtils.getActiveProfile()) : "");
-
-            //备用推送消息，去除descr,response,一般descr,response太长会造成推送超时，缩短推送文本长度，遇到time out时推送此文本
-            telegramInfoSpare = telegramInfo.replace("{descr}", "Long text cannot be sent,please view descr in log details")
-                    .replace("{response}", "Long text cannot be sent,please view response in log details");
-            //默认推送模板
-            telegramInfo = telegramInfo.replace("{descr}", ScheduleUtils.processStr(descr))
+                    .replace("{env}", StringUtils.isNotEmpty(SpringUtils.getActiveProfile()) ? Objects.requireNonNull(SpringUtils.getActiveProfile()) : "")
+                    .replace("{descr}", ScheduleUtils.processStr(descr))
                     .replace("{response}", ScheduleUtils.processStr(responseBody));
+
         } else {
             telegramInfo = "*API Monitor ID\\(" + moniApi.getId() + "\\),Notification content is not set*";
-            telegramInfoSpare = "*API Monitor ID\\(" + moniApi.getId() + "\\),Notification content is not set*";
-            telegramInfoRemoveMarkdown = "API Monitor ID(" + moniApi.getId() + "),Notification content is not set";
+            telegramInfoFirst = telegramInfo;
         }
 
         TelegramBot messageBot = new TelegramBot.Builder(bot).okHttpClient(OkHttpUtils.getInstance()).build();
-        SendMessage sendMessage = new SendMessage(chatId, telegramInfoRemoveMarkdown);
-//        sendMessage.replyMarkup(ScheduleUtils.getInlineKeyboardMarkup(JOB_DETAIL_URL, LOG_DETAIL_URL, String.valueOf(moniApi.getId()), String.valueOf(moniApiLog.getId())));
+        SendMessage sendMessage = new SendMessage(chatId, telegramInfoFirst).parseMode(ScheduleUtils.parseMode);
+        sendMessage.replyMarkup(ScheduleUtils.getInlineKeyboardMarkup(JOB_DETAIL_URL, LOG_DETAIL_URL, String.valueOf(moniApi.getId()), String.valueOf(moniApiLog.getId())));
         serversLoadTimes = 0;
         messageBot.execute(sendMessage, new Callback<SendMessage, SendResponse>() {
             @Override
@@ -306,24 +301,12 @@ public class MoniApiExecution extends AbstractQuartzJob {
                     //记录消息id
                     Integer messageId = response.message().messageId();
                     try {
-                        //继续发送缩减版的模板消息
-                        response = ScheduleUtils.sendMessage(bot, chatId, telegramInfoSpare,
+                        //继续发送正常消息
+                        response = ScheduleUtils.sendMessage(bot, chatId, telegramInfo,
                                 ScheduleUtils.getInlineKeyboardMarkup(JOB_DETAIL_URL, LOG_DETAIL_URL, String.valueOf(moniApi.getId()), String.valueOf(moniApiLog.getId())));
                         if (response.isOk()) {
-                            //模板消息推送成功则删除上一个消息
+                            //正常消息推送成功则删除上一个消息
                             ScheduleUtils.deleteMessage(messageBot, chatId, messageId);
-
-                            //重新记录消息ID
-                            messageId = response.message().messageId();
-
-                            //继续发送模板消息
-                            response = ScheduleUtils.sendMessage(bot, chatId, telegramInfo,
-                                    ScheduleUtils.getInlineKeyboardMarkup(JOB_DETAIL_URL, LOG_DETAIL_URL, String.valueOf(moniApi.getId()), String.valueOf(moniApiLog.getId())));
-
-                            if (response.isOk()) {
-                                //模板消息发送成功则删除上一个消息
-                                ScheduleUtils.deleteMessage(messageBot, chatId, messageId);
-                            }
                         }
                     } catch (Exception e) {
                         log.error("API jobId：{},JobName：{},telegram推送信息异常,{}", moniApi.getId(), moniApi.getChName(), ExceptionUtil.getExceptionMessage(e));
@@ -333,7 +316,7 @@ public class MoniApiExecution extends AbstractQuartzJob {
                     jobLog.setId(moniApiLog.getId());
                     jobLog.setExceptionLog("Telegram send message error: ".concat(response.description()));
                     SpringUtils.getBean(IMoniApiLogService.class).updateMoniApiLog(jobLog);
-                    log.error("API jobId：{},JobName：{},推送内容：{},telegram发送信息失败", moniApi.getId(), moniApi.getChName(), telegramInfoRemoveMarkdown);
+                    log.error("API jobId：{},JobName：{},推送内容：{},telegram发送信息失败", moniApi.getId(), moniApi.getChName(), telegramInfoFirst);
                 }
             }
 
@@ -344,14 +327,14 @@ public class MoniApiExecution extends AbstractQuartzJob {
                     serversLoadTimes++;
                     TelegramBot resendBot = new TelegramBot.Builder(bot).okHttpClient(OkHttpUtils.getInstance()).build();
                     resendBot.execute(sendMessage, this);
-                    log.error("API jobId：{},JobName：{},telegram信息超时重发,第{}次", moniApi.getId(), moniApi.getChName(), serversLoadTimes);
+                    log.error("API jobId：{},JobName：{},推送内容：{},telegram信息超时重发,第{}次", moniApi.getId(), moniApi.getChName(), telegramInfoFirst, serversLoadTimes);
                 } else {
                     MoniApiLog jobLog = new MoniApiLog();
                     jobLog.setId(moniApiLog.getId());
                     jobLog.setStatus(Constants.ERROR);
                     jobLog.setExceptionLog("Telegram send message error: ".concat(ExceptionUtil.getExceptionMessage(e)));
                     SpringUtils.getBean(IMoniApiLogService.class).updateMoniApiLog(jobLog);
-                    log.error("API jobId：{},JobName：{},推送内容：{},telegram发送信息异常,{}", moniApi.getId(), moniApi.getChName(), telegramInfoRemoveMarkdown, ExceptionUtil.getExceptionMessage(e));
+                    log.error("API jobId：{},JobName：{},推送内容：{},telegram发送信息异常,{}", moniApi.getId(), moniApi.getChName(), telegramInfoFirst, ExceptionUtil.getExceptionMessage(e));
                 }
             }
         });
