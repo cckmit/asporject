@@ -20,11 +20,11 @@ public class OkHttpUtils {
         if (StringUtils.isNull(client)) {
             synchronized (OkHttpUtils.class) {
                 if (StringUtils.isNull(client)) {
-                    client = new OkHttpClient.Builder().connectTimeout(60, TimeUnit.SECONDS)
-                            .readTimeout(60, TimeUnit.SECONDS)
-                            .writeTimeout(60, TimeUnit.SECONDS)
+                    client = new OkHttpClient.Builder().connectTimeout(30, TimeUnit.SECONDS)
+                            .readTimeout(30, TimeUnit.SECONDS)
+                            .writeTimeout(30, TimeUnit.SECONDS)
                             .connectionPool(new ConnectionPool(64, 5, TimeUnit.MINUTES))
-                            .dns(new XDns(60, TimeUnit.SECONDS))
+                            .dns(new XDns(30, TimeUnit.SECONDS))
                             .retryOnConnectionFailure(true)
                             .build();
                 }
