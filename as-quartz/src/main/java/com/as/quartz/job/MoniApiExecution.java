@@ -51,7 +51,7 @@ public class MoniApiExecution extends AbstractQuartzJob {
     private static final String JOB_DETAIL_URL = "/monitor/apiJob/detail/";
     private static final String LOG_DETAIL_URL = "/monitor/apiJobLog/detail/";
 
-    private MoniApiLog moniApiLog = new MoniApiLog();
+    private final MoniApiLog moniApiLog = new MoniApiLog();
 
     private MoniApi moniApi = new MoniApi();
 
@@ -256,7 +256,7 @@ public class MoniApiExecution extends AbstractQuartzJob {
 
             telegramInfoFirstBuilder.append("*__Operator:__* `{operator}` \\[`{platform}`/`{env}`\\]\n")
                     .append("*__MonitorID:__* `{id}` / `{asid}` \\(`{priority}`\\)\n")
-                    .append("*__JobName:__* `{en_name}`/`{zh_name}`\n")
+                    .append("*__JobName:__* `{en_name}`\n")
                     .append("*_\\.\\.\\. See more in log details_*");
 
             //备用推送消息，去除descr,response,一般descr,response太长会造成推送超时，缩短推送文本长度，遇到time out时推送此文本
@@ -264,7 +264,6 @@ public class MoniApiExecution extends AbstractQuartzJob {
                     .replace("{id}", String.valueOf(moniApi.getId()))
                     .replace("{asid}", ScheduleUtils.processStr(moniApi.getAsid()))
                     .replace("{priority}", "1".equals(moniApi.getPriority()) ? "NU" : "URG")
-                    .replace("{zh_name}", ScheduleUtils.processStr(moniApi.getChName()))
                     .replace("{en_name}", ScheduleUtils.processStr(moniApi.getEnName()))
                     .replace("{platform}", ScheduleUtils.processStr(DictUtils.getDictLabel(DictTypeConstants.UB8_PLATFORM_TYPE, moniApi.getPlatform())))
                     .replace("{operator}", operator)

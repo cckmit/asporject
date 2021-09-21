@@ -373,7 +373,7 @@ public class MoniElasticExecution extends AbstractQuartzJob {
 
             telegramInfoFirstBuilder.append("*__Operator:__* `{operator}` \\[`{platform}`/`{env}`\\]\n")
                     .append("*__MonitorID:__* `{id}` / `{asid}` \\(`{priority}`\\)\n")
-                    .append("*__JobName:__* `{en_name}`/`{zh_name}`\n")
+                    .append("*__JobName:__* `{en_name}`\n")
                     .append("*_\\.\\.\\. See more in log details_*");
 
             //备用推送消息，去除descr,一般descr太长会造成推送超时，缩短推送文本长度，遇到time out时推送此文本
@@ -381,7 +381,6 @@ public class MoniElasticExecution extends AbstractQuartzJob {
                     .replace("{id}", String.valueOf(moniElastic.getId()))
                     .replace("{asid}", ScheduleUtils.processStr(moniElastic.getAsid()))
                     .replace("{priority}", "1".equals(moniElastic.getPriority()) ? "NU" : "URG")
-                    .replace("{zh_name}", ScheduleUtils.processStr(moniElastic.getChName()))
                     .replace("{en_name}", ScheduleUtils.processStr(moniElastic.getEnName()))
                     .replace("{platform}", ScheduleUtils.processStr(DictUtils.getDictLabel(DictTypeConstants.UB8_PLATFORM_TYPE, moniElastic.getPlatform())))
                     .replace("{operator}", operator)
