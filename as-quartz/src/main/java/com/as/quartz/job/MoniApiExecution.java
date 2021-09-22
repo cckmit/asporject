@@ -338,7 +338,7 @@ public class MoniApiExecution extends AbstractQuartzJob {
                     try {
                         TelegramBot failedBot = new TelegramBot.Builder(bot).okHttpClient(OkHttpUtils.getInstance()).build();
                         String failedInfo = "MonitorID(" + moniApi.getId() + "):There is an alert here, but the push to TG failed."
-                                + "\nclick here to view\n" + ASConfig.getAsDomain().concat(LOG_DETAIL_URL).concat(String.valueOf(moniApiLog.getId()));
+                                + "\nclick here to view:\n" + ASConfig.getAsDomain().concat(LOG_DETAIL_URL).concat(String.valueOf(moniApiLog.getId()));
                         SendMessage sendMessage = new SendMessage(chatId, failedInfo);
                         failedBot.execute(sendMessage);
                     } catch (Exception e1) {

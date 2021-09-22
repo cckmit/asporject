@@ -456,7 +456,7 @@ public class MoniElasticExecution extends AbstractQuartzJob {
                     try {
                         TelegramBot failedBot = new TelegramBot.Builder(bot).okHttpClient(OkHttpUtils.getInstance()).build();
                         String failedInfo = "MonitorID(" + moniElastic.getId() + "):There is an alert here, but the push to TG failed."
-                                + "\nclick here to view\n" + ASConfig.getAsDomain().concat(LOG_DETAIL_URL).concat(String.valueOf(moniElasticLog.getId()));
+                                + "\nclick here to view:\n" + ASConfig.getAsDomain().concat(LOG_DETAIL_URL).concat(String.valueOf(moniElasticLog.getId()));
                         SendMessage sendMessage = new SendMessage(chatId, failedInfo);
                         failedBot.execute(sendMessage);
                     } catch (Exception e1) {
