@@ -2,6 +2,7 @@ package com.as.quartz.job;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.as.common.config.ASConfig;
 import com.as.common.constant.Constants;
 import com.as.common.constant.DictTypeConstants;
 import com.as.common.constant.ScheduleConstants;
@@ -452,6 +453,15 @@ public class MoniElasticExecution extends AbstractQuartzJob {
                     jobLog.setExceptionLog("Telegram send message error: ".concat(ExceptionUtil.getExceptionMessage(e)));
                     SpringUtils.getBean(IMoniElasticLogService.class).updateMoniElasticLog(jobLog);
                     log.error("Log jobId：{},JobName：{},推送内容：{},telegram发送信息异常,{}", moniElastic.getId(), moniElastic.getChName(), telegramInfoFirst, ExceptionUtil.getExceptionMessage(e));
+                    try {
+                        TelegramBot failedBot = new TelegramBot.Builder(bot).okHttpClient(OkHttpUtils.getInstance()).build();
+                        String failedInfo = "MonitorID(" + moniElastic.getId() + "):There is an alert here, but the push to TG failed."
+                                + "\nclick here to view\n" + ASConfig.getAsDomain().concat(LOG_DETAIL_URL).concat(String.valueOf(moniElasticLog.getId()));
+                        SendMessage sendMessage = new SendMessage(chatId, failedInfo);
+                        failedBot.execute(sendMessage);
+                    } catch (Exception e1) {
+                        //skip,do nothing
+                    }
                 }
             }
         });
