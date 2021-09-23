@@ -42,7 +42,7 @@
 		<div class="btn-group-sm" id="toolbar" role="group" style="display: none">
 			<span id="execute-time" class="label label-warning">[[#{funds.total}]]：<span class="total"></span>，[[#{sql.job.execution.time}]]：<span class="time"></span></span>
 		</div>
-		<div class="col-sm-12 select-table table-bordered">
+		<div id="out-bootstrap-table" class="col-sm-12 select-table table-bordered">
 			<table id="bootstrap-table"></table>
 		</div>
 	</div>
@@ -97,7 +97,8 @@
 		if(!table.get(table.options.id)){
 			initTable(columns);
 		} else {
-			refreshTable(columns);
+			$("#" + table.options.id).bootstrapTable('destroy');
+			initTable(columns);
 		}
 		beforeTime = new Date().getTime().toString()
 		$('#toolbar').hide()
@@ -142,7 +143,6 @@
 			pageNumber: 1,
 			pageList: [200, 500, 1000,'all'],
 			modalName: 'PF2 DB Query',
-			height: getTableHeight(),
 			headerStyle: headerStyle,
 			columns: columns
 		};
@@ -161,17 +161,32 @@
 		$('#execute-time .total').text(data.total)
 		$('#execute-time .time').text(executeTime.toFixed(3) + 's')
 		$('#toolbar').show()
+		resizeTableHeight(data.total)
 		beforeTime = 0
 	}
 
 	function headerStyle(column) {
 		return {
-			css: { background: '#3c8dbc','font-size': '13px',color:'white','font-weight': 'bolder' }
+			css: { 'background-color': '#3195f1','border-color': '#0d7adf','font-size': '13px',color:'#fff','font-weight': 'bolder' }
 		}
 	}
 
 	function getTableHeight() {
-		return  $(window).height();
+		var height = $(window).height()
+		return  height - height * 0.05;
+	}
+
+	function resizeTableHeight(dataLen) {
+		if(dataLen===0){
+			dataLen=1;
+		}
+		var a = $("#out-bootstrap-table").first().find('tr').last().height() * (dataLen);
+		if (a > getTableHeight()) {
+			$("#" + table.options.id).bootstrapTable('resetView',{
+				height: getTableHeight()
+			})
+		}
+
 	}
 
 	//快捷键

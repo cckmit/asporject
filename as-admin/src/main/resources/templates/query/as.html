@@ -103,7 +103,8 @@
 			if(!table.get(table.options.id)){
 				initTable(columns);
 			} else {
-				refreshTable(columns);
+				$("#" + table.options.id).bootstrapTable('destroy');
+				initTable(columns);
 			}
 			beforeTime = new Date().getTime().toString()
 			$('#toolbar').hide()
@@ -146,9 +147,7 @@
 				pageSize: 200,
 				pageNumber: 1,
 				pageList: [200, 500, 1000,'all'],
-				// sidePagination: "client",
 				modalName: 'AS DB Query',
-				height: getTableHeight(),
 				headerStyle: headerStyle,
 				onLoadSuccess: onLoadSuccess,
 				columns: columns
@@ -168,17 +167,32 @@
 			$('#execute-time .total').text(data.total)
 			$('#execute-time .time').text(executeTime.toFixed(3) + 's')
 			$('#toolbar').show()
+			resizeTableHeight(data.total)
 			beforeTime = 0
 		}
 
 		function headerStyle(column) {
 			return {
-				css: { background: '#3c8dbc','font-size': '13px',color:'white','font-weight': 'bolder' }
+				css: { 'background-color': '#3195f1','border-color': '#0d7adf','font-size': '13px',color:'#fff','font-weight': 'bolder' }
 			}
 		}
 
 		function getTableHeight() {
-			return  $(window).height();
+			var height = $(window).height()
+			return  height - height * 0.05;
+		}
+
+		function resizeTableHeight(dataLen) {
+			if(dataLen===0){
+				dataLen=1;
+			}
+			var a = $("#out-bootstrap-table").first().find('tr').last().height() * (dataLen);
+			if (a > getTableHeight()) {
+				$("#" + table.options.id).bootstrapTable('resetView',{
+					height: getTableHeight()
+				})
+			}
+
 		}
 
 		//快捷键
