@@ -178,16 +178,15 @@
 		}
 
 		function getTableHeight() {
-			var height = $(window).height()
-			return  height - height * 0.05;
+			return  $(window).height() * 0.95;
 		}
 
 		function resizeTableHeight(dataLen) {
 			if(dataLen===0){
 				dataLen=1;
 			}
-			var a = $("#out-bootstrap-table").first().find('tr').last().height() * (dataLen);
-			if (a > getTableHeight()) {
+			var a = $("#out-bootstrap-table").first().find('tr').last().height() * (dataLen + 1);
+			if (a > getTableHeight() - 110) {
 				$("#" + table.options.id).bootstrapTable('resetView',{
 					height: getTableHeight()
 				})
