@@ -444,9 +444,9 @@ public class MoniJobExecution extends AbstractQuartzJob {
                 descr = "descr is empty";
             }
 
-            telegramInfoFirstBuilder.append("*__Operator:__* `{operator}` \\[`{platform}`/`{env}`\\]\n")
-                    .append("*__MonitorID:__* `{id}` / `{asid}` \\(`{priority}`\\)\n")
-                    .append("*__JobName:__* `{en_name}`\n")
+            telegramInfoFirstBuilder.append("*__JobName:__*`{en_name}`/`{zh_name}`\n")
+                    .append("*__MonitorID:__*`{id}`/`{asid}`\\(`{priority}`\\)\n")
+                    .append("*__Operator:__*`{operator}`\\[`{platform}`/`{env}`\\]\n")
                     .append("*_\\.\\.\\. See more in log details_*");
 
             //备用推送消息，去除descr,一般descr太长会造成推送超时，缩短推送文本长度，遇到time out时推送此文本
@@ -455,6 +455,7 @@ public class MoniJobExecution extends AbstractQuartzJob {
                     .replace("{asid}", ScheduleUtils.processStr(moniJob.getAsid()))
                     .replace("{priority}", "1".equals(moniJob.getPriority()) ? "NU" : "URG")
                     .replace("{en_name}", ScheduleUtils.processStr(moniJob.getEnName()))
+                    .replace("{zh_name}", ScheduleUtils.processStr(moniJob.getChName()))
                     .replace("{platform}", ScheduleUtils.processStr(DictUtils.getDictLabel(DictTypeConstants.UB8_PLATFORM_TYPE, moniJob.getPlatform())))
                     .replace("{operator}", operator)
                     .replace("{env}", StringUtils.isNotEmpty(SpringUtils.getActiveProfile()) ? Objects.requireNonNull(SpringUtils.getActiveProfile()) : "");
@@ -561,7 +562,7 @@ public class MoniJobExecution extends AbstractQuartzJob {
                                 + "\nclick here to view:\n" + ASConfig.getAsDomain().concat(LOG_DETAIL_URL).concat(String.valueOf(moniJobLog.getId()));
                         SendMessage sendMessage = new SendMessage(chatId, failedInfo);
                         failedBot.execute(sendMessage);
-                    } catch (Exception e1){
+                    } catch (Exception e1) {
                         //skip,do nothing
                     }
                 }
