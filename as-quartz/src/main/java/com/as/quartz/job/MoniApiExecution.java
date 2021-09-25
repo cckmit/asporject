@@ -257,7 +257,7 @@ public class MoniApiExecution extends AbstractQuartzJob {
 
             telegramInfoFirstBuilder.append("*__JobName:__*`{en_name}`/`{zh_name}`\n")
                     .append("*__MonitorID:__*`{id}`/`{asid}`\\(`{priority}`\\)\n")
-                    .append("*__Operator:__*`{operator}`\\[`{platform}`/`{env}`\\]\n");
+                    .append("*__Operator:__*`{operator}`\\[`{platform}`/`{env}`\\]");
 
             //备用推送消息，去除descr,response,一般descr,response太长会造成推送超时，缩短推送文本长度，遇到time out时推送此文本
             telegramInfoFirst = telegramInfoFirstBuilder.toString()
