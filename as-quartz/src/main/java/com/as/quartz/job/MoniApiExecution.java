@@ -257,8 +257,7 @@ public class MoniApiExecution extends AbstractQuartzJob {
 
             telegramInfoFirstBuilder.append("*__JobName:__*`{en_name}`/`{zh_name}`\n")
                     .append("*__MonitorID:__*`{id}`/`{asid}`\\(`{priority}`\\)\n")
-                    .append("*__Operator:__*`{operator}`\\[`{platform}`/`{env}`\\]\n")
-                    .append("*_\\.\\.\\. See more in log details_*");
+                    .append("*__Operator:__*`{operator}`\\[`{platform}`/`{env}`\\]\n");
 
             //备用推送消息，去除descr,response,一般descr,response太长会造成推送超时，缩短推送文本长度，遇到time out时推送此文本
             telegramInfoFirst = telegramInfoFirstBuilder.toString()
@@ -330,20 +329,20 @@ public class MoniApiExecution extends AbstractQuartzJob {
                     resendBot.execute(sendMessage, this);
                     log.error("API jobId：{},JobName：{},推送内容：{},telegram信息超时重发,第{}次", moniApi.getId(), moniApi.getChName(), telegramInfoFirst, serversLoadTimes);
                 } else {
-                    MoniApiLog jobLog = new MoniApiLog();
-                    jobLog.setId(moniApiLog.getId());
-                    jobLog.setStatus(Constants.ERROR);
-                    jobLog.setExceptionLog("Telegram send message error: ".concat(ExceptionUtil.getExceptionMessage(e)));
-                    SpringUtils.getBean(IMoniApiLogService.class).updateMoniApiLog(jobLog);
-                    log.error("API jobId：{},JobName：{},推送内容：{},telegram发送信息异常,{}", moniApi.getId(), moniApi.getChName(), telegramInfoFirst, ExceptionUtil.getExceptionMessage(e));
                     try {
                         TelegramBot failedBot = new TelegramBot.Builder(bot).okHttpClient(OkHttpUtils.getInstance()).build();
-                        String failedInfo = "MonitorID(" + moniApi.getId() + "):There is an alert here, but the push to TG failed."
-                                + "\nclick here to view:\n" + ASConfig.getAsDomain().concat(LOG_DETAIL_URL).concat(String.valueOf(moniApiLog.getId()));
+                        String failedInfo = moniApi.getAsid() + ":" + moniApi.getEnName() + "/" + moniApi.getChName()
+                                + "\nExe time: " + DateUtils.parseDateToStr(DateUtils.YYYY_MM_DD_HH_MM_SS, moniApiLog.getStartTime())
+                                + "\nLOG Details:\n" + ASConfig.getAsDomain().concat(LOG_DETAIL_URL).concat(String.valueOf(moniApiLog.getId()));
                         SendMessage sendMessage = new SendMessage(chatId, failedInfo);
                         failedBot.execute(sendMessage);
                     } catch (Exception e1) {
-                        //skip,do nothing
+                        MoniApiLog jobLog = new MoniApiLog();
+                        jobLog.setId(moniApiLog.getId());
+                        jobLog.setStatus(Constants.ERROR);
+                        jobLog.setExceptionLog("Telegram send message error: ".concat(ExceptionUtil.getExceptionMessage(e)));
+                        SpringUtils.getBean(IMoniApiLogService.class).updateMoniApiLog(jobLog);
+                        log.error("API jobId：{},JobName：{},推送内容：{},telegram发送信息异常,{}", moniApi.getId(), moniApi.getChName(), telegramInfoFirst, ExceptionUtil.getExceptionMessage(e));
                     }
                 }
             }
