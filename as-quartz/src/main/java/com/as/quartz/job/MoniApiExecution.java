@@ -342,7 +342,7 @@ public class MoniApiExecution extends AbstractQuartzJob {
                         jobLog.setStatus(Constants.ERROR);
                         jobLog.setExceptionLog("Telegram send message error: ".concat(ExceptionUtil.getExceptionMessage(e)));
                         SpringUtils.getBean(IMoniApiLogService.class).updateMoniApiLog(jobLog);
-                        log.error("API jobId：{},JobName：{},推送内容：{},telegram发送信息异常,{}", moniApi.getId(), moniApi.getChName(), telegramInfoFirst, ExceptionUtil.getExceptionMessage(e));
+                        log.error("API jobId：{},JobName：{},推送内容：{},telegram发送信息异常,{}", moniApi.getId(), moniApi.getChName(), telegramInfoFirst, ExceptionUtil.getExceptionMessage(e1));
                     }
                 }
             }

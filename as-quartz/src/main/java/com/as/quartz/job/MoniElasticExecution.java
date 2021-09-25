@@ -460,7 +460,7 @@ public class MoniElasticExecution extends AbstractQuartzJob {
                         jobLog.setStatus(Constants.ERROR);
                         jobLog.setExceptionLog("Telegram send message error: ".concat(ExceptionUtil.getExceptionMessage(e)));
                         SpringUtils.getBean(IMoniElasticLogService.class).updateMoniElasticLog(jobLog);
-                        log.error("Log jobId：{},JobName：{},推送内容：{},telegram发送信息异常,{}", moniElastic.getId(), moniElastic.getChName(), telegramInfoFirst, ExceptionUtil.getExceptionMessage(e));
+                        log.error("Log jobId：{},JobName：{},推送内容：{},telegram发送信息异常,{}", moniElastic.getId(), moniElastic.getChName(), telegramInfoFirst, ExceptionUtil.getExceptionMessage(e1));
                     }
                 }
             }
