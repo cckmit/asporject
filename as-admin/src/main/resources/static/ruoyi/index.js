@@ -653,11 +653,11 @@ $(function() {
                     var dataIndex = $.common.random(1, 100);
                     var dataUrl = target.attr('src');
                     var menuName = $('.menuTab[data-id="' + this.data('id') + '"]').first().text();
-                    var str = '<a href="javascript:;" class="active menuTab noactive" data-id="' + dataUrl + dataIndex + '" data-panel="' + dataUrl + '">' + menuName + ' <i class="fa fa-times-circle"></i></a>';
+                    var str = '<a href="javascript:;" class="active menuTab noactive" data-id="' + dataUrl + "|" + dataIndex + '" data-panel="' + dataUrl + '">' + menuName + ' <i class="fa fa-times-circle"></i></a>';
                     $('.menuTab', topWindow).removeClass('active');
 
                     // 添加选项卡对应的iframe
-                    var str1 = '<iframe class="RuoYi_iframe" name="iframe' + dataIndex + '" width="100%" height="100%" src="' + dataUrl + '" frameborder="0" data-id="' + dataUrl + dataIndex + '" data-panel="' + dataUrl + '" seamless></iframe>';
+                    var str1 = '<iframe class="RuoYi_iframe" name="iframe' + dataIndex + '" width="100%" height="100%" src="' + dataUrl + '" frameborder="0" data-id="' + dataUrl + "|" + dataIndex + '" data-panel="' + dataUrl + '" seamless></iframe>';
                     $('.mainContent', topWindow).find('iframe.RuoYi_iframe').hide().parents('.mainContent').append(str1);
 
                     window.parent.$.modal.loading(i18n('home.data.loading'));
