@@ -197,6 +197,12 @@ public class MoniElastic extends BaseEntity {
         return null;
     }
 
+    /**
+     * kibana路徑
+     */
+    @Excel(name = "kibana路徑")
+    private String kibanaUrl;
+
     @Override
     public String toString() {
         return new ToStringBuilder(this, ToStringStyle.MULTI_LINE_STYLE)
@@ -229,6 +235,7 @@ public class MoniElastic extends BaseEntity {
                 .append("ignoreAlert", getIgnoreAlert())
                 .append("exportField", getExportField())
                 .append("relApi", getRelApi())
+                .append("kibanaUrl", getKibanaUrl())
                 .toString();
     }
 }

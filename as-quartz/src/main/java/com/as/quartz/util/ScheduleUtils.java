@@ -19,6 +19,7 @@ import com.pengrad.telegrambot.response.SendResponse;
 import org.quartz.*;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -125,10 +126,26 @@ public class ScheduleUtils {
         return tgData;
     }
 
-    public static InlineKeyboardMarkup getInlineKeyboardMarkup(String jobUrl, String logUrl, String jobId, String logId) {
-        return new InlineKeyboardMarkup(
-                new InlineKeyboardButton("JOB Details").url(ASConfig.getAsDomain().concat(jobUrl).concat(jobId)),
-                new InlineKeyboardButton("LOG Details").url(ASConfig.getAsDomain().concat(logUrl).concat(logId)));
+    public static InlineKeyboardMarkup getInlineKeyboardMarkup(String jobUrl, String logUrl, String jobId, String logId, String kibanaUrl) {
+        //新增List方便未來新增
+        List<InlineKeyboardButton> Lists = new ArrayList<>();
+        Lists.add(new InlineKeyboardButton("JOB Details").url(ASConfig.getAsDomain().concat(jobUrl).concat(jobId)));
+        Lists.add(new InlineKeyboardButton("LOG Details").url(ASConfig.getAsDomain().concat(logUrl).concat(logId)));
+        Lists.add(kibanaUrl==null?null:new InlineKeyboardButton("Kibana Details").url(kibanaUrl));
+        //陣列排序
+        InlineKeyboardButton[][] Buttons;
+        //判斷kibanaUrl為空值或是null
+        if(kibanaUrl!=null && !"".equals(kibanaUrl)){
+            Buttons= new InlineKeyboardButton[][]{
+                    {Lists.get(0), Lists.get(1)},
+                    {Lists.get(2)}
+            };
+        }else{
+            Buttons= new InlineKeyboardButton[][]{
+                    {Lists.get(0), Lists.get(1)}
+            };
+        }
+        return new InlineKeyboardMarkup(Buttons);
     }
 
     /**

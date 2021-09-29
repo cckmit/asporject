@@ -491,7 +491,7 @@ public class MoniJobExecution extends AbstractQuartzJob {
 
         //为避免延迟发送或发送超时，先发送简短的消息
         SendMessage sendMessage = new SendMessage(chatId, telegramInfoFirst).parseMode(ScheduleUtils.parseMode);
-        sendMessage.replyMarkup(ScheduleUtils.getInlineKeyboardMarkup(JOB_DETAIL_URL, LOG_DETAIL_URL, String.valueOf(moniJob.getId()), String.valueOf(moniJobLog.getId())));
+        sendMessage.replyMarkup(ScheduleUtils.getInlineKeyboardMarkup(JOB_DETAIL_URL, LOG_DETAIL_URL, String.valueOf(moniJob.getId()), String.valueOf(moniJobLog.getId()), moniJob.getKibanaUrl()));
         sendMessage(sendMessage);
     }
 
@@ -506,7 +506,7 @@ public class MoniJobExecution extends AbstractQuartzJob {
                     try {
                         //继续发送正常消息
                         response = ScheduleUtils.sendMessage(bot, chatId, telegramInfo,
-                                ScheduleUtils.getInlineKeyboardMarkup(JOB_DETAIL_URL, LOG_DETAIL_URL, String.valueOf(moniJob.getId()), String.valueOf(moniJobLog.getId())));
+                                ScheduleUtils.getInlineKeyboardMarkup(JOB_DETAIL_URL, LOG_DETAIL_URL, String.valueOf(moniJob.getId()), String.valueOf(moniJobLog.getId()),moniJob.getKibanaUrl()));
                         if (response.isOk()) {
 //                           //正常消息推送成功则删除上一个简短消息
                             ScheduleUtils.deleteMessage(messageBot, chatId, messageId);
@@ -517,10 +517,10 @@ public class MoniJobExecution extends AbstractQuartzJob {
                             //图片长宽不超过1500则发送图片，否则发送附件
                             if (width < 1500 && height < 1500) {
                                 response = ScheduleUtils.sendPhoto(bot, chatId, telegramInfo,
-                                        ScheduleUtils.getInlineKeyboardMarkup(JOB_DETAIL_URL, LOG_DETAIL_URL, String.valueOf(moniJob.getId()), String.valueOf(moniJobLog.getId())), file);
+                                        ScheduleUtils.getInlineKeyboardMarkup(JOB_DETAIL_URL, LOG_DETAIL_URL, String.valueOf(moniJob.getId()), String.valueOf(moniJobLog.getId()),moniJob.getKibanaUrl()), file);
                             } else {
                                 response = ScheduleUtils.sendDocument(bot, chatId, telegramInfo,
-                                        ScheduleUtils.getInlineKeyboardMarkup(JOB_DETAIL_URL, LOG_DETAIL_URL, String.valueOf(moniJob.getId()), String.valueOf(moniJobLog.getId())), file);
+                                        ScheduleUtils.getInlineKeyboardMarkup(JOB_DETAIL_URL, LOG_DETAIL_URL, String.valueOf(moniJob.getId()), String.valueOf(moniJobLog.getId()),moniJob.getKibanaUrl()), file);
                             }
 
                             if (response.isOk()) {

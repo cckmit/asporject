@@ -34,10 +34,11 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="ignoreAlert"    column="IGNORE_ALERT"    />
         <result property="exportField"    column="EXPORT_FIELD"    />
         <result property="relApi"    column="REL_API"    />
+        <result property="kibanaUrl"    column="KIBANA_URL"    />
     </resultMap>
 
     <sql id="selectMoniElasticVo">
-        select ID, ASID, TICKET_NUMBER, EN_NAME, CH_NAME, STATUS, PLATFORM, CRON_EXPRESSION, TELEGRAM_ALERT, TELEGRAM_INFO, TELEGRAM_CONFIG, REQUESTER, PRIORITY, ACTION_ITEM, DESCR, `INDEX`, QUERY, TIME_FROM, TIME_TO, AUTO_MATCH, EXPECTED_RESULT, CREATE_BY, CREATE_TIME, UPDATE_BY, UPDATE_TIME, LAST_ALERT, IGNORE_ALERT, EXPORT_FIELD, REL_API from moni_elastic
+        select ID, ASID, TICKET_NUMBER, EN_NAME, CH_NAME, STATUS, PLATFORM, CRON_EXPRESSION, TELEGRAM_ALERT, TELEGRAM_INFO, TELEGRAM_CONFIG, REQUESTER, PRIORITY, ACTION_ITEM, DESCR, `INDEX`, QUERY, TIME_FROM, TIME_TO, AUTO_MATCH, EXPECTED_RESULT, CREATE_BY, CREATE_TIME, UPDATE_BY, UPDATE_TIME, LAST_ALERT, IGNORE_ALERT, EXPORT_FIELD, REL_API, KIBANA_URL from moni_elastic
     </sql>
 
     <select id="selectMoniElasticList" parameterType="MoniElastic" resultMap="MoniElasticResult">
@@ -102,6 +103,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="ignoreAlert != null">IGNORE_ALERT,</if>
             <if test="exportField != null">EXPORT_FIELD,</if>
             <if test="relApi != null">REL_API,</if>
+            <if test="kibanaUrl != null">KIBANA_URL,</if>
          </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="id != null and id != ''">#{id},</if>
@@ -133,6 +135,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="ignoreAlert != null">#{ignoreAlert},</if>
             <if test="exportField != null">#{exportField},</if>
             <if test="relApi != null">#{relApi},</if>
+            <if test="kibanaUrl != null">#{kibanaUrl},</if>
          </trim>
     </insert>
 
@@ -167,6 +170,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="ignoreAlert != null">IGNORE_ALERT = #{ignoreAlert},</if>
             <if test="exportField != null">EXPORT_FIELD = #{exportField},</if>
             <if test="relApi != null">REL_API = #{relApi},</if>
+            <if test="kibanaUrl != null">KIBANA_URL = #{kibanaUrl},</if>
         </trim>
         where ID = #{id}
     </update>

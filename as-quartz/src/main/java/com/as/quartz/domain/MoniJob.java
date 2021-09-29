@@ -176,6 +176,12 @@ public class MoniJob extends BaseEntity {
     @Excel(name = "忽略x分钟内告警")
     private Integer ignoreAlert;
 
+    /**
+     * kibana路徑
+     */
+    @Excel(name = "kibana路徑")
+    private String kibanaUrl;
+
     public Date getNextValidTime() {
         if (StringUtils.isNotEmpty(cronExpression)) {
             return CronUtils.getNextExecution(cronExpression);
@@ -212,6 +218,7 @@ public class MoniJob extends BaseEntity {
                 .append("lastAlert", getLastAlert())
                 .append("ignoreAlert", getIgnoreAlert())
                 .append("relApi", getRelApi())
+                .append("kibanaUrl", getKibanaUrl())
                 .toString();
     }
 }

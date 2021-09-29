@@ -409,7 +409,7 @@ public class MoniElasticExecution extends AbstractQuartzJob {
 
         TelegramBot messageBot = new TelegramBot.Builder(bot).okHttpClient(OkHttpUtils.getInstance()).build();
         SendMessage sendMessage = new SendMessage(chatId, telegramInfoFirst).parseMode(ScheduleUtils.parseMode);
-        sendMessage.replyMarkup(ScheduleUtils.getInlineKeyboardMarkup(JOB_DETAIL_URL, LOG_DETAIL_URL, String.valueOf(moniElastic.getId()), String.valueOf(moniElasticLog.getId())));
+        sendMessage.replyMarkup(ScheduleUtils.getInlineKeyboardMarkup(JOB_DETAIL_URL, LOG_DETAIL_URL, String.valueOf(moniElastic.getId()), String.valueOf(moniElasticLog.getId()),moniElastic.getKibanaUrl()));
 
         serversLoadTimes = 0;
         messageBot.execute(sendMessage, new Callback<SendMessage, SendResponse>() {
@@ -421,7 +421,7 @@ public class MoniElasticExecution extends AbstractQuartzJob {
                     try {
                         //继续发送正常消息
                         response = ScheduleUtils.sendMessage(bot, chatId, telegramInfo,
-                                ScheduleUtils.getInlineKeyboardMarkup(JOB_DETAIL_URL, LOG_DETAIL_URL, String.valueOf(moniElastic.getId()), String.valueOf(moniElasticLog.getId())));
+                                ScheduleUtils.getInlineKeyboardMarkup(JOB_DETAIL_URL, LOG_DETAIL_URL, String.valueOf(moniElastic.getId()), String.valueOf(moniElasticLog.getId()),moniElastic.getKibanaUrl()));
                         if (response.isOk()) {
                             //模板消息推送成功则删除上一个消息
                             ScheduleUtils.deleteMessage(messageBot, chatId, messageId);

@@ -183,6 +183,12 @@
         </div>
     </div>
     <div class="form-group">
+        <label class="col-sm-3 control-label">[[#{sql.job.kibana.url}]]：</label>
+        <div class="col-sm-9 form-control-static">
+            <pre th:text="${#strings.defaultString(job.kibanaUrl, '-')}"></pre>
+        </div>
+    </div>
+    <div class="form-group">
         <label class="col-sm-3 control-label">[[#{sql.job.script}]]：</label>
         <div class="col-sm-9 form-control-static">
             <pre th:text="${job.script}"></pre>

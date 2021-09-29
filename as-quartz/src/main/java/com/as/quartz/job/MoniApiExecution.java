@@ -292,7 +292,7 @@ public class MoniApiExecution extends AbstractQuartzJob {
 
         TelegramBot messageBot = new TelegramBot.Builder(bot).okHttpClient(OkHttpUtils.getInstance()).build();
         SendMessage sendMessage = new SendMessage(chatId, telegramInfoFirst).parseMode(ScheduleUtils.parseMode);
-        sendMessage.replyMarkup(ScheduleUtils.getInlineKeyboardMarkup(JOB_DETAIL_URL, LOG_DETAIL_URL, String.valueOf(moniApi.getId()), String.valueOf(moniApiLog.getId())));
+        sendMessage.replyMarkup(ScheduleUtils.getInlineKeyboardMarkup(JOB_DETAIL_URL, LOG_DETAIL_URL, String.valueOf(moniApi.getId()), String.valueOf(moniApiLog.getId()),null));
         serversLoadTimes = 0;
         messageBot.execute(sendMessage, new Callback<SendMessage, SendResponse>() {
             @Override
@@ -303,7 +303,7 @@ public class MoniApiExecution extends AbstractQuartzJob {
                     try {
                         //继续发送正常消息
                         response = ScheduleUtils.sendMessage(bot, chatId, telegramInfo,
-                                ScheduleUtils.getInlineKeyboardMarkup(JOB_DETAIL_URL, LOG_DETAIL_URL, String.valueOf(moniApi.getId()), String.valueOf(moniApiLog.getId())));
+                                ScheduleUtils.getInlineKeyboardMarkup(JOB_DETAIL_URL, LOG_DETAIL_URL, String.valueOf(moniApi.getId()), String.valueOf(moniApiLog.getId()),null));
                         if (response.isOk()) {
                             //正常消息推送成功则删除上一个消息
                             ScheduleUtils.deleteMessage(messageBot, chatId, messageId);
