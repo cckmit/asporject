@@ -400,7 +400,8 @@ public class MoniElasticExecution extends AbstractQuartzJob {
                     .replace("{operator}", operator)
                     .replace("{env}", StringUtils.isNotEmpty(SpringUtils.getActiveProfile()) ? Objects.requireNonNull(SpringUtils.getActiveProfile()) : "")
                     .replace("{descr}", ScheduleUtils.processStr(descr))
-                    .replace("{export}", StringUtils.isEmpty(exportInfo) ? "Export field is not set" : ScheduleUtils.processStr(exportInfo.toString()));
+                    .replace("{export}", StringUtils.isEmpty(exportInfo) ? "Export field is not set" : ScheduleUtils.processStr(exportInfo.toString()))
+                    .replace("{kibana_url}",ScheduleUtils.processStr(moniElastic.getKibanaUrl()));
 
         } else {
             telegramInfo = "*LOG Monitor ID\\(" + moniElastic.getId() + "\\),Notification content is not set*";

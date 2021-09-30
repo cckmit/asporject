@@ -131,7 +131,7 @@ public class ScheduleUtils {
         List<InlineKeyboardButton> Lists = new ArrayList<>();
         Lists.add(new InlineKeyboardButton("JOB Details").url(ASConfig.getAsDomain().concat(jobUrl).concat(jobId)));
         Lists.add(new InlineKeyboardButton("LOG Details").url(ASConfig.getAsDomain().concat(logUrl).concat(logId)));
-        Lists.add(kibanaUrl==null?null:new InlineKeyboardButton("Kibana Details").url(kibanaUrl));
+        Lists.add(new InlineKeyboardButton("Kibana Link").url(kibanaUrl));
         //陣列排序
         InlineKeyboardButton[][] Buttons;
         //判斷kibanaUrl為空值或是null

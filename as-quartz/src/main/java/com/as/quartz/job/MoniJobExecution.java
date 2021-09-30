@@ -469,7 +469,8 @@ public class MoniJobExecution extends AbstractQuartzJob {
                     .replace("{expect}", ScheduleUtils.processStr(moniJobLog.getExpectedResult()))
                     .replace("{operator}", operator)
                     .replace("{env}", StringUtils.isNotEmpty(SpringUtils.getActiveProfile()) ? Objects.requireNonNull(SpringUtils.getActiveProfile()) : "")
-                    .replace("{descr}", ScheduleUtils.processStr(descr));
+                    .replace("{descr}", ScheduleUtils.processStr(descr))
+                    .replace("{kibana_url}",ScheduleUtils.processStr(moniJob.getKibanaUrl()));
 
         } else {
             telegramInfo = "*DB Monitor ID\\(" + moniJob.getId() + "\\),Notification content is not set*";
