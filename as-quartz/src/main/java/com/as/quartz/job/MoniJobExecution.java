@@ -1,6 +1,5 @@
 package com.as.quartz.job;
 
-import com.as.common.config.ASConfig;
 import com.as.common.constant.Constants;
 import com.as.common.constant.DictTypeConstants;
 import com.as.common.constant.ScheduleConstants;
@@ -470,7 +469,7 @@ public class MoniJobExecution extends AbstractQuartzJob {
                     .replace("{operator}", operator)
                     .replace("{env}", StringUtils.isNotEmpty(SpringUtils.getActiveProfile()) ? Objects.requireNonNull(SpringUtils.getActiveProfile()) : "")
                     .replace("{descr}", ScheduleUtils.processStr(descr))
-                    .replace("{kibana_url}",ScheduleUtils.processStr(moniJob.getKibanaUrl()));
+                    .replace("{kibana_url}", ScheduleUtils.processStr(moniJob.getKibanaUrl()));
 
         } else {
             telegramInfo = "*DB Monitor ID\\(" + moniJob.getId() + "\\),Notification content is not set*";
@@ -507,7 +506,7 @@ public class MoniJobExecution extends AbstractQuartzJob {
                     try {
                         //继续发送正常消息
                         response = ScheduleUtils.sendMessage(bot, chatId, telegramInfo,
-                                ScheduleUtils.getInlineKeyboardMarkup(JOB_DETAIL_URL, LOG_DETAIL_URL, String.valueOf(moniJob.getId()), String.valueOf(moniJobLog.getId()),moniJob.getKibanaUrl()));
+                                ScheduleUtils.getInlineKeyboardMarkup(JOB_DETAIL_URL, LOG_DETAIL_URL, String.valueOf(moniJob.getId()), String.valueOf(moniJobLog.getId()), moniJob.getKibanaUrl()));
                         if (response.isOk()) {
 //                           //正常消息推送成功则删除上一个简短消息
                             ScheduleUtils.deleteMessage(messageBot, chatId, messageId);
@@ -518,10 +517,10 @@ public class MoniJobExecution extends AbstractQuartzJob {
                             //图片长宽不超过1500则发送图片，否则发送附件
                             if (width < 1500 && height < 1500) {
                                 response = ScheduleUtils.sendPhoto(bot, chatId, telegramInfo,
-                                        ScheduleUtils.getInlineKeyboardMarkup(JOB_DETAIL_URL, LOG_DETAIL_URL, String.valueOf(moniJob.getId()), String.valueOf(moniJobLog.getId()),moniJob.getKibanaUrl()), file);
+                                        ScheduleUtils.getInlineKeyboardMarkup(JOB_DETAIL_URL, LOG_DETAIL_URL, String.valueOf(moniJob.getId()), String.valueOf(moniJobLog.getId()), moniJob.getKibanaUrl()), file);
                             } else {
                                 response = ScheduleUtils.sendDocument(bot, chatId, telegramInfo,
-                                        ScheduleUtils.getInlineKeyboardMarkup(JOB_DETAIL_URL, LOG_DETAIL_URL, String.valueOf(moniJob.getId()), String.valueOf(moniJobLog.getId()),moniJob.getKibanaUrl()), file);
+                                        ScheduleUtils.getInlineKeyboardMarkup(JOB_DETAIL_URL, LOG_DETAIL_URL, String.valueOf(moniJob.getId()), String.valueOf(moniJobLog.getId()), moniJob.getKibanaUrl()), file);
                             }
 
                             if (response.isOk()) {
@@ -552,9 +551,7 @@ public class MoniJobExecution extends AbstractQuartzJob {
                 } else {
                     try {
                         TelegramBot failedBot = new TelegramBot.Builder(bot).okHttpClient(OkHttpUtils.getInstance()).build();
-                        String failedInfo = moniJob.getAsid() + ":" + moniJob.getEnName() + "/" + moniJob.getChName()
-                                + "\nExe time: " + DateUtils.parseDateToStr(DateUtils.YYYY_MM_DD_HH_MM_SS, moniJobLog.getStartTime())
-                                + "\nLOG Details:\n" + ASConfig.getAsDomain().concat(LOG_DETAIL_URL).concat(String.valueOf(moniJobLog.getId()));
+                        String failedInfo = moniJob.getAsid() + ":" + moniJob.getEnName() + "/" + moniJob.getChName();
                         SendMessage sendMessage = new SendMessage(chatId, failedInfo);
                         failedBot.execute(sendMessage);
                     } catch (Exception e1) {

@@ -450,9 +450,7 @@ public class MoniElasticExecution extends AbstractQuartzJob {
                 } else {
                     try {
                         TelegramBot failedBot = new TelegramBot.Builder(bot).okHttpClient(OkHttpUtils.getInstance()).build();
-                        String failedInfo = moniElastic.getAsid() + ": " + moniElastic.getEnName() + "/" + moniElastic.getChName()
-                                + "\nExe time: " + DateUtils.parseDateToStr(DateUtils.YYYY_MM_DD_HH_MM_SS, moniElasticLog.getStartTime())
-                                + "\nLOG Details:\n" + ASConfig.getAsDomain().concat(LOG_DETAIL_URL).concat(String.valueOf(moniElasticLog.getId()));
+                        String failedInfo = moniElastic.getAsid() + ": " + moniElastic.getEnName() + "/" + moniElastic.getChName();
                         SendMessage sendMessage = new SendMessage(chatId, failedInfo);
                         failedBot.execute(sendMessage);
                     } catch (Exception e1) {

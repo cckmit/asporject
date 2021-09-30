@@ -331,9 +331,7 @@ public class MoniApiExecution extends AbstractQuartzJob {
                 } else {
                     try {
                         TelegramBot failedBot = new TelegramBot.Builder(bot).okHttpClient(OkHttpUtils.getInstance()).build();
-                        String failedInfo = moniApi.getAsid() + ":" + moniApi.getEnName() + "/" + moniApi.getChName()
-                                + "\nExe time: " + DateUtils.parseDateToStr(DateUtils.YYYY_MM_DD_HH_MM_SS, moniApiLog.getStartTime())
-                                + "\nLOG Details:\n" + ASConfig.getAsDomain().concat(LOG_DETAIL_URL).concat(String.valueOf(moniApiLog.getId()));
+                        String failedInfo = moniApi.getAsid() + ":" + moniApi.getEnName() + "/" + moniApi.getChName();
                         SendMessage sendMessage = new SendMessage(chatId, failedInfo);
                         failedBot.execute(sendMessage);
                     } catch (Exception e1) {
