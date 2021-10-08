@@ -438,14 +438,16 @@ public class MoniJobExecution extends AbstractQuartzJob {
                         .replace("{asid}", moniJob.getAsid())
                         .replace("{zh_name}", ScheduleUtils.processStr(moniJob.getChName()))
                         .replace("{en_name}", ScheduleUtils.processStr(moniJob.getEnName()))
-                        .replace("{platform}", DictUtils.getDictLabel(DictTypeConstants.UB8_PLATFORM_TYPE, moniJob.getPlatform()));
+                        .replace("{platform}", DictUtils.getDictLabel(DictTypeConstants.UB8_PLATFORM_TYPE, moniJob.getPlatform()))
+                        .replace("{kibana_url}", ScheduleUtils.processStr(moniJob.getKibanaUrl()));
             } else {
                 descr = "descr is empty";
             }
 
             telegramInfoFirstBuilder.append("*__JobName:__*`{en_name}`/`{zh_name}`\n")
                     .append("*__MonitorID:__*`{id}`/`{asid}`\\(`{priority}`\\)\n")
-                    .append("*__Operator:__*`{operator}`\\[`{platform}`/`{env}`\\]");
+                    .append("*__Operator:__*`{operator}`\\[`{platform}`/`{env}`\\]\n")
+                    .append("*__Kibana:__*{kibana_url}");
 
             //备用推送消息，去除descr,一般descr太长会造成推送超时，缩短推送文本长度，遇到time out时推送此文本
             telegramInfoFirst = telegramInfoFirstBuilder.toString()
@@ -456,7 +458,8 @@ public class MoniJobExecution extends AbstractQuartzJob {
                     .replace("{zh_name}", ScheduleUtils.processStr(moniJob.getChName()))
                     .replace("{platform}", ScheduleUtils.processStr(DictUtils.getDictLabel(DictTypeConstants.UB8_PLATFORM_TYPE, moniJob.getPlatform())))
                     .replace("{operator}", operator)
-                    .replace("{env}", StringUtils.isNotEmpty(SpringUtils.getActiveProfile()) ? Objects.requireNonNull(SpringUtils.getActiveProfile()) : "");
+                    .replace("{env}", StringUtils.isNotEmpty(SpringUtils.getActiveProfile()) ? Objects.requireNonNull(SpringUtils.getActiveProfile()) : "")
+                    .replace("{kibana_url}", ScheduleUtils.processStr(moniJob.getKibanaUrl()));
 
             telegramInfo = telegramInfo.replace("{descr_template_job}", DictUtils.getDictRemark(DictTypeConstants.JOB_PUSH_TEMPLATE, Constants.DESCR_TEMPLATE_JOB))
                     .replace("{id}", String.valueOf(moniJob.getId()))

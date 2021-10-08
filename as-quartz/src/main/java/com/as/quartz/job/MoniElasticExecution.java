@@ -367,14 +367,16 @@ public class MoniElasticExecution extends AbstractQuartzJob {
                         .replace("{asid}", moniElastic.getAsid())
                         .replace("{zh_name}", ScheduleUtils.processStr(moniElastic.getChName()))
                         .replace("{en_name}", ScheduleUtils.processStr(moniElastic.getEnName()))
-                        .replace("{platform}", DictUtils.getDictLabel(DictTypeConstants.UB8_PLATFORM_TYPE, moniElastic.getPlatform()));
+                        .replace("{platform}", DictUtils.getDictLabel(DictTypeConstants.UB8_PLATFORM_TYPE, moniElastic.getPlatform()))
+                        .replace("{kibana_url}",ScheduleUtils.processStr(moniElastic.getKibanaUrl()));
             } else {
                 descr = "descr is empty";
             }
 
             telegramInfoFirstBuilder.append("*__JobName:__*`{en_name}`/`{zh_name}`\n")
                     .append("*__MonitorID:__*`{id}`/`{asid}`\\(`{priority}`\\)\n")
-                    .append("*__Operator:__*`{operator}`\\[`{platform}`/`{env}`\\]");
+                    .append("*__Operator:__*`{operator}`\\[`{platform}`/`{env}`\\]\n")
+                    .append("*__Kibana:__*{kibana_url}");
 
             //备用推送消息，去除descr,一般descr太长会造成推送超时，缩短推送文本长度，遇到time out时推送此文本
             telegramInfoFirst = telegramInfoFirstBuilder.toString()
@@ -385,7 +387,8 @@ public class MoniElasticExecution extends AbstractQuartzJob {
                     .replace("{zh_name}", ScheduleUtils.processStr(moniElastic.getChName()))
                     .replace("{platform}", ScheduleUtils.processStr(DictUtils.getDictLabel(DictTypeConstants.UB8_PLATFORM_TYPE, moniElastic.getPlatform())))
                     .replace("{operator}", operator)
-                    .replace("{env}", StringUtils.isNotEmpty(SpringUtils.getActiveProfile()) ? Objects.requireNonNull(SpringUtils.getActiveProfile()) : "");
+                    .replace("{env}", StringUtils.isNotEmpty(SpringUtils.getActiveProfile()) ? Objects.requireNonNull(SpringUtils.getActiveProfile()) : "")
+                    .replace("{kibana_url}",ScheduleUtils.processStr(moniElastic.getKibanaUrl()));
 
 
             telegramInfo = telegramInfo.replace("{descr_template_elastic}", DictUtils.getDictRemark(DictTypeConstants.JOB_PUSH_TEMPLATE, Constants.DESCR_TEMPLATE_ELASTIC))
