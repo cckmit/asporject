@@ -171,6 +171,7 @@ public class MoniApiExecution extends AbstractQuartzJob {
     protected void after(JobExecutionContext context, Object job, Exception e) {
         if (e != null) {
             moniApiLog.setStatus(Constants.ERROR);
+            moniApiLog.setIsAlert(Constants.YES);
             moniApiLog.setAlertStatus(Constants.SUCCESS);
             moniApiLog.setExceptionLog(ExceptionUtil.getExceptionMessage(e));
         }
@@ -329,18 +330,18 @@ public class MoniApiExecution extends AbstractQuartzJob {
                     resendBot.execute(sendMessage, this);
                     log.error("API jobId：{},JobName：{},推送内容：{},telegram信息超时重发,第{}次", moniApi.getId(), moniApi.getChName(), telegramInfoFirst, serversLoadTimes);
                 } else {
+                    String failedInfo = moniApi.getAsid() + ":" + moniApi.getEnName() + "/" + moniApi.getChName();
                     try {
                         TelegramBot failedBot = new TelegramBot.Builder(bot).okHttpClient(OkHttpUtils.getInstance()).build();
-                        String failedInfo = moniApi.getAsid() + ":" + moniApi.getEnName() + "/" + moniApi.getChName();
                         SendMessage sendMessage = new SendMessage(chatId, failedInfo);
                         failedBot.execute(sendMessage);
                     } catch (Exception e1) {
                         MoniApiLog jobLog = new MoniApiLog();
                         jobLog.setId(moniApiLog.getId());
                         jobLog.setStatus(Constants.ERROR);
-                        jobLog.setExceptionLog("Telegram send message error: ".concat(ExceptionUtil.getExceptionMessage(e)));
+                        jobLog.setExceptionLog("Telegram send message error: ".concat(ExceptionUtil.getExceptionMessage(e1)));
                         SpringUtils.getBean(IMoniApiLogService.class).updateMoniApiLog(jobLog);
-                        log.error("API jobId：{},JobName：{},推送内容：{},telegram发送信息异常,{}", moniApi.getId(), moniApi.getChName(), telegramInfoFirst, ExceptionUtil.getExceptionMessage(e1));
+                        log.error("API jobId：{},JobName：{},推送内容：{},telegram发送信息异常,{}", moniApi.getId(), moniApi.getChName(), failedInfo, ExceptionUtil.getExceptionMessage(e1));
                     }
                 }
             }

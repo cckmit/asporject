@@ -340,24 +340,6 @@ public class SysUserServiceImpl implements ISysUserService
     }
 
     /**
-     * 校验手机号码是否唯一
-     *
-     * @param user 用户信息
-     * @return
-     */
-//    @Override
-//    public String checkPhoneUnique(SysUser user)
-//    {
-//        Long userId = StringUtils.isNull(user.getUserId()) ? -1L : user.getUserId();
-//        SysUser info = userMapper.checkPhoneUnique(user.getPhonenumber());
-//        if (StringUtils.isNotNull(info) && info.getUserId().longValue() != userId.longValue())
-//        {
-//            return UserConstants.USER_PHONE_NOT_UNIQUE;
-//        }
-//        return UserConstants.USER_PHONE_UNIQUE;
-//    }
-
-    /**
      * 校验email是否唯一
      *
      * @param user 用户信息

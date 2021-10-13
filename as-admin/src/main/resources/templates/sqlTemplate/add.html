@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" >
+<head>
+    <th:block th:include="include :: header('新增SQL模板')" />
+</head>
+<body>
+    <div class="main-content">
+        <form autocomplete="off" id="form-sqlTemplate-add" class="form-horizontal">
+            <h4 class="form-header h4">[[#{user.add.basic.information}]]</h4>
+            <div class="row">
+                <div class="col-sm-10">
+                    <div class="form-group">
+                        <label class="col-xs-2 control-label is-required">SCRIPT：</label>
+                        <div class="col-xs-10">
+                            <textarea name="script" class="form-control" rows="10" required></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-5">
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label is-required">[[#{sql.template.ch.name}]]：</label>
+                        <div class="col-sm-8">
+                            <input name="chName" class="form-control" type="text" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-5">
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label is-required">[[#{sql.template.en.name}]]：</label>
+                        <div class="col-sm-8">
+                            <input name="enName" class="form-control" type="text" required>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row" id="select-platform-jdbc">
+                <div class="col-sm-5">
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label is-required">[[#{sql.job.platform}]]：</label>
+                        <div class="col-sm-8">
+                            <select name="platform"  class="platform form-control m-b" required></select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-5">
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label is-required">JDBC：</label>
+                        <div class="col-sm-8">
+                            <select name="jdbc" class="jdbc form-control m-b" required></select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-sm-10">
+                    <div class="form-group">
+                        <label class="col-xs-2 control-label is-required">[[#{sql.template.status}]]：</label>
+                        <div class="col-xs-10">
+                            <label class="toggle-switch switch-solid">
+                                <input type="checkbox" id="status" checked required>
+                                <span></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-sm-10">
+                    <div class="form-group">
+                        <label class="col-xs-2 control-label">[[#{sql.template.role}]]：</label>
+                        <div class="col-xs-10">
+                            <label th:each="role:${roles}" class="check-box">
+                                <input name="role" type="checkbox" th:value="${role.roleId}" th:text="${role.roleName}" th:disabled="${role.status == '1'}">
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <h4 class="form-header h4">[[#{sql.template.value.params}]]</h4>
+
+            <div id="valueParams">
+                <div class="row">
+                    <div class="col-sm-10">
+                        <div class="form-group">
+                            <button onclick="addValueParams()" type="button" class="btn btn-sm btn-primary pull-right">+</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <h4 class="form-header h4">[[#{user.add.other.information}]]</h4>
+            <div class="row">
+                <div class="col-sm-10">
+                    <div class="form-group">
+                        <label class="col-xs-2 control-label">[[#{user.add.remark}]]：</label>
+                        <div class="col-xs-10">
+                            <textarea name="remark" maxlength="500" class="form-control" rows="3"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="row">
+        <div class="col-sm-offset-5 col-sm-10">
+            <button type="button" class="btn btn-sm btn-primary" onclick="submitHandler()"><i class="fa fa-check"></i>[[#{user.save}]]</button>&nbsp;
+            <button type="button" class="btn btn-sm btn-danger" onclick="closeItem()"><i class="fa fa-reply-all"></i>[[#{user.close}]] </button>
+        </div>
+    </div>
+
+    <th:block th:include="include :: footer" />
+    <th:block th:include="include :: jquery-cxselect-js" />
+    <script th:inline="javascript">
+        var PF1JDBCDatas = [[${@dict.getType('pf1_data_base_source')}]];
+        var PF2JDBCDatas = [[${@dict.getType('pf2_data_base_source')}]];
+        var ASJDBCDatas = [[${@dict.getType('as_data_base_source')}]];
+        var prefix = ctx + "as/sqlTemplate"
+
+        // 联动下拉框
+        $('#select-platform-jdbc').cxSelect({
+            selects: ['platform', 'jdbc'],
+            required: true,
+            jsonValue: 'dictValue',
+            jsonName: 'dictLabel',
+            data: [
+                {'dictValue': '1.0', 'dictLabel': 'Platform 1.0', 's': PF1JDBCDatas},
+                {'dictValue': '5.0', 'dictLabel': 'Platform 5.0', 's': PF2JDBCDatas},
+                {'dictValue': 'AS', 'dictLabel': 'Platform AS', 's': ASJDBCDatas},
+            ]
+        });
+
+        $("#form-sqlTemplate-add").validate({
+            focusCleanup: true
+        });
+
+        function submitHandler() {
+            if ($.validate.form()) {
+                var data = $("#form-sqlTemplate-add").serializeArray();
+                var status = $("input[id='status']").is(':checked') == true ? 0 : 1;
+                var roleIds = $.form.selectCheckeds("role");
+                data.push({"name": "status", "value": status});
+                data.push({"name": "roleIds", "value": roleIds});
+                $.operate.saveTab(prefix + "/add", data);
+            }
+        }
+        var valueParam_index = 1;
+        $(function (){
+            addValueParams()
+        })
+        function addValueParams(){
+            var valueParams = '<div id="valueParams_' + valueParam_index +'">' +
+                '                    <div class="row">' +
+                '                        <div class="col-sm-5">' +
+                '                            <div class="form-group">' +
+                '                                <label class="col-sm-4 control-label is-required">'+ i18n('sql.template.value.name') +'：</label>' +
+                '                                <div class="col-sm-8">' +
+                '<div class="input-group m-b">' +
+                '                        <div class="input-group-btn">' +
+                '                            <select name="values['+ (valueParam_index - 1) +'].matchType" class="form-control m-b"' +
+                '                                    style="width:70px;padding:0px 10px;appearance:none;-moz-appearance:none;-webkit-appearance:none;' +
+                '                                    background:url(data:image/jpg;base64,/9j/4QAYRXhpZgAASUkqAAgAAAAAAAAAAAAAAP/sABFEdWNreQABAAQAAAA8AAD/4QMraHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wLwA8P3hwYWNrZXQgYmVnaW49Iu+7vyIgaWQ9Ilc1TTBNcENlaGlIenJlU3pOVGN6a2M5ZCI/PiA8eDp4bXBtZXRhIHhtbG5zOng9ImFkb2JlOm5zOm1ldGEvIiB4OnhtcHRrPSJBZG9iZSBYTVAgQ29yZSA1LjMtYzAxMSA2Ni4xNDU2NjEsIDIwMTIvMDIvMDYtMTQ6NTY6MjcgICAgICAgICI+IDxyZGY6UkRGIHhtbG5zOnJkZj0iaHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyI+IDxyZGY6RGVzY3JpcHRpb24gcmRmOmFib3V0PSIiIHhtbG5zOnhtcD0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wLyIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bXA6Q3JlYXRvclRvb2w9IkFkb2JlIFBob3Rvc2hvcCBDUzYgKFdpbmRvd3MpIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjE3MDBDMTIwOEM1RjExRTY5OURFQjNEMzU1OTYzQzczIiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOjE3MDBDMTIxOEM1RjExRTY5OURFQjNEMzU1OTYzQzczIj4gPHhtcE1NOkRlcml2ZWRGcm9tIHN0UmVmOmluc3RhbmNlSUQ9InhtcC5paWQ6MTcwMEMxMUU4QzVGMTFFNjk5REVCM0QzNTU5NjNDNzMiIHN0UmVmOmRvY3VtZW50SUQ9InhtcC5kaWQ6MTcwMEMxMUY4QzVGMTFFNjk5REVCM0QzNTU5NjNDNzMiLz4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz7/7gAOQWRvYmUAZMAAAAAB/9sAhAAGBAQEBQQGBQUGCQYFBgkLCAYGCAsMCgoLCgoMEAwMDAwMDBAMDg8QDw4MExMUFBMTHBsbGxwfHx8fHx8fHx8fAQcHBw0MDRgQEBgaFREVGh8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx//wAARCAAyAB4DAREAAhEBAxEB/8QAbgABAQEBAQEAAAAAAAAAAAAABAAHBgUIAQEBAAMAAAAAAAAAAAAAAAAAAwECBBAAAgEDAQYFBQAAAAAAAAAAAQIAAwQFETGyczUGByFhEhMjUTJyYxQRAQADAQEAAAAAAAAAAAAAAAABEQIDMf/aAAwDAQACEQMRAD8A+i8dy+24SbogIgUCgHx3L7bhJuiAiBQKAS0R3xVFEqGk7UFC1VAJUlAAwDArqPMQMA6h7j91MFmbvFXmW0rWrlfV/NagMu1XHxbGUgidEYzMOTXTUTTt+0Gf686juLnI5jImriLYe0lL2aCe7WI1+5Katoi+J0O0jzmnSIjxXlrU+tTklh8dy+24SbogZ93e7d3HUa2WRxVMHJ0nS3rDZ6qFRtAxP6mOv4k/SU57pHrzvx2/TmCs8DhbTFWg+G2QKX00LufF3PmzEmaTNyrnNRT0phkfHcvtuEm6ICIFAoB8dy+24SbogIgUCgHx3L7bhJuiAiBQKB//2Q0K)\n' +
+                '                                    no-repeat right center;background-color: #eee;background-size:20%;" required>' +
+                '                                <option value="equal">'+ i18n('sql.template.equal') +'</option>' +
+                '                                <option value="in">'+ i18n('sql.template.in') +'</option>' +
+                '                            </select>' +
+                '                        </div>' +
+                '                                    <input name="values['+ (valueParam_index - 1) +'].templateValue" class="form-control" type="text" required>' +
+                '                    </div>' +
+                '                                </div>' +
+                '                            </div>' +
+                '                        </div>' +
+                '                        <div class="col-sm-5">' +
+                '                            <div class="form-group">' +
+                '                                <label class="col-sm-4 control-label is-required">'+ i18n('sql.template.value.type') +'：</label>' +
+                '                                <div class="col-sm-8">' +
+                '                                    <select name="values['+ (valueParam_index - 1) +'].htmlType" class="form-control m-b" >' +
+                '                                        <option value="input" selected>'+ i18n('sql.template.value.input') +'</option>' +
+                '                                        <option value="dateTime">'+ i18n('sql.template.value.date') +'</option>' +
+                '                                    </select>' +
+                '                                </div>' +
+                '                            </div>' +
+                '                        </div>' +
+                '                    </div>' +
+                '                    <div class="row">' +
+                '                        <div class="col-sm-5">' +
+                '                            <div class="form-group">' +
+                '                                <label class="col-sm-4 control-label is-required">'+ i18n('sql.template.value.ch.name') +'：</label>' +
+                '                                <div class="col-sm-8">' +
+                '                                    <input name="values['+ (valueParam_index - 1) +'].valueChName" class="form-control" type="text" required>' +
+                '                                </div>' +
+                '                            </div>' +
+                '                        </div>' +
+                '                        <div class="col-sm-5">' +
+                '                            <div class="form-group">' +
+                '                                <label class="col-sm-4 control-label is-required">'+ i18n('sql.template.value.en.name') +'：</label>' +
+                '                                <div class="col-sm-8">' +
+                '                                    <input name="values['+ (valueParam_index - 1) +'].valueEnName" class="form-control" type="text" required>' +
+                '                                </div>' +
+                '                            </div>' +
+                '                        </div>' +
+                '                    </div>' +
+                '                    <div class="row">' +
+                '                        <div class="col-sm-5">' +
+                '                            <div class="form-group">' +
+                '                                <label class="col-sm-4 control-label">'+ i18n('sql.template.value.ch.placeholder') +'：</label>' +
+                '                                <div class="col-sm-8">' +
+                '                                    <input name="values['+ (valueParam_index - 1) +'].chPlaceholder" class="form-control" type="text">' +
+                '                                </div>' +
+                '                            </div>' +
+                '                        </div>' +
+                '                        <div class="col-sm-5">' +
+                '                            <div class="form-group">' +
+                '                                <label class="col-sm-4 control-label">'+ i18n('sql.template.value.en.placeholder') +'：</label>' +
+                '                                <div class="col-sm-8">' +
+                '                                    <input name="values['+ (valueParam_index - 1) +'].enPlaceholder" class="form-control" type="text">' +
+                '                                </div>' +
+                '                            </div>' +
+                '                        </div>' +
+                '                        <div class="col-sm-2">' +
+                '                            <button onclick="delValueParams(id)" id="del_valueParams_'+ valueParam_index +'" type="button" class="btn btn-sm btn-danger">-</button>' +
+                '                        </div>' +
+                '                    </div>' +
+                '                </div>'
+            $("#valueParams").append(valueParams);
+            valueParam_index++
+        }
+
+        function delValueParams(id){
+            var aa = id.split("_")
+            var ids = aa[1]+"_"+aa[2]
+            var enuParams = document.getElementById("valueParams")
+            enuParams.removeChild(document.getElementById(ids))
+            valueParam_index--
+        }
+    </script>
+</body>
+</html>

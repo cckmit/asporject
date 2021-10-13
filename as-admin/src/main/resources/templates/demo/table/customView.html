@@ -108,7 +108,7 @@
             var view = ''
             $.each(data, function (i, row) {
               view += template.replace('%userCode%', row.userCode)
-                .replace('%IMAGE%', "profile.jpg")
+                .replace('%IMAGE%', "/img/profile.jpg")
                 .replace('%userName%', row.userName)
                 .replace('%userEmail%', row.userEmail)
                 .replace('%userPhone%', row.userPhone)

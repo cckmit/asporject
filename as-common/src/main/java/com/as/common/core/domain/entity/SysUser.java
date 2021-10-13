@@ -345,7 +345,6 @@ public class SysUser extends BaseEntity
             .append("userName", getUserName())
             .append("userType", getUserType())
             .append("email", getEmail())
-//            .append("phonenumber", getPhonenumber())
             .append("sex", getSex())
             .append("avatar", getAvatar())
             .append("password", getPassword())

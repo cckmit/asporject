@@ -177,6 +177,7 @@ public class MoniJobExecution extends AbstractQuartzJob {
     protected void after(JobExecutionContext context, Object job, Exception e) {
         if (e != null) {
             moniJobLog.setStatus(Constants.ERROR);
+            moniJobLog.setIsAlert(Constants.YES);
             moniJobLog.setAlertStatus(Constants.SUCCESS);
             moniJobLog.setExceptionLog(ExceptionUtil.getExceptionMessage(e));
         }
@@ -439,15 +440,14 @@ public class MoniJobExecution extends AbstractQuartzJob {
                         .replace("{zh_name}", ScheduleUtils.processStr(moniJob.getChName()))
                         .replace("{en_name}", ScheduleUtils.processStr(moniJob.getEnName()))
                         .replace("{platform}", DictUtils.getDictLabel(DictTypeConstants.UB8_PLATFORM_TYPE, moniJob.getPlatform()))
-                        .replace("{kibana_url}", StringUtils.isNotEmpty(moniJob.getKibanaUrl())?ScheduleUtils.processStr(moniJob.getKibanaUrl()):"");
+                        .replace("{kibana_url}", StringUtils.isNotEmpty(moniJob.getKibanaUrl()) ? ScheduleUtils.processStr(moniJob.getKibanaUrl()) : "");
             } else {
                 descr = "descr is empty";
             }
 
             telegramInfoFirstBuilder.append("*__JobName:__*`{en_name}`/`{zh_name}`\n")
                     .append("*__MonitorID:__*`{id}`/`{asid}`\\(`{priority}`\\)\n")
-                    .append("*__Operator:__*`{operator}`\\[`{platform}`/`{env}`\\]\n")
-                    .append(StringUtils.isNotEmpty(moniJob.getKibanaUrl())?"*__Kibana:__*{kibana_url}":"");
+                    .append("*__Operator:__*`{operator}`\\[`{platform}`/`{env}`\\]\n");
 
             //备用推送消息，去除descr,一般descr太长会造成推送超时，缩短推送文本长度，遇到time out时推送此文本
             telegramInfoFirst = telegramInfoFirstBuilder.toString()
@@ -458,8 +458,7 @@ public class MoniJobExecution extends AbstractQuartzJob {
                     .replace("{zh_name}", ScheduleUtils.processStr(moniJob.getChName()))
                     .replace("{platform}", ScheduleUtils.processStr(DictUtils.getDictLabel(DictTypeConstants.UB8_PLATFORM_TYPE, moniJob.getPlatform())))
                     .replace("{operator}", operator)
-                    .replace("{env}", StringUtils.isNotEmpty(SpringUtils.getActiveProfile()) ? Objects.requireNonNull(SpringUtils.getActiveProfile()) : "")
-                    .replace("{kibana_url}", StringUtils.isNotEmpty(moniJob.getKibanaUrl())?ScheduleUtils.processStr(moniJob.getKibanaUrl()):"");
+                    .replace("{env}", StringUtils.isNotEmpty(SpringUtils.getActiveProfile()) ? Objects.requireNonNull(SpringUtils.getActiveProfile()) : "");
 
             telegramInfo = telegramInfo.replace("{descr_template_job}", DictUtils.getDictRemark(DictTypeConstants.JOB_PUSH_TEMPLATE, Constants.DESCR_TEMPLATE_JOB))
                     .replace("{id}", String.valueOf(moniJob.getId()))
@@ -472,7 +471,7 @@ public class MoniJobExecution extends AbstractQuartzJob {
                     .replace("{operator}", operator)
                     .replace("{env}", StringUtils.isNotEmpty(SpringUtils.getActiveProfile()) ? Objects.requireNonNull(SpringUtils.getActiveProfile()) : "")
                     .replace("{descr}", ScheduleUtils.processStr(descr))
-                    .replace("{kibana_url}", StringUtils.isNotEmpty(moniJob.getKibanaUrl())?ScheduleUtils.processStr(moniJob.getKibanaUrl()):"");
+                    .replace("{kibana_url}", StringUtils.isNotEmpty(moniJob.getKibanaUrl()) ? ScheduleUtils.processStr(moniJob.getKibanaUrl()) : "");
 
         } else {
             telegramInfo = "*DB Monitor ID\\(" + moniJob.getId() + "\\),Notification content is not set*";
@@ -552,18 +551,18 @@ public class MoniJobExecution extends AbstractQuartzJob {
                     resendBot.execute(sendMessage, this);
                     log.error("DB jobId：{},JobName：{},推送内容：{},telegram信息超时重发,第{}次", moniJob.getId(), moniJob.getChName(), telegramInfoFirst, serversLoadTimes);
                 } else {
+                    String failedInfo = moniJob.getAsid() + ":" + moniJob.getEnName() + "/" + moniJob.getChName();
                     try {
                         TelegramBot failedBot = new TelegramBot.Builder(bot).okHttpClient(OkHttpUtils.getInstance()).build();
-                        String failedInfo = moniJob.getAsid() + ":" + moniJob.getEnName() + "/" + moniJob.getChName();
                         SendMessage sendMessage = new SendMessage(chatId, failedInfo);
                         failedBot.execute(sendMessage);
                     } catch (Exception e1) {
                         MoniJobLog jobLog = new MoniJobLog();
                         jobLog.setId(moniJobLog.getId());
                         jobLog.setStatus(Constants.ERROR);
-                        jobLog.setExceptionLog("Telegram send message error: ".concat(ExceptionUtil.getExceptionMessage(e)));
+                        jobLog.setExceptionLog("Telegram send message error: ".concat(ExceptionUtil.getExceptionMessage(e1)));
                         SpringUtils.getBean(IMoniJobLogService.class).updateJobLog(jobLog);
-                        log.error("DB jobId：{},JobName：{},推送内容：{},telegram发送信息异常,{}", moniJob.getId(), moniJob.getChName(), telegramInfoFirst, ExceptionUtil.getExceptionMessage(e1));
+                        log.error("DB jobId：{},JobName：{},推送内容：{},telegram发送信息异常,{}", moniJob.getId(), moniJob.getChName(), failedInfo, ExceptionUtil.getExceptionMessage(e1));
                     }
                 }
             }

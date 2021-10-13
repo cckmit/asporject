@@ -37,6 +37,14 @@ public interface ISysRoleService
     public List<SysRole> selectRolesByUserId(Long userId);
 
     /**
+     * 根据模板ID查询角色
+     *
+     * @param templateId 模板ID
+     * @return 角色列表
+     */
+    public List<SysRole> selectRolesByTemplateId(Long templateId);
+
+    /**
      * 查询所有角色
      * 
      * @return 角色列表

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <th:block th:include="include :: header('SQL模板列表')" />
+</head>
+<body class="gray-bg">
+     <div class="container-div">
+        <div class="row">
+            <div class="col-sm-12 search-collapse">
+                <form autocomplete="off" id="form-template" th:object="${sqlTemplate}">
+                    <input name="sqlTemplateId" th:value="*{id}" type="hidden">
+                    <div class="select-list">
+                        <ul>
+                            <li th:each="value : ${sqlTemplate.values}" th:class="${value.htmlType == 'dateTime'} ? 'select-time' : ''" >
+                                <label>[[${locale == 'zh_CN'} ? ${value.valueChName} : ${value.valueEnName}]]：</label>
+                                <input th:if="${value.htmlType == 'input'}" type="text" th:name="${value.templateValue}" th:placeholder="${locale == 'zh_CN'} ? ${value.chPlaceholder} : ${value.enPlaceholder}" required/>
+                                <input th:if="${value.htmlType == 'dateTime'}" type="text" class="time-input" th:name="${value.templateValue}" th:placeholder="${locale == 'zh_CN'} ? ${value.chPlaceholder} : ${value.enPlaceholder}" required/>
+                            </li>
+                            <li>
+                                <a class="btn btn-primary btn-rounded btn-sm" onclick="tableSearch()"><i class="fa fa-search"></i>&nbsp;[[#{common.query}]]</a>
+                                <a th:if="${not #lists.isEmpty(sqlTemplate.values)}" class="btn btn-warning btn-rounded btn-sm" onclick="$.form.reset()"><i class="fa fa-refresh"></i>&nbsp;[[#{common.reset}]]</a>
+                            </li>
+                        </ul>
+                    </div>
+                </form>
+            </div>
+            <div class="col-sm-12 select-table table-striped">
+                <table id="bootstrap-table"></table>
+            </div>
+        </div>
+    </div>
+    <th:block th:include="include :: footer" />
+     <th:block th:include="include :: datetimepicker-js" />
+    <script th:inline="javascript">
+        var editFlag = [[${@permission.hasPermi('as:sqlTemplate:edit')}]];
+        var statusFlag = [[${@permission.hasPermi('as:sqlTemplate:changeStatus')}]];
+        var removeFlag = [[${@permission.hasPermi('as:sqlTemplate:remove')}]];
+        var useFlag = [[${@permission.hasPermi('as:sqlTemplate:use')}]];
+        var statusDatas = [[${@dict.getType('sys_normal_disable')}]];
+        var platformDatas = [[${@dict.getType('ub8_platform_type')}]];
+        var jdbcDatas = [[${@dict.getType('pf2_data_base_source')}]];
+        var prefix = ctx + "as/sqlTemplate";
+
+        // 动态获取列
+        function ajaxColumns() {
+            var url = prefix + "/ajaxColumns";
+            var dataParam = $.common.formToJSON("form-template")
+            $.modal.loading(i18n('common.query.loading'));
+            $.post(url, dataParam, function(result) {
+                if (result.code == web_status.SUCCESS) {
+                    setColumns(result.data);
+                } else if (result.code == web_status.WARNING) {
+                    $.modal.alertWarning(result.msg)
+                } else {
+                    $.modal.alertError(result.msg);
+                }
+                $.modal.closeLoading();
+            });
+        }
+        // 设置列
+        function setColumns(list) {
+            var columns = [];
+            list.forEach(function(item) {
+                columns.push({
+                    field : item,
+                    title : item,
+                    halign: 'center',
+                    cellStyle: {
+                        css:{"white-space":"nowrap"}
+                    },
+                })
+            });
+            if(!table.get(table.options.id)){
+                initTable(columns);
+            } else {
+                refreshTable(columns);
+            }
+        }
+        // 刷新表格
+        function refreshTable(columns) {
+            var options = {
+                columns: columns
+            };
+            $("#" + table.options.id).bootstrapTable('refreshOptions',options);
+        }
+
+        // 初始化表格
+        function initTable(columns){
+            var options = {
+                url: prefix + "/query",
+                firstLoad: true,
+                showExport: true,
+                striped: true,
+                showRefresh : false,
+                showToggle: false,
+                modalName: i18n('sql.template'),
+                columns: columns
+            };
+            $.table.init(options);
+        }
+
+        // 搜索
+        function tableSearch(){
+            if ($.validate.form()){
+                ajaxColumns();
+            }
+        }
+    </script>
+</body>
+</html>

@@ -2,7 +2,6 @@ package com.as.quartz.job;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.as.common.config.ASConfig;
 import com.as.common.constant.Constants;
 import com.as.common.constant.DictTypeConstants;
 import com.as.common.constant.ScheduleConstants;
@@ -263,6 +262,7 @@ public class MoniElasticExecution extends AbstractQuartzJob {
     protected void after(JobExecutionContext context, Object job, Exception e) {
         if (e != null) {
             moniElasticLog.setStatus(Constants.ERROR);
+            moniElasticLog.setIsAlert(Constants.YES);
             moniElasticLog.setAlertStatus(Constants.SUCCESS);
             moniElasticLog.setExceptionLog(ExceptionUtil.getExceptionMessage(e));
         }
@@ -368,15 +368,14 @@ public class MoniElasticExecution extends AbstractQuartzJob {
                         .replace("{zh_name}", ScheduleUtils.processStr(moniElastic.getChName()))
                         .replace("{en_name}", ScheduleUtils.processStr(moniElastic.getEnName()))
                         .replace("{platform}", DictUtils.getDictLabel(DictTypeConstants.UB8_PLATFORM_TYPE, moniElastic.getPlatform()))
-                        .replace("{kibana_url}",StringUtils.isNotEmpty(moniElastic.getKibanaUrl())?ScheduleUtils.processStr(moniElastic.getKibanaUrl()):"");
+                        .replace("{kibana_url}", StringUtils.isNotEmpty(moniElastic.getKibanaUrl()) ? ScheduleUtils.processStr(moniElastic.getKibanaUrl()) : "");
             } else {
                 descr = "descr is empty";
             }
 
             telegramInfoFirstBuilder.append("*__JobName:__*`{en_name}`/`{zh_name}`\n")
                     .append("*__MonitorID:__*`{id}`/`{asid}`\\(`{priority}`\\)\n")
-                    .append("*__Operator:__*`{operator}`\\[`{platform}`/`{env}`\\]\n")
-                    .append(StringUtils.isNotEmpty(moniElastic.getKibanaUrl())?"*__Kibana:__*{kibana_url}":"");
+                    .append("*__Operator:__*`{operator}`\\[`{platform}`/`{env}`\\]\n");
 
             //备用推送消息，去除descr,一般descr太长会造成推送超时，缩短推送文本长度，遇到time out时推送此文本
             telegramInfoFirst = telegramInfoFirstBuilder.toString()
@@ -387,8 +386,7 @@ public class MoniElasticExecution extends AbstractQuartzJob {
                     .replace("{zh_name}", ScheduleUtils.processStr(moniElastic.getChName()))
                     .replace("{platform}", ScheduleUtils.processStr(DictUtils.getDictLabel(DictTypeConstants.UB8_PLATFORM_TYPE, moniElastic.getPlatform())))
                     .replace("{operator}", operator)
-                    .replace("{env}", StringUtils.isNotEmpty(SpringUtils.getActiveProfile()) ? Objects.requireNonNull(SpringUtils.getActiveProfile()) : "")
-                    .replace("{kibana_url}",StringUtils.isNotEmpty(moniElastic.getKibanaUrl())?ScheduleUtils.processStr(moniElastic.getKibanaUrl()):"");
+                    .replace("{env}", StringUtils.isNotEmpty(SpringUtils.getActiveProfile()) ? Objects.requireNonNull(SpringUtils.getActiveProfile()) : "");
 
 
             telegramInfo = telegramInfo.replace("{descr_template_elastic}", DictUtils.getDictRemark(DictTypeConstants.JOB_PUSH_TEMPLATE, Constants.DESCR_TEMPLATE_ELASTIC))
@@ -404,7 +402,7 @@ public class MoniElasticExecution extends AbstractQuartzJob {
                     .replace("{env}", StringUtils.isNotEmpty(SpringUtils.getActiveProfile()) ? Objects.requireNonNull(SpringUtils.getActiveProfile()) : "")
                     .replace("{descr}", ScheduleUtils.processStr(descr))
                     .replace("{export}", StringUtils.isEmpty(exportInfo) ? "Export field is not set" : ScheduleUtils.processStr(exportInfo.toString()))
-                    .replace("{kibana_url}",StringUtils.isNotEmpty(moniElastic.getKibanaUrl())?ScheduleUtils.processStr(moniElastic.getKibanaUrl()):"");
+                    .replace("{kibana_url}", StringUtils.isNotEmpty(moniElastic.getKibanaUrl()) ? ScheduleUtils.processStr(moniElastic.getKibanaUrl()) : "");
 
         } else {
             telegramInfo = "*LOG Monitor ID\\(" + moniElastic.getId() + "\\),Notification content is not set*";
@@ -413,7 +411,7 @@ public class MoniElasticExecution extends AbstractQuartzJob {
 
         TelegramBot messageBot = new TelegramBot.Builder(bot).okHttpClient(OkHttpUtils.getInstance()).build();
         SendMessage sendMessage = new SendMessage(chatId, telegramInfoFirst).parseMode(ScheduleUtils.parseMode);
-        sendMessage.replyMarkup(ScheduleUtils.getInlineKeyboardMarkup(JOB_DETAIL_URL, LOG_DETAIL_URL, String.valueOf(moniElastic.getId()), String.valueOf(moniElasticLog.getId()),moniElastic.getKibanaUrl()));
+        sendMessage.replyMarkup(ScheduleUtils.getInlineKeyboardMarkup(JOB_DETAIL_URL, LOG_DETAIL_URL, String.valueOf(moniElastic.getId()), String.valueOf(moniElasticLog.getId()), moniElastic.getKibanaUrl()));
 
         serversLoadTimes = 0;
         messageBot.execute(sendMessage, new Callback<SendMessage, SendResponse>() {
@@ -425,7 +423,7 @@ public class MoniElasticExecution extends AbstractQuartzJob {
                     try {
                         //继续发送正常消息
                         response = ScheduleUtils.sendMessage(bot, chatId, telegramInfo,
-                                ScheduleUtils.getInlineKeyboardMarkup(JOB_DETAIL_URL, LOG_DETAIL_URL, String.valueOf(moniElastic.getId()), String.valueOf(moniElasticLog.getId()),moniElastic.getKibanaUrl()));
+                                ScheduleUtils.getInlineKeyboardMarkup(JOB_DETAIL_URL, LOG_DETAIL_URL, String.valueOf(moniElastic.getId()), String.valueOf(moniElasticLog.getId()), moniElastic.getKibanaUrl()));
                         if (response.isOk()) {
                             //模板消息推送成功则删除上一个消息
                             ScheduleUtils.deleteMessage(messageBot, chatId, messageId);
@@ -451,18 +449,18 @@ public class MoniElasticExecution extends AbstractQuartzJob {
                     resendBot.execute(sendMessage, this);
                     log.error("Log jobId：{},JobName：{},推送内容：{},telegram信息超时重发,第{}次", moniElastic.getId(), moniElastic.getChName(), telegramInfoFirst, serversLoadTimes);
                 } else {
+                    String failedInfo = moniElastic.getAsid() + ": " + moniElastic.getEnName() + "/" + moniElastic.getChName();
                     try {
                         TelegramBot failedBot = new TelegramBot.Builder(bot).okHttpClient(OkHttpUtils.getInstance()).build();
-                        String failedInfo = moniElastic.getAsid() + ": " + moniElastic.getEnName() + "/" + moniElastic.getChName();
                         SendMessage sendMessage = new SendMessage(chatId, failedInfo);
                         failedBot.execute(sendMessage);
                     } catch (Exception e1) {
                         MoniElasticLog jobLog = new MoniElasticLog();
                         jobLog.setId(moniElasticLog.getId());
                         jobLog.setStatus(Constants.ERROR);
-                        jobLog.setExceptionLog("Telegram send message error: ".concat(ExceptionUtil.getExceptionMessage(e)));
+                        jobLog.setExceptionLog("Telegram send message error: ".concat(ExceptionUtil.getExceptionMessage(e1)));
                         SpringUtils.getBean(IMoniElasticLogService.class).updateMoniElasticLog(jobLog);
-                        log.error("Log jobId：{},JobName：{},推送内容：{},telegram发送信息异常,{}", moniElastic.getId(), moniElastic.getChName(), telegramInfoFirst, ExceptionUtil.getExceptionMessage(e1));
+                        log.error("Log jobId：{},JobName：{},推送内容：{},telegram发送信息异常,{}", moniElastic.getId(), moniElastic.getChName(), failedInfo, ExceptionUtil.getExceptionMessage(e1));
                     }
                 }
             }

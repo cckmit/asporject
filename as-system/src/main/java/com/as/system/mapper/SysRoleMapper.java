@@ -27,6 +27,14 @@ public interface SysRoleMapper
     public List<SysRole> selectRolesByUserId(Long userId);
 
     /**
+     * 根据模板ID查询角色
+     *
+     * @param templateId 模板ID
+     * @return 角色列表
+     */
+    public List<SysRole> selectRolesByTemplateId(Long templateId);
+
+    /**
      * 通过角色ID查询角色
      * 
      * @param roleId 角色ID

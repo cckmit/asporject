@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.as.sqlTemplate.mapper.TemplateRoleMapper">
+
+	<resultMap type="TemplateRole" id="TemplateRoleResult">
+		<result property="templateId"     column="TEMPLATE_ID"      />
+		<result property="roleId"     column="ROLE_ID"      />
+	</resultMap>
+	
+	<select id="selectRoleByTemplateId" parameterType="Long" resultMap="TemplateRoleResult">
+		select TEMPLATE_ID, ROLE_ID from SYS_ROLE_TEMPLATE where TEMPLATE_ID = #{templateId}
+	</select>
+
+	<delete id="deleteRoleByTemplateId" parameterType="Long">
+		delete from SYS_ROLE_TEMPLATE where TEMPLATE_ID = #{templateId}
+	</delete>
+	
+	<insert id="batchTemplateRole">
+		insert into SYS_ROLE_TEMPLATE(TEMPLATE_ID, ROLE_ID) values
+		<foreach item="item" index="index" collection="list" separator=",">
+			(#{item.templateId},#{item.roleId})
+		</foreach>
+	</insert>
+	
+	<delete id="deleteTemplateRoleByIds">
+	    delete from SYS_ROLE_TEMPLATE where TEMPLATE_ID in
+ 	    <foreach collection="templateIds" item="templateId" open="(" separator="," close=")">
+ 	        #{templateId}
+            </foreach> 
+	</delete>
+</mapper> 

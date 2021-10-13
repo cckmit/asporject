@@ -80,7 +80,7 @@ public class SysRoleServiceImpl implements ISysRoleService
 
     /**
      * 根据用户ID查询角色
-     * 
+     *
      * @param userId 用户ID
      * @return 角色列表
      */
@@ -88,6 +88,31 @@ public class SysRoleServiceImpl implements ISysRoleService
     public List<SysRole> selectRolesByUserId(Long userId)
     {
         List<SysRole> userRoles = roleMapper.selectRolesByUserId(userId);
+        List<SysRole> roles = selectRoleAll();
+        for (SysRole role : roles)
+        {
+            for (SysRole userRole : userRoles)
+            {
+                if (role.getRoleId().longValue() == userRole.getRoleId().longValue())
+                {
+                    role.setFlag(true);
+                    break;
+                }
+            }
+        }
+        return roles;
+    }
+
+    /**
+     * 根据模板ID查询角色
+     *
+     * @param templateId 模板ID
+     * @return 角色列表
+     */
+    @Override
+    public List<SysRole> selectRolesByTemplateId(Long templateId)
+    {
+        List<SysRole> userRoles = roleMapper.selectRolesByTemplateId(templateId);
         List<SysRole> roles = selectRoleAll();
         for (SysRole role : roles)
         {

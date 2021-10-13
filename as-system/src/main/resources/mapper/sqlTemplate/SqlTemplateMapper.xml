@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.as.sqlTemplate.mapper.SqlTemplateMapper">
+    
+    <resultMap type="SqlTemplate" id="SqlTemplateResult">
+        <result property="id"    column="ID"    />
+        <result property="enName"    column="EN_NAME"    />
+        <result property="chName"    column="CH_NAME"    />
+        <result property="status"    column="STATUS"    />
+        <result property="platform"    column="PLATFORM"    />
+        <result property="jdbc"    column="JDBC"    />
+        <result property="script"    column="SCRIPT"    />
+        <result property="remark"    column="REMARK"    />
+        <result property="createBy"    column="CREATE_BY"    />
+        <result property="createTime"    column="CREATE_TIME"    />
+        <result property="updateBy"    column="UPDATE_BY"    />
+        <result property="updateTime"    column="UPDATE_TIME"    />
+        <collection  property="values"   javaType="java.util.List"   resultMap="sqlTemplateValueResult" />
+    </resultMap>
+
+    <resultMap type="SqlTemplateValue" id="sqlTemplateValueResult">
+        <result property="valueEnName"    column="VALUE_EN_NAME"    />
+        <result property="valueChName"    column="VALUE_CH_NAME"    />
+        <result property="templateId"    column="TEMPLATE_ID"    />
+        <result property="templateValue"    column="TEMPLATE_VALUE"    />
+        <result property="enPlaceholder"    column="EN_PLACEHOLDER"    />
+        <result property="chPlaceholder"    column="CH_PLACEHOLDER"    />
+        <result property="htmlType"    column="HTML_TYPE"    />
+        <result property="matchType"    column="MATCH_TYPE"    />
+    </resultMap>
+
+    <sql id="selectSqlTemplateVo">
+        select ST.ID, ST.EN_NAME, ST.CH_NAME, ST.STATUS, ST.PLATFORM, ST.JDBC, ST.SCRIPT, ST.REMARK, ST.CREATE_BY, ST.CREATE_TIME, ST.UPDATE_BY, ST.UPDATE_TIME,
+        STV.TEMPLATE_VALUE,STV.VALUE_EN_NAME,STV.VALUE_CH_NAME,STV.EN_PLACEHOLDER,STV.CH_PLACEHOLDER,STV.HTML_TYPE,STV.MATCH_TYPE
+        from sql_template ST
+        left join sql_template_value STV on ST.ID = STV.TEMPLATE_ID
+    </sql>
+
+    <select id="selectSqlTemplateList" parameterType="SqlTemplate" resultMap="SqlTemplateResult">
+        <include refid="selectSqlTemplateVo"/>
+        left join sys_role_template SRT on SRT.template_id = ST.id
+        LEFT JOIN sys_role RO on RO.role_id = SRT.role_id
+        <where>
+            <if test="id != null  and id != ''"> and ID = #{id}</if>
+            <if test="params.role != null and params.role != ''"> and RO.role_key = #{params.role}</if>
+            <if test="enName != null  and enName != ''"> and (ST.EN_NAME like concat('%', #{chName}, '%')) or (ST.CH_NAME like concat('%', #{chName}, '%'))</if>
+            <if test="remark != null  and remark != ''"> and ST.REMARK like concat('%', #{remark}, '%')</if>
+            <if test="status != null  and status != ''"> and ST.STATUS = #{status}</if>
+            <if test="platform != null  and platform != ''"> and ST.PLATFORM = #{platform}</if>
+            <if test="params.beginCreateTime != null and params.beginCreateTime != ''"><!-- 开始时间检索 -->
+                AND date_format(ST.CREATE_TIME,'%y%m%d') &gt;= date_format(#{params.beginCreateTime},'%y%m%d')
+            </if>
+            <if test="params.endCreateTime != null and params.endCreateTime != ''"><!-- 结束时间检索 -->
+                AND date_format(ST.CREATE_TIME,'%y%m%d') &lt;= date_format(#{params.endCreateTime},'%y%m%d')
+            </if>
+        </where>
+    </select>
+
+    <select id="selectSqlTemplateListByUserId" parameterType="SqlTemplate" resultMap="SqlTemplateResult">
+        <include refid="selectSqlTemplateVo"/>
+        left join sys_role_template SRT on SRT.template_id = ST.id
+        left join sys_user_role UR on SRT.role_id = UR.role_id
+        LEFT JOIN sys_role RO on UR.role_id = RO.role_id
+        <where>
+            UR.user_id = #{params.userId}
+            <if test="id != null and id != ''"> and ST.ID = #{id}</if>
+            <if test="params.role != null and params.role != ''"> and RO.role_key = #{params.role}</if>
+            <if test="chName != null  and chName != ''"> and (ST.EN_NAME like concat('%', #{chName}, '%')) or (ST.CH_NAME like concat('%', #{chName}, '%'))</if>
+            <if test="remark != null  and remark != ''"> and ST.REMARK like concat('%', #{remark}, '%')</if>
+            <if test="status != null  and status != ''"> and ST.STATUS = #{status}</if>
+            <if test="platform != null  and platform != ''"> and ST.PLATFORM = #{platform}</if>
+            <if test="params.beginCreateTime != null and params.beginCreateTime != ''"><!-- 开始时间检索 -->
+                AND date_format(ST.CREATE_TIME,'%y%m%d') &gt;= date_format(#{params.beginCreateTime},'%y%m%d')
+            </if>
+            <if test="params.endCreateTime != null and params.endCreateTime != ''"><!-- 结束时间检索 -->
+                AND date_format(ST.CREATE_TIME,'%y%m%d') &lt;= date_format(#{params.endCreateTime},'%y%m%d')
+            </if>
+        </where>
+    </select>
+    
+    <select id="selectSqlTemplateById" parameterType="Long" resultMap="SqlTemplateResult">
+        <include refid="selectSqlTemplateVo"/>
+        where ST.ID = #{id}
+    </select>
+
+    <select id="selectSqlTemplateByUserId" parameterType="Long" resultMap="SqlTemplateResult">
+        <include refid="selectSqlTemplateVo"/>
+        left join sys_role_template SRT
+        left join sys_user_role UR on SRT.role_id = UR.role_id
+        LEFT JOIN sys_role RO on UR.role_id = RO.role_id
+        where UR.user_id = #{userId}
+    </select>
+        
+    <insert id="insertSqlTemplate" parameterType="SqlTemplate" useGeneratedKeys="true" keyProperty="id">
+        insert into sql_template
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="enName != null and enName != ''">EN_NAME,</if>
+            <if test="chName != null and chName != ''">CH_NAME,</if>
+            <if test="status != null and status != ''">STATUS,</if>
+            <if test="platform != null and platform != ''">PLATFORM,</if>
+            <if test="jdbc != null and jdbc != ''">JDBC,</if>
+            <if test="script != null and script != ''">SCRIPT,</if>
+            <if test="remark != null">REMARK,</if>
+            <if test="createBy != null and createBy != ''">CREATE_BY,</if>
+            <if test="createTime != null">CREATE_TIME,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="enName != null and enName != ''">#{enName},</if>
+            <if test="chName != null and chName != ''">#{chName},</if>
+            <if test="status != null and status != ''">#{status},</if>
+            <if test="platform != null and platform != ''">#{platform},</if>
+            <if test="jdbc != null and jdbc != ''">#{jdbc},</if>
+            <if test="script != null and script != ''">#{script},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateSqlTemplate" parameterType="SqlTemplate">
+        update sql_template
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="enName != null and enName != ''">EN_NAME = #{enName},</if>
+            <if test="chName != null and chName != ''">CH_NAME = #{chName},</if>
+            <if test="status != null and status != ''">STATUS = #{status},</if>
+            <if test="platform != null and platform != ''">PLATFORM = #{platform},</if>
+            <if test="jdbc != null and jdbc != ''">JDBC = #{jdbc},</if>
+            <if test="script != null and script != ''">SCRIPT = #{script},</if>
+            <if test="remark != null">REMARK = #{remark},</if>
+            <if test="createBy != null and createBy != ''">CREATE_BY = #{createBy},</if>
+            <if test="updateBy != null and updateBy != ''">UPDATE_BY = #{updateBy},</if>
+            <if test="updateTime != null">UPDATE_TIME = #{updateTime},</if>
+        </trim>
+        where ID = #{id}
+    </update>
+
+    <delete id="deleteSqlTemplateById" parameterType="Long">
+        delete from sql_template where ID = #{id}
+    </delete>
+
+    <delete id="deleteSqlTemplateByIds" parameterType="String">
+        delete from sql_template where ID in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <insert id="batchTemplateValue">
+        insert into SQL_TEMPLATE_VALUE(TEMPLATE_ID, TEMPLATE_VALUE, VALUE_EN_NAME, VALUE_CH_NAME, EN_PLACEHOLDER, CH_PLACEHOLDER, HTML_TYPE, MATCH_TYPE) values
+        <foreach item="item" index="index" collection="list" separator=",">
+            (#{item.templateId},#{item.templateValue},#{item.valueEnName},#{item.valueChName},#{item.enPlaceholder},#{item.chPlaceholder},#{item.htmlType},#{item.matchType})
+        </foreach>
+    </insert>
+
+    <delete id="deleteSqlTemplateValuesByTemplateId" parameterType="Long">
+        delete from SQL_TEMPLATE_VALUE where TEMPLATE_ID = #{templateId}
+    </delete>
+
+    <delete id="deleteSqlTemplateValuesByTemplateIds" parameterType="String">
+        delete from SQL_TEMPLATE_VALUE where TEMPLATE_ID in
+        <foreach collection="templateIds" item="templateId" open="(" separator="," close=")">
+            #{templateId}
+        </foreach>
+    </delete>
+</mapper>

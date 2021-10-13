@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <th:block th:include="include :: header('SQL模板列表')"/>
+</head>
+<body class="gray-bg">
+<div class="container-div">
+    <div class="row">
+        <div class="col-sm-12 search-collapse">
+            <form autocomplete="off" id="formId">
+                <div class="select-list">
+                    <ul>
+                        <li>
+                            <label>ID：</label>
+                            <input type="text" name="id"/>
+                        </li>
+                        <li>
+                            <label>[[#{sql.template.name}]]：</label>
+                            <input type="text" name="chName"/>
+                        </li>
+                        <li>
+                            <label>[[#{sql.template.status}]]：</label>
+                            <select name="status" th:with="type=${@dict.getType('sys_normal_disable')}">
+                                <option value="">[[#{user.list.all}]]</option>
+                                <option th:each="dict : ${type}" th:text="#{${dict.dictLabel}}"
+                                        th:value="${dict.dictValue}"></option>
+                            </select>
+                        </li>
+                        <li>
+                            <label>[[#{sql.job.platform}]]：</label>
+                            <select name="platform" th:with="type=${@dict.getType('ub8_platform_type')}">
+                                <option value="">[[#{user.list.all}]]</option>
+                                <option th:each="dict : ${type}" th:text="${dict.dictLabel}"
+                                        th:value="${dict.dictValue}"></option>
+                            </select>
+                        </li>
+                        <li>
+                            <label>[[#{user.add.role}]]：</label>
+                            <select name="params[role]" th:with="type=${roles}">
+                                <option value="">[[#{user.list.all}]]</option>
+                                <option th:each="role : ${type}" th:text="${role.roleName}"
+                                        th:value="${role.roleKey}"></option>
+                            </select>
+                        </li>
+                        <li>
+                            <label>[[#{user.add.remark}]]：</label>
+                            <input type="text" name="remark"/>
+                        </li>
+                        <li class="select-time">
+                            <label>[[#{common.create.time}]]：</label>
+                            <input type="text" class="time-input" id="startTime" th:placeholder="#{common.start.time}"
+                                   name="params[beginCreateTime]"/>
+                            <span>-</span>
+                            <input type="text" class="time-input" id="endTime" th:placeholder="#{common.end.time}"
+                                   name="params[endCreateTime]"/>
+                        </li>
+                        <li>
+                            <a class="btn btn-primary btn-rounded btn-sm" onclick="$.table.search()"><i
+                                    class="fa fa-search"></i>&nbsp;[[#{common.query}]]</a>
+                            <a class="btn btn-warning btn-rounded btn-sm" onclick="$.form.reset()"><i
+                                    class="fa fa-refresh"></i>&nbsp;[[#{common.reset}]]</a>
+                        </li>
+                    </ul>
+                </div>
+            </form>
+        </div>
+
+        <div class="btn-group-sm" id="toolbar" role="group">
+            <a class="btn btn-success" onclick="$.operate.addTab()" shiro:hasPermission="as:sqlTemplate:add">
+                <i class="fa fa-plus"></i> [[#{common.add}]]
+            </a>
+            <a class="btn btn-primary single disabled" onclick="$.operate.editTab()"
+               shiro:hasPermission="as:sqlTemplate:edit">
+                <i class="fa fa-edit"></i> [[#{common.modify}]]
+            </a>
+            <a class="btn btn-danger multiple disabled" onclick="$.operate.removeAll()"
+               shiro:hasPermission="as:sqlTemplate:remove">
+                <i class="fa fa-remove"></i> [[#{common.delete}]]
+            </a>
+            <a class="btn btn-warning" onclick="$.table.exportExcel()" shiro:hasPermission="as:sqlTemplate:export">
+                <i class="fa fa-download"></i> [[#{common.export}]]
+            </a>
+        </div>
+        <div class="col-sm-12 select-table table-striped">
+            <table id="bootstrap-table" data-page-size="12"
+                   data-show-custom-view="true" data-custom-view="customViewFormatter"
+                   data-show-custom-view-button="true"></table>
+        </div>
+
+        <template id="customView">
+            <div class="col-sm-4">
+                <div class="contact-box">
+                    <a onclick="useTemplate('%templateName%','%id%')">
+                        <div class="col-sm-4" title="%templateName%">
+                            <div class="text-center" style="max-height: 100px;overflow: hidden">
+                                <h3><strong>%templateName%</strong></h3>
+                            </div>
+                        </div>
+                        <div class="col-sm-8" title="%remark%">
+                            <div class="form-group">
+                                <label class="col-sm-5 control-label"><strong>[[#{sql.job.platform}]]:</strong></label>
+                                %platform%
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-5 control-label"><strong>[[#{sql.template.status}]]:</strong></label>
+                                %status%
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-5 control-label"><strong>[[#{common.create.by}]]:</strong></label>
+                                %createBy%
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-5 control-label"><strong>[[#{common.update.by}]]:</strong></label>
+                                %updateBy%
+                            </div>
+                        </div>
+                        <div class="clearfix"></div>
+                    </a>
+                </div>
+            </div>
+        </template>
+
+    </div>
+</div>
+<th:block th:include="include :: footer"/>
+<th:block th:include="include :: bootstrap-table-custom-view-js"/>
+<script th:inline="javascript">
+    var editFlag = [[${@permission.hasPermi('as:sqlTemplate:edit')}]];
+    var statusFlag = [[${@permission.hasPermi('as:sqlTemplate:changeStatus')}]];
+    var removeFlag = [[${@permission.hasPermi('as:sqlTemplate:remove')}]];
+    var useFlag = [[${@permission.hasPermi('as:sqlTemplate:use')}]];
+    var statusDatas = [[${@dict.getType('sys_normal_disable')}]];
+    var platformDatas = [[${@dict.getType('ub8_platform_type')}]];
+    var jdbcDatas = [[${@dict.getType('pf2_data_base_source')}]];
+    var prefix = ctx + "as/sqlTemplate";
+
+    $(function () {
+        var options = {
+            url: prefix + "/list",
+            createUrl: prefix + "/add",
+            updateUrl: prefix + "/edit/{id}",
+            removeUrl: prefix + "/remove",
+            exportUrl: prefix + "/export",
+            sortName: "createTime",
+            sortOrder: "desc",
+            pageSize: 12,
+            pageNumber: 1,
+            pageList: [12, 24, 48, 96, 192, 576, 1152],
+            modalName: i18n('sql.template'),
+            showToggle: false,
+            columns: [{
+                checkbox: true
+            },
+                {
+                    field: 'id',
+                    title: 'ID',
+                    sortable: true
+
+                },
+                {
+                    field: 'enName',
+                    title: i18n('sql.template.en.name'),
+                    visible: i18n('locale') === 'en-US',
+                    cellStyle: formatTableUnit,
+                    formatter: paramsMatter
+                },
+                {
+                    field: 'chName',
+                    title: i18n('sql.template.ch.name'),
+                    visible: i18n('locale') !== 'en-US',
+                    cellStyle: formatTableUnit,
+                    formatter: paramsMatter
+                },
+                {
+                    title: i18n('sql.template.status'),
+                    align: 'center',
+                    formatter: function (value, row, index) {
+                        return statusTools(row);
+                    }
+                },
+                {
+                    field: 'platform',
+                    title: i18n('sql.job.platform'),
+                    formatter: function (value, row, index) {
+                        return $.table.selectDictLabel(platformDatas, value);
+                    }
+                },
+                {
+                    field: 'remark',
+                    title: i18n('user.add.remark'),
+                    cellStyle: formatTableUnit,
+                    formatter: paramsMatter
+                },
+                {
+                    field: 'createBy',
+                    title: i18n('common.create.by')
+                },
+                {
+                    field: 'createTime',
+                    title: i18n('common.create.time'),
+                    sortable: true,
+                    cellStyle: {
+                        css: {"white-space": "nowrap"}
+                    }
+                },
+                {
+                    field: 'updateBy',
+                    title: i18n('common.update.by')
+                },
+                {
+                    field: 'updateTime',
+                    title: i18n('common.update.time'),
+                    sortable: true,
+                    cellStyle: {
+                        css: {"white-space": "nowrap"}
+                    }
+                },
+                {
+                    title: i18n('gen.operating'),
+                    align: 'center',
+                    cellStyle: {
+                        css: {"white-space": "nowrap"}
+                    },
+                    formatter: function (value, row, index) {
+                        var actions = [];
+                        actions.push('<a class="btn btn-success btn-xs ' + editFlag + '" href="javascript:void(0)" onclick="$.operate.editTab(\'' + row.id + '\')"><i class="fa fa-edit"></i>' + i18n('common.edit') + '</a> ');
+                        actions.push('<a class="btn btn-danger btn-xs ' + removeFlag + '" href="javascript:void(0)" onclick="$.operate.remove(\'' + row.id + '\')"><i class="fa fa-remove"></i>' + i18n('common.delete') + '</a>');
+                        actions.push('<a class="btn btn-info btn-xs ' + useFlag + '" href="javascript:void(0)" onclick="useTemplate(\'' + (i18n('locale') === 'zh-CN' ? row.chName : row.enName) + '\',\'' + row.id + '\')"><i class="fa fa-external-link-square"></i>' + i18n('sql.template.use') + '</a>');
+                        return actions.join('');
+                    }
+                }]
+        };
+        $.table.init(options);
+    });
+
+    function customViewFormatter(data) {
+        var template = $('#customView').html()
+        var view = ''
+        $.each(data, function (i, row) {
+            view += template.replace('%id%', row.id)
+                .replace(/%templateName%/g, i18n('locale') === 'en-US' ? row.enName : row.chName)
+                .replace('%platform%', $.table.selectDictLabel(platformDatas, row.platform))
+                .replace('%status%', statusTools(row))
+                .replace('%createBy%', row.createBy + '/' + $.common.dateFormat(row.createTime, 'yyyy-MM-dd HH:mm:ss'))
+                .replace('%updateBy%', row.updateBy + '/' + $.common.dateFormat(row.updateTime, 'yyyy-MM-dd HH:mm:ss'))
+                .replace('%remark%', row.remark);
+        })
+
+        return `<div class="row mx-0">${view}</div>`
+    }
+
+    function useTemplate(templateName,id) {
+        $.operate.get(prefix + "/checkStatus/" + id, function (data) {
+            if (data.code === 0) {
+                $.modal.openTab(templateName, prefix + "/use/" + id);
+            }
+        })
+    }
+
+    /* 调度任务状态显示 */
+    function statusTools(row) {
+        if (row.status == 1) {
+            if (statusFlag == 'hidden') {
+                return $.table.selectDictLabel(statusDatas, row.status);
+            } else {
+                return '<i class=\"fa fa-toggle-off text-info fa-2x\" onclick="start(\'' + row.id + '\')"></i> ';
+            }
+        } else {
+            if (statusFlag == 'hidden') {
+                return $.table.selectDictLabel(statusDatas, row.status);
+            } else {
+                return '<i class=\"fa fa-toggle-on text-info fa-2x\" onclick="stop(\'' + row.id + '\')"></i> ';
+            }
+        }
+    }
+
+    /* 停用 */
+    function stop(id) {
+        $.modal.confirm(i18n('sql.template.confirm.stop'), function () {
+            $.operate.post(prefix + "/changeStatus", {"id": id, "status": 1});
+        })
+    }
+
+    /* 启用 */
+    function start(id) {
+        $.modal.confirm(i18n('sql.template.confirm.start'), function () {
+            $.operate.post(prefix + "/changeStatus", {"id": id, "status": 0});
+        })
+    }
+
+    //表格超出宽度鼠标悬停显示td内容
+    function paramsMatter(value, row, index) {
+        var span = document.createElement("span");
+        span.setAttribute("title", value);
+        span.innerHTML = value;
+        return span.outerHTML;
+    }
+
+    //td宽度以及内容超过宽度隐藏
+    function formatTableUnit(value, row, index) {
+        return {
+            css: {
+                "min-width": "100px",
+                "white-space": "nowrap",
+                "text-overflow": "ellipsis",
+                "overflow": "hidden",
+                "max-width": "150px"
+            }
+        }
+    }
+</script>
+</body>
+</html>
