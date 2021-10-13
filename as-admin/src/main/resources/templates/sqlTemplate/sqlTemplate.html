@@ -242,7 +242,7 @@
                 .replace('%platform%', $.table.selectDictLabel(platformDatas, row.platform))
                 .replace('%status%', statusTools(row))
                 .replace('%createBy%', row.createBy + '/' + $.common.dateFormat(row.createTime, 'yyyy-MM-dd HH:mm:ss'))
-                .replace('%updateBy%', row.updateBy + '/' + $.common.dateFormat(row.updateTime, 'yyyy-MM-dd HH:mm:ss'))
+                .replace('%updateBy%', row.updateBy == null ? '--' : (row.updateBy + '/' + $.common.dateFormat(row.updateTime, 'yyyy-MM-dd HH:mm:ss')))
                 .replace('%remark%', row.remark);
         })
 
