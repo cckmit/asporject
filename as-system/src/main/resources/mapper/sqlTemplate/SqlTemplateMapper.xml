@@ -13,6 +13,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="jdbc"    column="JDBC"    />
         <result property="script"    column="SCRIPT"    />
         <result property="remark"    column="REMARK"    />
+        <result property="asid"    column="ASID"    />
         <result property="createBy"    column="CREATE_BY"    />
         <result property="createTime"    column="CREATE_TIME"    />
         <result property="updateBy"    column="UPDATE_BY"    />
@@ -32,14 +33,14 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 
     <sql id="selectSqlTemplateVo">
-        select ST.ID, ST.EN_NAME, ST.CH_NAME, ST.STATUS, ST.PLATFORM, ST.JDBC, ST.SCRIPT, ST.REMARK, ST.CREATE_BY, ST.CREATE_TIME, ST.UPDATE_BY, ST.UPDATE_TIME,
+        select ST.ID, ST.EN_NAME, ST.CH_NAME, ST.STATUS, ST.PLATFORM, ST.JDBC, ST.SCRIPT, ST.REMARK, ST.CREATE_BY, ST.CREATE_TIME, ST.UPDATE_BY, ST.UPDATE_TIME, ST.ASID,
         STV.TEMPLATE_VALUE,STV.VALUE_EN_NAME,STV.VALUE_CH_NAME,STV.EN_PLACEHOLDER,STV.CH_PLACEHOLDER,STV.HTML_TYPE,STV.MATCH_TYPE
         from sql_template ST
         left join sql_template_value STV on ST.ID = STV.TEMPLATE_ID
     </sql>
 
     <select id="selectSqlTemplateList" parameterType="SqlTemplate" resultMap="SqlTemplateResult">
-        select distinct ST.ID, ST.EN_NAME, ST.CH_NAME, ST.STATUS, ST.PLATFORM, ST.JDBC, ST.SCRIPT, ST.REMARK, ST.CREATE_BY, ST.CREATE_TIME, ST.UPDATE_BY, ST.UPDATE_TIME
+        select distinct ST.ID, ST.EN_NAME, ST.CH_NAME, ST.STATUS, ST.PLATFORM, ST.JDBC, ST.SCRIPT, ST.REMARK, ST.CREATE_BY, ST.CREATE_TIME, ST.UPDATE_BY, ST.UPDATE_TIME , ST.ASID
         from sql_template ST
         left join sys_role_template SRT on SRT.template_id = ST.id
         LEFT JOIN sys_role RO on RO.role_id = SRT.role_id
@@ -48,6 +49,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="params.role != null and params.role != ''"> and RO.role_key = #{params.role}</if>
             <if test="chName != null  and chName != ''"> and (ST.EN_NAME like concat('%', #{chName}, '%')) or (ST.CH_NAME like concat('%', #{chName}, '%'))</if>
             <if test="remark != null  and remark != ''"> and ST.REMARK like concat('%', #{remark}, '%')</if>
+            <if test="asid != null  and asid != ''"> and ST.ASID like concat('%', #{asid}, '%')</if>
             <if test="status != null  and status != ''"> and ST.STATUS = #{status}</if>
             <if test="platform != null  and platform != ''"> and ST.PLATFORM = #{platform}</if>
             <if test="params.beginCreateTime != null and params.beginCreateTime != ''"><!-- 开始时间检索 -->
@@ -60,7 +62,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </select>
 
     <select id="selectSqlTemplateListByUserId" parameterType="SqlTemplate" resultMap="SqlTemplateResult">
-        select distinct ST.ID, ST.EN_NAME, ST.CH_NAME, ST.STATUS, ST.PLATFORM, ST.JDBC, ST.SCRIPT, ST.REMARK, ST.CREATE_BY, ST.CREATE_TIME, ST.UPDATE_BY, ST.UPDATE_TIME
+        select distinct ST.ID, ST.EN_NAME, ST.CH_NAME, ST.STATUS, ST.PLATFORM, ST.JDBC, ST.SCRIPT, ST.REMARK, ST.CREATE_BY, ST.CREATE_TIME, ST.UPDATE_BY, ST.UPDATE_TIME , ST.ASID
         from sql_template ST
         left join sys_role_template SRT on SRT.template_id = ST.id
         left join sys_user_role UR on SRT.role_id = UR.role_id
@@ -71,6 +73,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="params.role != null and params.role != ''"> and RO.role_key = #{params.role}</if>
             <if test="chName != null  and chName != ''"> and (ST.EN_NAME like concat('%', #{chName}, '%')) or (ST.CH_NAME like concat('%', #{chName}, '%'))</if>
             <if test="remark != null  and remark != ''"> and ST.REMARK like concat('%', #{remark}, '%')</if>
+            <if test="asid != null  and asid != ''"> and ST.ASID like concat('%', #{asid}, '%')</if>
             <if test="status != null  and status != ''"> and ST.STATUS = #{status}</if>
             <if test="platform != null  and platform != ''"> and ST.PLATFORM = #{platform}</if>
             <if test="params.beginCreateTime != null and params.beginCreateTime != ''"><!-- 开始时间检索 -->
@@ -97,6 +100,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="jdbc != null and jdbc != ''">JDBC,</if>
             <if test="script != null and script != ''">SCRIPT,</if>
             <if test="remark != null">REMARK,</if>
+            <if test="asid != null and asid != ''">ASID,</if>
             <if test="createBy != null and createBy != ''">CREATE_BY,</if>
             <if test="createTime != null">CREATE_TIME,</if>
          </trim>
@@ -108,6 +112,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="jdbc != null and jdbc != ''">#{jdbc},</if>
             <if test="script != null and script != ''">#{script},</if>
             <if test="remark != null">#{remark},</if>
+            <if test="asid != null and asid != ''">#{asid},</if>
             <if test="createBy != null and createBy != ''">#{createBy},</if>
             <if test="createTime != null">#{createTime},</if>
          </trim>
@@ -123,6 +128,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="jdbc != null and jdbc != ''">JDBC = #{jdbc},</if>
             <if test="script != null and script != ''">SCRIPT = #{script},</if>
             <if test="remark != null">REMARK = #{remark},</if>
+            <if test="asid != null and asid != ''">ASID = #{asid},</if>
             <if test="createBy != null and createBy != ''">CREATE_BY = #{createBy},</if>
             <if test="updateBy != null and updateBy != ''">UPDATE_BY = #{updateBy},</if>
             <if test="updateTime != null">UPDATE_TIME = #{updateTime},</if>

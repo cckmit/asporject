@@ -19,6 +19,10 @@
                             <input type="text" name="chName"/>
                         </li>
                         <li>
+                            <label>ASID：</label>
+                            <input type="text" name="asid"/>
+                        </li>
+                        <li>
                             <label>[[#{sql.template.status}]]：</label>
                             <select name="status" th:with="type=${@dict.getType('sys_normal_disable')}">
                                 <option value="">[[#{user.list.all}]]</option>
@@ -158,6 +162,15 @@
 
                 },
                 {
+                    field: 'asid',
+                    title: 'ASID',
+                    sortable: true,
+                    cellStyle: {
+                        css: {"white-space": "nowrap"}
+                    }
+
+                },
+                {
                     field: 'enName',
                     title: i18n('sql.template.en.name'),
                     visible: i18n('locale') === 'en-US',
@@ -193,7 +206,8 @@
                 },
                 {
                     field: 'createBy',
-                    title: i18n('common.create.by')
+                    title: i18n('common.create.by'),
+                    sortable: true
                 },
                 {
                     field: 'createTime',
@@ -205,7 +219,8 @@
                 },
                 {
                     field: 'updateBy',
-                    title: i18n('common.update.by')
+                    title: i18n('common.update.by'),
+                    sortable: true
                 },
                 {
                     field: 'updateTime',

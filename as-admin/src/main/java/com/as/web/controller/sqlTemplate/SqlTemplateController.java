@@ -120,7 +120,7 @@ public class SqlTemplateController extends BaseController {
     @Log(title = "SQL模板", businessType = BusinessType.UPDATE)
     @PostMapping("/edit")
     @ResponseBody
-    public AjaxResult editSave(SqlTemplate sqlTemplate) {
+    public AjaxResult editSave(@Validated SqlTemplate sqlTemplate) {
         return toAjax(sqlTemplateService.updateSqlTemplate(sqlTemplate));
     }
 

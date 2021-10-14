@@ -65,6 +65,11 @@ public class SqlTemplate extends BaseEntity {
     @NotBlank(message = "SCRIPT不能为空")
     private String script;
 
+    /**
+     * ASID
+     */
+    private String asid;
+
     private List<SqlTemplateValue> values;
 
     /** 角色组 */
