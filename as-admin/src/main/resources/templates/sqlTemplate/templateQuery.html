@@ -12,7 +12,7 @@
                     <div class="select-list">
                         <ul>
                             <li th:each="value : ${sqlTemplate.values}" th:class="${value.htmlType == 'dateTime'} ? 'select-time' : ''" >
-                                <label>[[${locale == 'zh_CN'} ? ${value.valueChName} : ${value.valueEnName}]]：</label>
+                                <label th:title="${locale == 'zh_CN'} ? ${value.valueChName} : ${value.valueEnName}" style="width:150px;text-overflow: ellipsis;overflow: hidden;white-space:nowrap;display: block;word-break: break-all;word-wrap: break-word;">[[${locale == 'zh_CN'} ? ${value.valueChName} : ${value.valueEnName}]]：</label>
                                 <input th:if="${value.htmlType == 'input'}" type="text" th:name="${value.templateValue}" th:placeholder="${locale == 'zh_CN'} ? ${value.chPlaceholder} : ${value.enPlaceholder}" required/>
                                 <input th:if="${value.htmlType == 'dateTime'}" type="text" class="time-input" th:name="${value.templateValue}" th:placeholder="${locale == 'zh_CN'} ? ${value.chPlaceholder} : ${value.enPlaceholder}" required/>
                             </li>

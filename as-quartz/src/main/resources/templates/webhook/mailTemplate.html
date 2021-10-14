@@ -2,6 +2,7 @@
 <html lang="zh" xmlns:th="http://www.thymeleaf.org" >
 <head>
     <th:block th:include="include :: header('webhook mail推送模板')" />
+    <th:block th:include="include :: codemirror-css" />
     <style type="text/css">
         pre {
             white-space: pre-wrap;
@@ -73,6 +74,24 @@
         function refreshCache() {
             $.operate.get(ctx + "system/dict/refreshCache");
         }
+
+        function getTableHeight() {
+            return  $(window).height();
+        }
+
+        myTextarea = document.getElementById("template");
+        var editor = CodeMirror.fromTextArea(myTextarea, {
+            mode: "htmlmixed",
+            lineNumbers: true,//显示行数
+            matchBrackets: true,  // 括号匹配（这个需要导入codemirror的matchbrackets.js文件）
+            styleActiveLine: true,
+            theme: 'solarized'
+        });
+        editor.setSize('auto',getTableHeight() * 0.8)
+        var pending;
+        editor.on("change", function() {
+            editor.save();
+        });
     </script>
 </body>
 </html>

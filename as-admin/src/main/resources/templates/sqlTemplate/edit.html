@@ -2,6 +2,7 @@
 <html lang="zh" xmlns:th="http://www.thymeleaf.org" >
 <head>
     <th:block th:include="include :: header('修改SQL模板')" />
+    <th:block th:include="include :: codemirror-css" />
 </head>
 <body class="white-bg">
     <div class="wrapper wrapper-content animated fadeInRight ibox-content">
@@ -13,7 +14,7 @@
                     <div class="form-group">
                         <label class="col-xs-2 control-label is-required">SCRIPT：</label>
                         <div class="col-xs-10">
-                            <textarea name="script" class="form-control" rows="10" th:field="*{script}" required></textarea>
+                            <textarea id="editor" name="script" class="form-control" rows="10" th:field="*{script}" required></textarea>
                         </div>
                     </div>
                 </div>
@@ -113,6 +114,7 @@
     </div>
     <th:block th:include="include :: footer" />
     <th:block th:include="include :: jquery-cxselect-js" />
+    <th:block th:include="include :: codemirror-js" />
     <script th:inline="javascript">
         var PF1JDBCDatas = [[${@dict.getType('pf1_data_base_source')}]];
         var PF2JDBCDatas = [[${@dict.getType('pf2_data_base_source')}]];
@@ -315,6 +317,24 @@
             var enuParams = document.getElementById("valueParams")
             enuParams.removeChild(document.getElementById(ids))
         }
+
+        function getTableHeight() {
+            return  $(window).height();
+        }
+
+        myTextarea = document.getElementById("editor");
+        var editor = CodeMirror.fromTextArea(myTextarea, {
+            mode: "text/x-mysql",
+            lineNumbers: true,//显示行数
+            matchBrackets: true,  // 括号匹配（这个需要导入codemirror的matchbrackets.js文件）
+            styleActiveLine: true,
+            theme: 'solarized'
+        });
+        editor.setSize('auto',getTableHeight()/3)
+        var pending;
+        editor.on("change", function() {
+            editor.save();
+        });
     </script>
 </body>
 </html>
