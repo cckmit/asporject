@@ -12,9 +12,9 @@
                     <div class="select-list">
                         <ul>
                             <li th:each="value : ${sqlTemplate.values}" th:class="${value.htmlType == 'dateTime'} ? 'select-time' : ''" >
-                                <label th:title="${locale == 'zh_CN'} ? ${value.valueChName} : ${value.valueEnName}" style="width:150px;text-overflow: ellipsis;overflow: hidden;white-space:nowrap;display: block;word-break: break-all;word-wrap: break-word;">[[${locale == 'zh_CN'} ? ${value.valueChName} : ${value.valueEnName}]]：</label>
-                                <input th:if="${value.htmlType == 'input'}" type="text" th:name="${value.templateValue}" th:placeholder="${locale == 'zh_CN'} ? ${value.chPlaceholder} : ${value.enPlaceholder}" required/>
-                                <input th:if="${value.htmlType == 'dateTime'}" type="text" class="time-input" th:name="${value.templateValue}" th:placeholder="${locale == 'zh_CN'} ? ${value.chPlaceholder} : ${value.enPlaceholder}" required/>
+                                <label th:title="${locale == 'en_US'} ? ${value.valueEnName} : ${value.valueChName}" style="width:150px;text-overflow: ellipsis;overflow: hidden;white-space:nowrap;display: block;word-break: break-all;word-wrap: break-word;">[[${locale == 'en_US'} ? ${value.valueEnName} : ${value.valueChName}]]：</label>
+                                <input th:if="${value.htmlType == 'input'}" type="text" th:name="${value.templateValue}" th:placeholder="${locale == 'en_US'} ? ${value.enPlaceholder} : ${value.chPlaceholder}" required/>
+                                <input th:if="${value.htmlType == 'dateTime'}" type="text" class="time-input" th:name="${value.templateValue}" th:placeholder="${locale == 'en_US'} ? ${value.enPlaceholder} : ${value.chPlaceholder}" required/>
                             </li>
                             <li>
                                 <a class="btn btn-primary btn-rounded btn-sm" onclick="tableSearch()"><i class="fa fa-search"></i>&nbsp;[[#{common.query}]]</a>
