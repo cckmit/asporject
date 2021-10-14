@@ -63,7 +63,7 @@ public class SqlTemplateController extends BaseController {
         startPage();
         Long userId = ShiroUtils.getUserId();
         List<SqlTemplate> list = sqlTemplateService.selectSqlTemplateListByUserId(sqlTemplate, userId);
-        return getDataTable(list, list.size());
+        return getDataTable(list);
     }
 
     /**

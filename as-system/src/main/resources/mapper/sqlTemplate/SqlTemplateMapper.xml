@@ -32,20 +32,21 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 
     <sql id="selectSqlTemplateVo">
-        select distinct ST.ID, ST.EN_NAME, ST.CH_NAME, ST.STATUS, ST.PLATFORM, ST.JDBC, ST.SCRIPT, ST.REMARK, ST.CREATE_BY, ST.CREATE_TIME, ST.UPDATE_BY, ST.UPDATE_TIME,
+        select ST.ID, ST.EN_NAME, ST.CH_NAME, ST.STATUS, ST.PLATFORM, ST.JDBC, ST.SCRIPT, ST.REMARK, ST.CREATE_BY, ST.CREATE_TIME, ST.UPDATE_BY, ST.UPDATE_TIME,
         STV.TEMPLATE_VALUE,STV.VALUE_EN_NAME,STV.VALUE_CH_NAME,STV.EN_PLACEHOLDER,STV.CH_PLACEHOLDER,STV.HTML_TYPE,STV.MATCH_TYPE
         from sql_template ST
         left join sql_template_value STV on ST.ID = STV.TEMPLATE_ID
     </sql>
 
     <select id="selectSqlTemplateList" parameterType="SqlTemplate" resultMap="SqlTemplateResult">
-        <include refid="selectSqlTemplateVo"/>
+        select distinct ST.ID, ST.EN_NAME, ST.CH_NAME, ST.STATUS, ST.PLATFORM, ST.JDBC, ST.SCRIPT, ST.REMARK, ST.CREATE_BY, ST.CREATE_TIME, ST.UPDATE_BY, ST.UPDATE_TIME
+        from sql_template ST
         left join sys_role_template SRT on SRT.template_id = ST.id
         LEFT JOIN sys_role RO on RO.role_id = SRT.role_id
         <where>
-            <if test="id != null  and id != ''"> and ID = #{id}</if>
+            <if test="id != null  and id != ''"> and ST.ID = #{id}</if>
             <if test="params.role != null and params.role != ''"> and RO.role_key = #{params.role}</if>
-            <if test="enName != null  and enName != ''"> and (ST.EN_NAME like concat('%', #{chName}, '%')) or (ST.CH_NAME like concat('%', #{chName}, '%'))</if>
+            <if test="chName != null  and chName != ''"> and (ST.EN_NAME like concat('%', #{chName}, '%')) or (ST.CH_NAME like concat('%', #{chName}, '%'))</if>
             <if test="remark != null  and remark != ''"> and ST.REMARK like concat('%', #{remark}, '%')</if>
             <if test="status != null  and status != ''"> and ST.STATUS = #{status}</if>
             <if test="platform != null  and platform != ''"> and ST.PLATFORM = #{platform}</if>
@@ -59,7 +60,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </select>
 
     <select id="selectSqlTemplateListByUserId" parameterType="SqlTemplate" resultMap="SqlTemplateResult">
-        <include refid="selectSqlTemplateVo"/>
+        select distinct ST.ID, ST.EN_NAME, ST.CH_NAME, ST.STATUS, ST.PLATFORM, ST.JDBC, ST.SCRIPT, ST.REMARK, ST.CREATE_BY, ST.CREATE_TIME, ST.UPDATE_BY, ST.UPDATE_TIME
+        from sql_template ST
         left join sys_role_template SRT on SRT.template_id = ST.id
         left join sys_user_role UR on SRT.role_id = UR.role_id
         LEFT JOIN sys_role RO on UR.role_id = RO.role_id
@@ -83,14 +85,6 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <select id="selectSqlTemplateById" parameterType="Long" resultMap="SqlTemplateResult">
         <include refid="selectSqlTemplateVo"/>
         where ST.ID = #{id}
-    </select>
-
-    <select id="selectSqlTemplateByUserId" parameterType="Long" resultMap="SqlTemplateResult">
-        <include refid="selectSqlTemplateVo"/>
-        left join sys_role_template SRT
-        left join sys_user_role UR on SRT.role_id = UR.role_id
-        LEFT JOIN sys_role RO on UR.role_id = RO.role_id
-        where UR.user_id = #{userId}
     </select>
         
     <insert id="insertSqlTemplate" parameterType="SqlTemplate" useGeneratedKeys="true" keyProperty="id">
