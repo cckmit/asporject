@@ -68,12 +68,14 @@ public class SqlTemplateValue extends BaseEntity {
     /**
      * 显示类型
      */
+    @Excel(name = "显示类型")
     @NotBlank(message = "显示类型不能为空")
     private String htmlType;
 
     /**
      * 比对类型
      */
+    @Excel(name = "比对类型")
     @NotBlank(message = "比对类型不能为空")
     private String matchType;
 }

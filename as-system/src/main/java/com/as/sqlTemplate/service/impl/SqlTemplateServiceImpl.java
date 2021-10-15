@@ -103,6 +103,25 @@ public class SqlTemplateServiceImpl implements ISqlTemplateService {
     }
 
     /**
+     * 导出SQL模板列表
+     *
+     * @param sqlTemplate SQL模板
+     * @return SQL模板
+     */
+    @Override
+    public List<SqlTemplate> exportSqlTemplateListByUserId(SqlTemplate sqlTemplate, Long userId) {
+
+        List<SqlTemplate> sqlTemplateList = null;
+        if (SysUser.isAdmin(userId)) {
+            sqlTemplateList = sqlTemplateMapper.exportSqlTemplateList(sqlTemplate);
+        } else {
+            sqlTemplate.getParams().put("userId", userId);
+            sqlTemplateList = sqlTemplateMapper.exportSqlTemplateListByUserId(sqlTemplate);
+        }
+        return sqlTemplateList;
+    }
+
+    /**
      * 新增SQL模板
      *
      * @param sqlTemplate SQL模板

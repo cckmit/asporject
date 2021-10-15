@@ -37,6 +37,22 @@ public interface SqlTemplateMapper {
     public List<SqlTemplate> selectSqlTemplateListByUserId(SqlTemplate sqlTemplate);
 
     /**
+     * 导出SQL模板列表
+     *
+     * @param sqlTemplate SQL模板
+     * @return SQL模板集合
+     */
+    public List<SqlTemplate> exportSqlTemplateList(SqlTemplate sqlTemplate);
+
+    /**
+     * 根据用户ID导出SQL模板列表
+     *
+     * @param sqlTemplate SQL模板
+     * @return SQL模板集合
+     */
+    public List<SqlTemplate> exportSqlTemplateListByUserId(SqlTemplate sqlTemplate);
+
+    /**
      * 新增SQL模板
      *
      * @param sqlTemplate SQL模板

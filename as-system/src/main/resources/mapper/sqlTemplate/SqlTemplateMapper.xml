@@ -84,6 +84,50 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             </if>
         </where>
     </select>
+
+    <select id="exportSqlTemplateList" parameterType="SqlTemplate" resultMap="SqlTemplateResult">
+        <include refid="selectSqlTemplateVo"/>
+        left join sys_role_template SRT on SRT.template_id = ST.id
+        LEFT JOIN sys_role RO on RO.role_id = SRT.role_id
+        <where>
+            <if test="id != null  and id != ''"> and ST.ID = #{id}</if>
+            <if test="params.role != null and params.role != ''"> and RO.role_key = #{params.role}</if>
+            <if test="chName != null  and chName != ''"> and (ST.EN_NAME like concat('%', #{chName}, '%')) or (ST.CH_NAME like concat('%', #{chName}, '%'))</if>
+            <if test="remark != null  and remark != ''"> and ST.REMARK like concat('%', #{remark}, '%')</if>
+            <if test="asid != null  and asid != ''"> and ST.ASID like concat('%', #{asid}, '%')</if>
+            <if test="status != null  and status != ''"> and ST.STATUS = #{status}</if>
+            <if test="platform != null  and platform != ''"> and ST.PLATFORM = #{platform}</if>
+            <if test="params.beginCreateTime != null and params.beginCreateTime != ''"><!-- 开始时间检索 -->
+                AND date_format(ST.CREATE_TIME,'%y%m%d') &gt;= date_format(#{params.beginCreateTime},'%y%m%d')
+            </if>
+            <if test="params.endCreateTime != null and params.endCreateTime != ''"><!-- 结束时间检索 -->
+                AND date_format(ST.CREATE_TIME,'%y%m%d') &lt;= date_format(#{params.endCreateTime},'%y%m%d')
+            </if>
+        </where>
+    </select>
+
+    <select id="exportSqlTemplateListByUserId" parameterType="SqlTemplate" resultMap="SqlTemplateResult">
+        <include refid="selectSqlTemplateVo"/>
+        left join sys_role_template SRT on SRT.template_id = ST.id
+        left join sys_user_role UR on SRT.role_id = UR.role_id
+        LEFT JOIN sys_role RO on UR.role_id = RO.role_id
+        <where>
+            UR.user_id = #{params.userId}
+            <if test="id != null and id != ''"> and ST.ID = #{id}</if>
+            <if test="params.role != null and params.role != ''"> and RO.role_key = #{params.role}</if>
+            <if test="chName != null  and chName != ''"> and (ST.EN_NAME like concat('%', #{chName}, '%')) or (ST.CH_NAME like concat('%', #{chName}, '%'))</if>
+            <if test="remark != null  and remark != ''"> and ST.REMARK like concat('%', #{remark}, '%')</if>
+            <if test="asid != null  and asid != ''"> and ST.ASID like concat('%', #{asid}, '%')</if>
+            <if test="status != null  and status != ''"> and ST.STATUS = #{status}</if>
+            <if test="platform != null  and platform != ''"> and ST.PLATFORM = #{platform}</if>
+            <if test="params.beginCreateTime != null and params.beginCreateTime != ''"><!-- 开始时间检索 -->
+                AND date_format(ST.CREATE_TIME,'%y%m%d') &gt;= date_format(#{params.beginCreateTime},'%y%m%d')
+            </if>
+            <if test="params.endCreateTime != null and params.endCreateTime != ''"><!-- 结束时间检索 -->
+                AND date_format(ST.CREATE_TIME,'%y%m%d') &lt;= date_format(#{params.endCreateTime},'%y%m%d')
+            </if>
+        </where>
+    </select>
     
     <select id="selectSqlTemplateById" parameterType="Long" resultMap="SqlTemplateResult">
         <include refid="selectSqlTemplateVo"/>

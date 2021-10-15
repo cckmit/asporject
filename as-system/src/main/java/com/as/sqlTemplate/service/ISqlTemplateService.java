@@ -30,6 +30,14 @@ public interface ISqlTemplateService
     public List<SqlTemplate> selectSqlTemplateListByUserId(SqlTemplate sqlTemplate,Long userId);
 
     /**
+     * 导出SQL模板列表
+     *
+     * @param sqlTemplate SQL模板
+     * @return SQL模板集合
+     */
+    public List<SqlTemplate> exportSqlTemplateListByUserId(SqlTemplate sqlTemplate,Long userId);
+
+    /**
      * 新增SQL模板
      * 
      * @param sqlTemplate SQL模板

@@ -1,5 +1,6 @@
 package com.as.common.core.domain;
 
+import com.as.common.annotation.Excel;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
@@ -25,28 +26,33 @@ public class BaseEntity implements Serializable {
     /**
      * 创建者
      */
+    @Excel(name = "创建者", type = Excel.Type.EXPORT)
     private String createBy;
 
     /**
      * 创建时间
      */
+    @Excel(name = "创建时间", width = 30, dateFormat = "yyyy-MM-dd HH:mm:ss", type = Excel.Type.EXPORT)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date createTime;
 
     /**
      * 更新者
      */
+    @Excel(name = "更新者", type = Excel.Type.EXPORT)
     private String updateBy;
 
     /**
      * 更新时间
      */
+    @Excel(name = "更新时间", width = 30, dateFormat = "yyyy-MM-dd HH:mm:ss", type = Excel.Type.EXPORT)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date updateTime;
 
     /**
      * 备注
      */
+    @Excel(name = "备注", type = Excel.Type.EXPORT)
     private String remark;
 
     /**

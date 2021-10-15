@@ -75,7 +75,7 @@ public class SqlTemplateController extends BaseController {
     @ResponseBody
     public AjaxResult export(SqlTemplate sqlTemplate) {
         Long userId = ShiroUtils.getUserId();
-        List<SqlTemplate> list = sqlTemplateService.selectSqlTemplateListByUserId(sqlTemplate, userId);
+        List<SqlTemplate> list = sqlTemplateService.exportSqlTemplateListByUserId(sqlTemplate, userId);
         ExcelUtil<SqlTemplate> util = new ExcelUtil<SqlTemplate>(SqlTemplate.class);
         return util.exportExcel(list, "SQL模板数据");
     }

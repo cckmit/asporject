@@ -26,6 +26,12 @@ public class SqlTemplate extends BaseEntity {
     private Long id;
 
     /**
+     * ASID
+     */
+    @Excel(name = "ASID")
+    private String asid;
+
+    /**
      * 模板名称-英文
      */
     @Excel(name = "模板名称-英文")
@@ -56,20 +62,18 @@ public class SqlTemplate extends BaseEntity {
     /**
      * JDBC
      */
+    @Excel(name = "JDBC")
     @NotBlank(message = "JDBC不能为空")
     private String jdbc;
 
     /**
      * SCRIPT
      */
+    @Excel(name = "SCRIPT")
     @NotBlank(message = "SCRIPT不能为空")
     private String script;
 
-    /**
-     * ASID
-     */
-    private String asid;
-
+    @Excel(name = "SqlTemplateValue")
     private List<SqlTemplateValue> values;
 
     /** 角色组 */
