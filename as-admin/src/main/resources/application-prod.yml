@@ -80,7 +80,7 @@ spring:
                 sec:
                     # enabled 数据源开关
                     enabled: true
-                    url: jdbc:oracle:thin:@DB.pf2prod.com:1521/UB8.pf2prod.com
+                    url: jdbc:oracle:thin:@DB-S.pf2prod.com:1521/UB8.pf2prod.com
                     username: AS_MONITOR
                     password: M0nI7to8S
                     driverClassName: oracle.jdbc.driver.OracleDriver
@@ -88,7 +88,7 @@ spring:
             pf2-draw:
                 # enabled 数据源开关
                 enabled: true
-                url: jdbc:oracle:thin:@DB.pf2prod.com:1521/UB8.pf2prod.com
+                url: jdbc:oracle:thin:@DB-S.pf2prod.com:1521/UB8.pf2prod.com
                 username: AS_MONITOR
                 password: M0nI7to8S
                 driverClassName: oracle.jdbc.driver.OracleDriver
