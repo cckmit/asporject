@@ -109,11 +109,11 @@
                                 <label class="col-sm-5 control-label"><strong>[[#{sql.template.status}]]:</strong></label>
                                 %status%
                             </div>
-                            <div class="form-group">
+                            <div class="form-group" title="%createBy%" style="overflow: hidden;white-space:nowrap;">
                                 <label class="col-sm-5 control-label"><strong>[[#{common.create.by}]]:</strong></label>
                                 %createBy%
                             </div>
-                            <div class="form-group">
+                            <div class="form-group" title="%createBy%" style="overflow: hidden;white-space:nowrap;">
                                 <label class="col-sm-5 control-label"><strong>[[#{common.update.by}]]:</strong></label>
                                 %updateBy%
                             </div>
@@ -254,11 +254,11 @@
         $.each(data, function (i, row) {
             view += template.replace('%id%', row.id)
                 .replace(/%templateName%/g, i18n('locale') === 'en-US' ? row.enName : row.chName)
-                .replace('%platform%', $.table.selectDictLabel(platformDatas, row.platform))
-                .replace('%status%', statusTools(row))
-                .replace('%createBy%', row.createBy + '/' + $.common.dateFormat(row.createTime, 'yyyy-MM-dd HH:mm:ss'))
-                .replace('%updateBy%', row.updateBy == null ? '--' : (row.updateBy + '/' + $.common.dateFormat(row.updateTime, 'yyyy-MM-dd HH:mm:ss')))
-                .replace('%remark%', row.remark);
+                .replace(/%platform%/g, $.table.selectDictLabel(platformDatas, row.platform))
+                .replace(/%status%/g, statusTools(row))
+                .replace(/%createBy%/g, row.createBy + '/' + $.common.dateFormat(row.createTime, 'yyyy-MM-dd HH:mm:ss'))
+                .replace(/%updateBy%/g, row.updateBy == null ? '--' : (row.updateBy + '/' + $.common.dateFormat(row.updateTime, 'yyyy-MM-dd HH:mm:ss')))
+                .replace(/%remark%/g, row.remark);
         })
 
         return `<div class="row mx-0">${view}</div>`
