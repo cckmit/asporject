@@ -1,9 +1,9 @@
 #!/bin/bash
-
+export dockerHome=/usr/local/dockerize
 image=`docker images | grep -v 'IMAGE ID' | grep 'asportal' | head -n 1 | awk '{print$3}'`
 containerId=`docker ps | grep 'as-portal' | awk '{print $1}'`
 if [ -n "${containerId}" ];then
-        sh /usr/local/dockerize/script/asportalStop.sh
+        sh ${dockerHome}/ASPortal/script/asportalStop.sh
 else
         echo 'no running process'
 fi
