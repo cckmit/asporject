@@ -13,7 +13,8 @@
                         <ul>
                             <li th:each="value : ${sqlTemplate.values}" th:class="${value.htmlType == 'dateTime'} ? 'select-time' : ''" >
                                 <label th:title="${locale == 'en_US'} ? ${value.valueEnName} : ${value.valueChName}" style="width:150px;text-overflow: ellipsis;overflow: hidden;white-space:nowrap;display: block;word-break: break-all;word-wrap: break-word;">[[${locale == 'en_US'} ? ${value.valueEnName} : ${value.valueChName}]]：</label>
-                                <input th:if="${value.htmlType == 'input'}" type="text" th:name="${value.templateValue}" th:placeholder="${locale == 'en_US'} ? ${value.enPlaceholder} : ${value.chPlaceholder}" required/>
+                                <t th:if="${value.listValue eq 'null'}"><input th:if="${value.htmlType == 'input'}" type="text" th:name="${value.templateValue}" th:placeholder="${locale == 'en_US'} ? ${value.enPlaceholder} : ${value.chPlaceholder}" /></t>
+                                <t th:if="${value.listValue ne 'null'}"><select th:id="${value.listValue}" th:name="${value.templateValue}"></select></t>
                                 <input th:if="${value.htmlType == 'dateTime'}" type="text" class="time-input" th:name="${value.templateValue}" th:placeholder="${locale == 'en_US'} ? ${value.enPlaceholder} : ${value.chPlaceholder}" required/>
                             </li>
                             <li>
@@ -33,6 +34,28 @@
      <th:block th:include="include :: bootstrap-table-export-js" />
      <th:block th:include="include :: datetimepicker-js" />
     <script th:inline="javascript">
+        var valueParam_index = 1;
+        var values = [[${sqlTemplate.values}]];
+        $(function (){
+            $.each(values,function(n,value){
+                test(values[valueParam_index-1].listValue)
+            })
+        })
+
+        function test(value){
+            var NewArray = value.split(";");
+            var select = document.getElementById(value);
+            for(var x = 0;x<NewArray.length;x++){
+                var NewArray2=NewArray[x];
+                var value=NewArray2.split(",");
+                var option = document.createElement("option");
+                option.setAttribute("value",value[0]);
+                option.appendChild(document.createTextNode(value[1]));
+                select.appendChild(option);
+            }
+            valueParam_index++
+        }
+
         var editFlag = [[${@permission.hasPermi('as:sqlTemplate:edit')}]];
         var statusFlag = [[${@permission.hasPermi('as:sqlTemplate:changeStatus')}]];
         var removeFlag = [[${@permission.hasPermi('as:sqlTemplate:remove')}]];

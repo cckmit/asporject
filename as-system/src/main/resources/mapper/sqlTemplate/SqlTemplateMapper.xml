@@ -30,11 +30,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="chPlaceholder"    column="CH_PLACEHOLDER"    />
         <result property="htmlType"    column="HTML_TYPE"    />
         <result property="matchType"    column="MATCH_TYPE"    />
+        <result property="listValue"    column="LIST_VALUE"    />
     </resultMap>
 
     <sql id="selectSqlTemplateVo">
         select ST.ID, ST.EN_NAME, ST.CH_NAME, ST.STATUS, ST.PLATFORM, ST.JDBC, ST.SCRIPT, ST.REMARK, ST.CREATE_BY, ST.CREATE_TIME, ST.UPDATE_BY, ST.UPDATE_TIME, ST.ASID,
-        STV.TEMPLATE_VALUE,STV.VALUE_EN_NAME,STV.VALUE_CH_NAME,STV.EN_PLACEHOLDER,STV.CH_PLACEHOLDER,STV.HTML_TYPE,STV.MATCH_TYPE
+        STV.TEMPLATE_VALUE,STV.VALUE_EN_NAME,STV.VALUE_CH_NAME,STV.EN_PLACEHOLDER,STV.CH_PLACEHOLDER,STV.HTML_TYPE,STV.MATCH_TYPE,STV.LIST_VALUE
         from sql_template ST
         left join sql_template_value STV on ST.ID = STV.TEMPLATE_ID
     </sql>
@@ -192,9 +193,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </delete>
 
     <insert id="batchTemplateValue">
-        insert into SQL_TEMPLATE_VALUE(TEMPLATE_ID, TEMPLATE_VALUE, VALUE_EN_NAME, VALUE_CH_NAME, EN_PLACEHOLDER, CH_PLACEHOLDER, HTML_TYPE, MATCH_TYPE) values
+        insert into SQL_TEMPLATE_VALUE(TEMPLATE_ID, TEMPLATE_VALUE, VALUE_EN_NAME, VALUE_CH_NAME, EN_PLACEHOLDER, CH_PLACEHOLDER, HTML_TYPE, MATCH_TYPE, LIST_VALUE) values
         <foreach item="item" index="index" collection="list" separator=",">
-            (#{item.templateId},#{item.templateValue},#{item.valueEnName},#{item.valueChName},#{item.enPlaceholder},#{item.chPlaceholder},#{item.htmlType},#{item.matchType})
+            (#{item.templateId},#{item.templateValue},#{item.valueEnName},#{item.valueChName},#{item.enPlaceholder},#{item.chPlaceholder},#{item.htmlType},#{item.matchType},#{item.listValue})
         </foreach>
     </insert>
 

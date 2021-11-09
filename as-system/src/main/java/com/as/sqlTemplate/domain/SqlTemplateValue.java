@@ -78,4 +78,10 @@ public class SqlTemplateValue extends BaseEntity {
     @Excel(name = "比对类型")
     @NotBlank(message = "比对类型不能为空")
     private String matchType;
+
+    /**
+     * 陣列
+     */
+    @Excel(name = "陣列")
+    private String listValue;
 }
