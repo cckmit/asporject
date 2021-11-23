@@ -2,24 +2,31 @@
 <html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
 <head>
     <th:block th:include="include :: header('SQL模板列表')" />
+    <th:block th:include="include :: select2-css" />
+    <th:block th:include="include :: bootstrap-select-css" />
 </head>
 <body class="gray-bg">
      <div class="container-div">
         <div class="row">
             <div class="col-sm-12 search-collapse">
-                <form autocomplete="off" id="form-template" th:object="${sqlTemplate}">
+                <form autocomplete="off" id="form-template" th:object="${sqlTemplate}" novalidate>
                     <input name="sqlTemplateId" th:value="*{id}" type="hidden">
                     <div class="select-list">
                         <ul>
                             <li th:each="value : ${sqlTemplate.values}" th:class="${value.htmlType == 'dateTime'} ? 'select-time' : ''" >
-                                <label th:title="${locale == 'en_US'} ? ${value.valueEnName} : ${value.valueChName}" style="width:150px;text-overflow: ellipsis;overflow: hidden;white-space:nowrap;display: block;word-break: break-all;word-wrap: break-word;">[[${locale == 'en_US'} ? ${value.valueEnName} : ${value.valueChName}]]：</label>
-                                <t th:if="${value.listValue eq 'null'}"><input th:if="${value.htmlType == 'input'}" type="text" th:name="${value.templateValue}" th:placeholder="${locale == 'en_US'} ? ${value.enPlaceholder} : ${value.chPlaceholder}" /></t>
-                                <t th:if="${value.listValue ne 'null'}"><select th:id="${value.listValue}" th:name="${value.templateValue}"></select></t>
-                                <input th:if="${value.htmlType == 'dateTime'}" type="text" class="time-input" th:name="${value.templateValue}" th:placeholder="${locale == 'en_US'} ? ${value.enPlaceholder} : ${value.chPlaceholder}" required/>
+                                <!--水平排列表單form-inline-->
+                                <div class="form-inline">
+                                    <label th:title="${locale == 'en_US'} ? ${value.valueEnName} : ${value.valueChName}" style="width:150px;text-overflow: ellipsis;overflow: hidden;white-space:nowrap;display: block;word-break: break-all;word-wrap: break-word;">[[${locale == 'en_US'} ? ${value.valueEnName} : ${value.valueChName}]]：</label>
+                                    <t th:if="${value.listValue eq 'null'}"><input th:if="${value.htmlType == 'input'}" type="text" th:name="${value.templateValue}" th:placeholder="${locale == 'en_US'} ? ${value.enPlaceholder} : ${value.chPlaceholder}" /></t>
+                                    <t th:if="${value.listValue ne 'null' && value.matchType eq 'in'}"><select class="form-select noselect2 selectpicker" th:id="${value.listValue}" th:name="${value.templateValue}" data-live-search="true" data-none-results-text="沒找到相應記錄{0}" data-none-selected-text="--可多選--" multiple required></select></t>
+                                    <t th:if="${value.listValue ne 'null' && value.matchType eq 'equal'}"><select class="font-noraml" th:id="${value.listValue}" th:name="${value.templateValue}"></select></t>
+                                    <input th:if="${value.htmlType == 'dateTime'}" type="text" class="time-input" th:name="${value.templateValue}" th:placeholder="${locale == 'en_US'} ? ${value.enPlaceholder} : ${value.chPlaceholder}" required/>
+                                </div>
                             </li>
                             <li>
                                 <a class="btn btn-primary btn-rounded btn-sm" onclick="tableSearch()"><i class="fa fa-search"></i>&nbsp;[[#{common.query}]]</a>
-                                <a th:if="${not #lists.isEmpty(sqlTemplate.values)}" class="btn btn-warning btn-rounded btn-sm" onclick="$.form.reset()"><i class="fa fa-refresh"></i>&nbsp;[[#{common.reset}]]</a>
+                                <!--取消重置-->
+                                <!--<a th:if="${not #lists.isEmpty(sqlTemplate.values)}" class="btn btn-warning btn-rounded btn-sm" onclick="$.form.reset()"><i class="fa fa-refresh"></i>&nbsp;[[#{common.reset}]]</a>-->
                             </li>
                         </ul>
                     </div>
@@ -33,6 +40,8 @@
     <th:block th:include="include :: footer" />
      <th:block th:include="include :: bootstrap-table-export-js" />
      <th:block th:include="include :: datetimepicker-js" />
+     <th:block th:include="include :: select2-js" />
+     <th:block th:include="include :: bootstrap-select-js" />
     <script th:inline="javascript">
         var valueParam_index = 1;
         var values = [[${sqlTemplate.values}]];
@@ -42,9 +51,9 @@
             })
         })
 
-        function test(value){
-            var NewArray = value.split(";");
-            var select = document.getElementById(value);
+        function test(listValue){
+            var NewArray = listValue.split(";");
+            var select = document.getElementById(listValue);
             for(var x = 0;x<NewArray.length;x++){
                 var NewArray2=NewArray[x];
                 var value=NewArray2.split(",");
