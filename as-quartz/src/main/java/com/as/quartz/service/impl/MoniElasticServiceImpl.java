@@ -408,7 +408,7 @@ public class MoniElasticServiceImpl implements IMoniElasticService {
                 JSONObject jsonObject = JSONObject.parseObject(sourceAsString);
                 JSONObject json = jsonObject.getJSONObject("json");
                 String message = json.getString("message");
-                String replace = message.replace("win info:", "");
+                String replace = message.replace("[craw] get Single winNo result:", "");
                 JSONObject drawInfo = JSONObject.parseObject(replace);
                 String winNo = drawInfo.getString("winningNumber");
                 String numero = drawInfo.getString("numero");

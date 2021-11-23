@@ -96,10 +96,10 @@ public class MoniElasticExecution extends AbstractQuartzJob {
             saveExportField(hits);
 
             Map<String, String> compareResult = null;
-            if (hits.length > 0 && hits[0].getSourceAsString().contains("win info")) {
+            if (hits.length > 0 && moniElastic.getId()==2) {
                 compareResult = SpringUtils.getBean(IMoniElasticService.class).doPf1DrawCompare(hits);
                 doCompare(compareResult);
-            } else if (hits.length > 0 && hits[0].getSourceAsString().contains("win_nos")) {
+            } else if (hits.length > 0 && moniElastic.getId()==1) {
                 compareResult = SpringUtils.getBean(IMoniElasticService.class).doPf2DrawCompare(hits);
                 doCompare(compareResult);
             } else {
