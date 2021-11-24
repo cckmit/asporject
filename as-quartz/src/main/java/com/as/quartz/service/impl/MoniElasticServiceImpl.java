@@ -412,47 +412,43 @@ public class MoniElasticServiceImpl implements IMoniElasticService {
                 String replace = message.substring(message.indexOf("{"));
                 JSONObject drawInfo = JSONObject.parseObject(replace);
                 JSONArray winningNumbers = drawInfo.getJSONArray("winningNumbers");
-                if (StringUtils.isEmpty(winningNumbers)){
-                    winningNumbers = new JSONArray();
-                    winningNumbers.add(drawInfo);
+                if (StringUtils.isNotEmpty(winningNumbers)) {
+                    drawInfo = (JSONObject) winningNumbers.get(0);
                 }
-                for (Object winningNumber : winningNumbers) {
-                    JSONObject info = (JSONObject) winningNumber;
-                    String winNo = info.getString("winningNumber");
-                    String numero = info.getString("numero");
-                    String gameCode = info.getString("gameCode");
-                    if ("TWLKENO".equals(gameCode)) {
-                        gameCode = "TWK8";
-                    }
-                    if ("UUFFC11X5".equals(gameCode)) {
-                        gameCode = "UUFF11X5";
-                    }
-                    if ("UUSSKENO".equals(gameCode)) {
-                        gameCode = "UUKENO";
-                    }
-                    if ("TWLSSC".equals(gameCode)) {
-                        gameCode = "TWBGS";
-                    }
-                    if ("JSK3".equals(gameCode)) {
-                        numero = numero.substring(2).replace("-", "");
-                    }
-                    if ("HLJSSC".equals(gameCode)) {
-                        numero = "1".concat(numero);
-                    }
-                    //如果未找到匹配的开奖数据则记录
+                String winNo = drawInfo.getString("winningNumber");
+                String numero = drawInfo.getString("numero");
+                String gameCode = drawInfo.getString("gameCode");
+                if ("TWLKENO".equals(gameCode)) {
+                    gameCode = "TWK8";
+                }
+                if ("UUFFC11X5".equals(gameCode)) {
+                    gameCode = "UUFF11X5";
+                }
+                if ("UUSSKENO".equals(gameCode)) {
+                    gameCode = "UUKENO";
+                }
+                if ("TWLSSC".equals(gameCode)) {
+                    gameCode = "TWBGS";
+                }
+                if ("JSK3".equals(gameCode)) {
+                    numero = numero.substring(2).replace("-", "");
+                }
+                if ("HLJSSC".equals(gameCode)) {
+                    numero = "1".concat(numero);
+                }
+                //如果未找到匹配的开奖数据则记录
 
-                    Integer count = pf1DrawCompareMapper.selectPF1DrawNumberCount(gameCode, numero, winNo);
-                    if (count != 1) {
-                        String winNumber = pf1DrawCompareMapper.selectPF1DrawNumber(gameCode, numero);
-                        if (StringUtils.isBlank(winNumber)) {
-                            winNumber = "Not Found";
-                        }
-                        result.append(String.format("========================== \nGameCode : %s \nLOG-WinningNumber : %s \nDB-WinningNumber : %s \nNumero : %s \n",
-                                gameCode, winNo, winNumber, numero));
-                        index++;
-                    } else {
-                        logger.info("[PF1] Query parameters are : " + gameCode + ", " + numero + ", " + winNo + ", Result is OK: " + count);
+                Integer count = pf1DrawCompareMapper.selectPF1DrawNumberCount(gameCode, numero, winNo);
+                if (count != 1) {
+                    String winNumber = pf1DrawCompareMapper.selectPF1DrawNumber(gameCode, numero);
+                    if (StringUtils.isBlank(winNumber)) {
+                        winNumber = "Not Found";
                     }
+                    result.append(String.format("========================== \nGameCode : %s \nLOG-WinningNumber : %s \nDB-WinningNumber : %s \nNumero : %s \n",
+                            gameCode, winNo, winNumber, numero));
+                    index++;
+                } else {
+                    logger.info("[PF1] Query parameters are : " + gameCode + ", " + numero + ", " + winNo + ", Result is OK: " + count);
                 }
 
             } catch (Exception e) {
@@ -481,7 +477,7 @@ public class MoniElasticServiceImpl implements IMoniElasticService {
                 String winNo = context.get("win_nos").get(0);
                 String numero = context.get("numeros").get(0);
                 String gameCode = context.get("game_code").get(0);
-                if ("SSQ".equals(gameCode)) {
+                if ("SSQ".equals(gameCode) || "LHC".equals(gameCode)) {
                     int i = winNo.lastIndexOf(",");
                     StringBuilder sb = new StringBuilder(winNo);
                     sb.replace(i, i + 1, "-");
