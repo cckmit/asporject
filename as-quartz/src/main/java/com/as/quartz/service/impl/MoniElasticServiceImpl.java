@@ -430,7 +430,7 @@ public class MoniElasticServiceImpl implements IMoniElasticService {
                 if ("TWLSSC".equals(gameCode)) {
                     gameCode = "TWBGS";
                 }
-                if ("JSK3".equals(gameCode)) {
+                if ("JSK3".equals(gameCode) || "JSSHB".equals(gameCode)) {
                     numero = numero.substring(2).replace("-", "");
                 }
                 if ("HLJSSC".equals(gameCode)) {
