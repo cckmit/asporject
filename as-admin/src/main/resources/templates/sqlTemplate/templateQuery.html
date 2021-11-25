@@ -54,13 +54,15 @@
         function test(listValue){
             var NewArray = listValue.split(";");
             var select = document.getElementById(listValue);
-            for(var x = 0;x<NewArray.length;x++){
-                var NewArray2=NewArray[x];
-                var value=NewArray2.split(",");
-                var option = document.createElement("option");
-                option.setAttribute("value",value[0]);
-                option.appendChild(document.createTextNode(value[1]));
-                select.appendChild(option);
+            if (select) {
+                for(var x = 0;x<NewArray.length;x++){
+                    var NewArray2=NewArray[x];
+                    var value=NewArray2.split(",");
+                    var option = document.createElement("option");
+                    option.setAttribute("value",value[0]);
+                    option.appendChild(document.createTextNode(value[1]));
+                    select.appendChild(option);
+                }
             }
             valueParam_index++
         }
