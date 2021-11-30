@@ -98,7 +98,7 @@ spring:
                 enabled: true
                 url:  jdbc:oracle:thin:@DWDB.pf2prod.com:1521/DWDB.pf2prod.com
                 username: AS_MONITOR
-                password: Jn3Ms9qoOc
+                password: 7FrepCSK
                 driverClassName: oracle.jdbc.driver.OracleDriver
 
             # 初始连接数
