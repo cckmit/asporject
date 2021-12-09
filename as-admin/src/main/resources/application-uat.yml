@@ -56,7 +56,7 @@ spring:
                     enabled: true
                     url: jdbc:oracle:thin:@172.27.103.4:1521/LOTTERY
                     username: LOTT_NEW_A3D1
-                    password: dha_Hdad239l
+                    password: dhb_Hdad2391
                     driverClassName: oracle.jdbc.driver.OracleDriver
                 # pf1 lottery sec
                 sec:
@@ -64,7 +64,7 @@ spring:
                     enabled: true
                     url: jdbc:oracle:thin:@172.27.103.4:1521/LOTTERY
                     username: LOTT_NEW_A3D1
-                    password: dha_Hdad239l
+                    password: dhb_Hdad2391
                     driverClassName: oracle.jdbc.driver.OracleDriver
             # pf2 core uat
             pf2-core:
