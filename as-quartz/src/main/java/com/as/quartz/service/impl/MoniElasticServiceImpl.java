@@ -477,12 +477,12 @@ public class MoniElasticServiceImpl implements IMoniElasticService {
                 String winNo = context.get("win_nos").get(0);
                 String numero = context.get("numeros").get(0);
                 String gameCode = context.get("game_code").get(0);
-                if ("SSQ".equals(gameCode)) {
+                /*if ("SSQ".equals(gameCode)) {
                     int i = winNo.lastIndexOf(",");
                     StringBuilder sb = new StringBuilder(winNo);
                     sb.replace(i, i + 1, "-");
                     winNo = sb.toString();
-                }
+                }*/
                 //如果未找到匹配的开奖数据则记录
 
                 int count = pf2DrawCompareMapper.selectPF2DrawNumberCount(gameCode, numero, winNo);
