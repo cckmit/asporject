@@ -56,7 +56,7 @@ spring:
                     enabled: true
                     url: jdbc:oracle:thin:@DB.pf1prod.com:1521:LOTTERY
                     username: AS_MONITOR
-                    password: MS_839qaz0okm
+                    password: Uie88Nmx2j
                     driverClassName: oracle.jdbc.driver.OracleDriver
                 # pf1 lottery sec
                 sec:
@@ -64,7 +64,7 @@ spring:
                     enabled: true
                     url: jdbc:oracle:thin:@DB-S.pf1prod.com:1521:LOTTERY
                     username: AS_MONITOR
-                    password: MS_839qaz0okm
+                    password: Uie88Nmx2j
                     driverClassName: oracle.jdbc.driver.OracleDriver
             # pf2 core prod
             pf2-core:
@@ -74,7 +74,7 @@ spring:
                     enabled: true
                     url: jdbc:oracle:thin:@DB.pf2prod.com:1521/UB8.pf2prod.com
                     username: AS_MONITOR
-                    password: M0nI7to8S
+                    password: Uie88Nmx2j
                     driverClassName: oracle.jdbc.driver.OracleDriver
                 # pf2 core sec
                 sec:
@@ -82,7 +82,7 @@ spring:
                     enabled: true
                     url: jdbc:oracle:thin:@DB-S.pf2prod.com:1521/UB8.pf2prod.com
                     username: AS_MONITOR
-                    password: M0nI7to8S
+                    password: Uie88Nmx2j
                     driverClassName: oracle.jdbc.driver.OracleDriver
             # pf2 draw prod
             pf2-draw:
@@ -90,7 +90,7 @@ spring:
                 enabled: true
                 url: jdbc:oracle:thin:@DB-S.pf2prod.com:1521/UB8.pf2prod.com
                 username: AS_MONITOR
-                password: M0nI7to8S
+                password: K82DjjJO2q
                 driverClassName: oracle.jdbc.driver.OracleDriver
             # pf2 dw prod
             pf2-dw:
