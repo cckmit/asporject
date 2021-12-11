@@ -90,7 +90,7 @@ spring:
                 enabled: true
                 url: jdbc:oracle:thin:@DB-S.pf2prod.com:1521/UB8.pf2prod.com
                 username: AS_MONITOR
-                password: K82DjjJO2q
+                password: Uie88Nmx2j
                 driverClassName: oracle.jdbc.driver.OracleDriver
             # pf2 dw prod
             pf2-dw:
