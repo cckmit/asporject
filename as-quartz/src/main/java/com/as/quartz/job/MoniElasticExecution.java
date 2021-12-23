@@ -83,15 +83,23 @@ public class MoniElasticExecution extends AbstractQuartzJob {
      */
     @Override
     protected void doExecute(JobExecutionContext context, Object job) throws Exception {
-        SearchResponse searchResponse = SpringUtils.getBean(IMoniElasticService.class).doElasticSearch(moniElastic);
-        SearchHit[] hits = searchResponse.getHits().getHits();
-        //储存结果
-        String result = String.format("find %s hits", hits.length);
+        SearchHit[] hits = null;
+        String total = null;
+        //新增判斷URL Kibana
+        if(Constants.PLATFORM_JY8.equals(moniElastic.getPlatform()) || Constants.PLATFORM_PAYUB8.equals(moniElastic.getPlatform())){
+            total = SpringUtils.getBean(IMoniElasticService.class).doURLElasticSearch(moniElastic);
+        }else{
+            SearchResponse searchResponse = SpringUtils.getBean(IMoniElasticService.class).doElasticSearch(moniElastic);
+            hits = searchResponse.getHits().getHits();
+        }
+        //储存结果判斷URL傳total否則傳hits.length
+        String result = String.format("find %s hits", Constants.PLATFORM_JY8.equals(moniElastic.getPlatform())?total:Constants.PLATFORM_PAYUB8.equals(moniElastic.getPlatform())?total:hits.length);
         moniElasticLog.setExecuteResult(result);
         if (ScheduleConstants.MATCH_NO_NEED.equals(moniElastic.getAutoMatch())) {
             moniElasticLog.setStatus(Constants.SUCCESS);
             moniElasticLog.setAlertStatus(Constants.FAIL);
-        } else if (doMatch(hits)) {
+            //不等於URL Kibana跑進迴圈
+        } else if (!(Constants.PLATFORM_JY8.equals(moniElastic.getPlatform()) || Constants.PLATFORM_PAYUB8.equals(moniElastic.getPlatform())) && doMatch(hits,null)) {
             //处理需要导出某字段信息
             saveExportField(hits);
 
@@ -105,7 +113,9 @@ public class MoniElasticExecution extends AbstractQuartzJob {
             } else {
                 checkAndAlert();
             }
-        } else {
+        } else if ((Constants.PLATFORM_JY8.equals(moniElastic.getPlatform()) || Constants.PLATFORM_PAYUB8.equals(moniElastic.getPlatform())) && doMatch(null,result)) {
+            checkAndAlert();
+        }else {
             moniElasticLog.setStatus(Constants.SUCCESS);
             moniElasticLog.setAlertStatus(Constants.FAIL);
         }
@@ -313,11 +323,11 @@ public class MoniElasticExecution extends AbstractQuartzJob {
      *
      * @throws Exception
      */
-    private boolean doMatch(SearchHit[] hits) throws Exception {
+    private boolean doMatch(SearchHit[] hits,String total) throws Exception {
 
         String autoMatch = moniElastic.getAutoMatch();
 
-        int rows = hits.length;
+        int rows=hits!=null?hits.length:Integer.parseInt(total.replaceAll("[^\\d]", ""));
 
         //大于比对
         if (ScheduleConstants.MATCH_GREATER.equals(autoMatch)) {

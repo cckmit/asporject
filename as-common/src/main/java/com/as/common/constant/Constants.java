@@ -128,6 +128,15 @@ public class Constants
     public static final String PLATFORM_2 = "5.0";
 
     /**
+     * jy8
+     */
+    public static final String PLATFORM_JY8 = "JY8";
+    /**
+     * PAYUB8
+     */
+    public static final String PLATFORM_PAYUB8 = "PAYUB8";
+
+    /**
      * sql job push template
      */
     public static final String DESCR_TEMPLATE_JOB = "descr_template_job";

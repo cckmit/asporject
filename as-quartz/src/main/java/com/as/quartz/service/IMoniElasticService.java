@@ -140,4 +140,12 @@ public interface IMoniElasticService {
 
 
     public int updateTemplate(String template);
+
+    /**
+     * 执行URLElasticSearch
+     *
+     * @param job 调度信息
+     * @return 结果
+     */
+    public String doURLElasticSearch(MoniElastic job) throws IOException;
 }

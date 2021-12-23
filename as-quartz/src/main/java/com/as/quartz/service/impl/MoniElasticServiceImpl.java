@@ -1,7 +1,6 @@
 package com.as.quartz.service.impl;
 
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.*;
 import com.as.common.config.datasource.DynamicDataSourceContextHolder;
 import com.as.common.constant.Constants;
 import com.as.common.constant.ScheduleConstants;
@@ -19,6 +18,7 @@ import com.as.quartz.mapper.PF1DrawCompareMapper;
 import com.as.quartz.mapper.PF2DrawCompareMapper;
 import com.as.quartz.service.IMoniElasticService;
 import com.as.quartz.util.ScheduleUtils;
+import okhttp3.*;
 import org.apache.http.HttpHost;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
@@ -568,5 +568,99 @@ public class MoniElasticServiceImpl implements IMoniElasticService {
     @Override
     public int updateTemplate(String template) {
         return moniElasticMapper.updateTemplate(template);
+    }
+
+    @Override
+    public String doURLElasticSearch(MoniElastic moniElastic) throws IOException {
+            OkHttpClient client = new OkHttpClient().newBuilder().build();
+            MediaType mediaType = MediaType.parse("application/json");
+            RequestBody body = RequestBody.create(mediaType, dataJason(moniElastic));
+            String url=Constants.PLATFORM_JY8.equals(moniElastic.getPlatform())?"http://kube.jy8web.com:30101/internal/bsearch":"http://kube.payub8.com:30101/internal/bsearch";
+            Request request = new Request.Builder()
+                    .url(url)
+                    .method("POST", body)
+                    .addHeader("kbn-version", "7.15.0")
+                    .build();
+            Response response = client.newCall(request).execute();
+            String jason = response.body().string();
+            JSONObject jsonObject = JSON.parseObject(jason);
+            String total=jsonObject.getJSONObject("result").getJSONObject("rawResponse").getJSONObject("hits").getString("total");
+            return total;
+    }
+
+    /**
+     *URL Kibana的jason格式
+     **/
+    private String dataJason(MoniElastic moniElastic){
+        JSONObject queryJson;
+        if(moniElastic.getQuery().contains(" AND ")==true || moniElastic.getQuery().contains(" OR ")==true) {
+            //切割Query並組合成jason格設
+            String[] queryValues = moniElastic.getQuery().split(moniElastic.getQuery().contains(" AND ") ? " AND " : " OR ");
+            List filterList = new ArrayList();
+            Map<String, Object> bool_ValueMap = new HashMap<>();
+            Map<String, Object> dataMap = new HashMap();
+            for (String queryValue : queryValues) {
+                String[] value = queryValue.replaceAll("\\s+", "").replaceAll("\"", "").split(":");
+                Map<String, String> matchPhrase_ValueMap = new HashMap<>();
+                Map<String, Object> should_ValueMap = new HashMap<>();
+                Map<String, Object> bool2_ValueMap = new HashMap<>();
+                Map<String, Object> filter_ValueMap = new HashMap<>();
+                List shouldList = new ArrayList();
+
+                matchPhrase_ValueMap.put(value[0], value[1]);
+                should_ValueMap.put("match_phrase", matchPhrase_ValueMap);
+                shouldList.add(should_ValueMap);
+                bool2_ValueMap.put("should", shouldList);
+                bool2_ValueMap.put("minimum_should_match", 1);
+                filter_ValueMap.put("bool", bool2_ValueMap);
+                filterList.add(filter_ValueMap);
+            }
+            bool_ValueMap.put("should", filterList);
+            if (moniElastic.getQuery().contains(" AND ") != true) {
+                bool_ValueMap.put("minimum_should_match", 1);
+            }
+            dataMap.put("bool", bool_ValueMap);
+            queryJson = new JSONObject(dataMap);
+        }else {
+            Map<String, Object> dataMap = new HashMap();
+            Map<String, Object> multiMatch_ValueMap = new HashMap();
+            multiMatch_ValueMap.put("type","phrase");
+            multiMatch_ValueMap.put("query",moniElastic.getQuery());
+            multiMatch_ValueMap.put("lenient",true);
+            dataMap.put("multi_match",multiMatch_ValueMap);
+            queryJson = new JSONObject(dataMap);
+        }
+        String dataJason="{\"batch\":[\n" +
+                "{\"request\":{\"params\":{\"index\":\""+moniElastic.getIndex()+"\",\n" +
+                "\"body\":{\"size\":0,\n" +
+                "\"aggs\":{\"2\":{\"date_histogram\":{\"field\":\"@timestamp\",\n" +
+                "\"fixed_interval\":\"30s\",\n" +
+                "\"time_zone\":\"Asia/Taipei\",\n" +
+                "\"min_doc_count\":1}}},\n" +
+                "\"fields\":[{\"field\":\"@timestamp\",\n" +
+                "\"format\":\"date_time\"}],\n" +
+                "\"script_fields\":{},\n" +
+                "\"stored_fields\":[\"*\"],\n" +
+                "\"runtime_mappings\":{},\n" +
+                "\"_source\":{\"excludes\":[]},\n" +
+                "\"query\":{\"bool\":{\"must\":[],\n" +
+                "\"filter\":["+queryJson+",\n" +
+                "{\"range\":{\"@timestamp\":{\"format\":\"strict_date_optional_time\",\n" +
+                "\"gte\":\""+moniElastic.getTimeFrom()+"\",\n" +
+                "\"lte\":\""+moniElastic.getTimeTo()+"\"}}}],\n" +
+                "\"should\":[],\n" +
+                "\"must_not\":[]}}},\n" +
+                "\"track_total_hits\":true,\n" +
+                "\"preference\":1640050624720}},\n" +
+                "\"options\":{\"sessionId\":\"eee0c364-bf8f-43a5-bdae-57dd187adfc9\",\n" +
+                "\"isRestore\":false,\n" +
+                "\"strategy\":\"ese\",\n" +
+                "\"isStored\":false,\n" +
+                "\"executionContext\":{\"type\":\"application\",\n" +
+                "\"name\":\"discover\",\n" +
+                "\"description\":\"fetch chart data and total hits\",\n" +
+                "\"url\":\"/app/discover\",\n" +
+                "\"id\":\"\"}}}]}";
+        return  dataJason;
     }
 }
