@@ -593,12 +593,12 @@ public class MoniElasticServiceImpl implements IMoniElasticService {
      **/
     private String dataJason(MoniElastic moniElastic){
         JSONObject queryJson;
+        Map<String, Object> dataMap = new HashMap();
         if(moniElastic.getQuery().contains(" AND ")==true || moniElastic.getQuery().contains(" OR ")==true) {
             //切割Query並組合成jason格設
             String[] queryValues = moniElastic.getQuery().split(moniElastic.getQuery().contains(" AND ") ? " AND " : " OR ");
             List filterList = new ArrayList();
             Map<String, Object> bool_ValueMap = new HashMap<>();
-            Map<String, Object> dataMap = new HashMap();
             for (String queryValue : queryValues) {
                 String[] value = queryValue.replaceAll("\\s+", "").replaceAll("\"", "").split(":");
                 Map<String, String> matchPhrase_ValueMap = new HashMap<>();
@@ -621,8 +621,20 @@ public class MoniElasticServiceImpl implements IMoniElasticService {
             }
             dataMap.put("bool", bool_ValueMap);
             queryJson = new JSONObject(dataMap);
+        }else if(moniElastic.getQuery().contains(":")==true) {
+            Map<String, Object> bool_ValueMap = new HashMap<>();
+            Map<String, Object> should_ValueMap = new HashMap();
+            Map<String, Object> matchPhrase_ValueMap = new HashMap();
+            List shouldList = new ArrayList();
+            String[] queryValues = moniElastic.getQuery().replaceAll("\\s+", "").replaceAll("\"", "").split(":");
+            matchPhrase_ValueMap.put(queryValues[0],queryValues[1]);
+            should_ValueMap.put("match_phrase",matchPhrase_ValueMap);
+            shouldList.add(should_ValueMap);
+            bool_ValueMap.put("should",shouldList);
+            bool_ValueMap.put("minimum_should_match",1);
+            dataMap.put("bool",bool_ValueMap);
+            queryJson = new JSONObject(dataMap);
         }else {
-            Map<String, Object> dataMap = new HashMap();
             Map<String, Object> multiMatch_ValueMap = new HashMap();
             multiMatch_ValueMap.put("type","phrase");
             multiMatch_ValueMap.put("query",moniElastic.getQuery());
