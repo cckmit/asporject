@@ -594,7 +594,7 @@ public class MoniElasticServiceImpl implements IMoniElasticService {
     private String dataJason(MoniElastic moniElastic){
         JSONObject queryJson;
         Map<String, Object> dataMap = new HashMap();
-        if(moniElastic.getQuery().contains(" AND ")==true || moniElastic.getQuery().contains(" OR ")==true) {
+        if(moniElastic.getQuery().contains(" AND ") || moniElastic.getQuery().contains(" OR ")) {
             //切割Query並組合成jason格設
             String[] queryValues = moniElastic.getQuery().split(moniElastic.getQuery().contains(" AND ") ? " AND " : " OR ");
             List filterList = new ArrayList();
@@ -607,21 +607,33 @@ public class MoniElasticServiceImpl implements IMoniElasticService {
                 Map<String, Object> filter_ValueMap = new HashMap<>();
                 List shouldList = new ArrayList();
 
-                matchPhrase_ValueMap.put(value[0], value[1]);
                 should_ValueMap.put("match_phrase", matchPhrase_ValueMap);
                 shouldList.add(should_ValueMap);
                 bool2_ValueMap.put("should", shouldList);
                 bool2_ValueMap.put("minimum_should_match", 1);
-                filter_ValueMap.put("bool", bool2_ValueMap);
+                if(value[0].contains("NOT")==true){
+                    matchPhrase_ValueMap.put(value[0].replaceAll("NOT", ""), value[1]);
+                    Map<String, Object> mustNot_ValueMap = new HashMap<>();
+                    Map<String, Object> boolNot_ValueMap = new HashMap<>();
+                    mustNot_ValueMap.put("bool",bool2_ValueMap);
+                    boolNot_ValueMap.put("must_not",mustNot_ValueMap);
+                    filter_ValueMap.put("bool", boolNot_ValueMap);
+                }else {
+                    matchPhrase_ValueMap.put(value[0], value[1]);
+                    filter_ValueMap.put("bool", bool2_ValueMap);
+                }
                 filterList.add(filter_ValueMap);
             }
-            bool_ValueMap.put("should", filterList);
-            if (moniElastic.getQuery().contains(" AND ") != true) {
+
+            if (moniElastic.getQuery().contains(" OR ")) {
+                bool_ValueMap.put("should", filterList);
                 bool_ValueMap.put("minimum_should_match", 1);
+            }else{
+                bool_ValueMap.put("filter", filterList);
             }
             dataMap.put("bool", bool_ValueMap);
             queryJson = new JSONObject(dataMap);
-        }else if(moniElastic.getQuery().contains(":")==true) {
+        }else if(moniElastic.getQuery().contains(":")) {
             Map<String, Object> bool_ValueMap = new HashMap<>();
             Map<String, Object> should_ValueMap = new HashMap();
             Map<String, Object> matchPhrase_ValueMap = new HashMap();
