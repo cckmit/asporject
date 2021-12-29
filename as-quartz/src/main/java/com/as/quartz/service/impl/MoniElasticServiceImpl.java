@@ -665,35 +665,17 @@ public class MoniElasticServiceImpl implements IMoniElasticService {
         }
         String dataJason="{\"batch\":[\n" +
                 "{\"request\":{\"params\":{\"index\":\""+moniElastic.getIndex()+"\",\n" +
-                "\"body\":{\"size\":0,\n" +
-                "\"aggs\":{\"2\":{\"date_histogram\":{\"field\":\"@timestamp\",\n" +
-                "\"fixed_interval\":\"30s\",\n" +
-                "\"time_zone\":\"Asia/Taipei\",\n" +
-                "\"min_doc_count\":1}}},\n" +
-                "\"fields\":[{\"field\":\"@timestamp\",\n" +
-                "\"format\":\"date_time\"}],\n" +
-                "\"script_fields\":{},\n" +
-                "\"stored_fields\":[\"*\"],\n" +
-                "\"runtime_mappings\":{},\n" +
-                "\"_source\":{\"excludes\":[]},\n" +
-                "\"query\":{\"bool\":{\"must\":[],\n" +
-                "\"filter\":["+queryJson+",\n" +
+                "\"body\":{\"fields\":[{\"field\":\"*\",\n" +
+                "\"include_unmapped\":\"true\"}],\n" +
+                "\"size\":1,\"_source\":false,\n" +
+                "\"query\":{\"bool\":{\"filter\":["+queryJson+",\n" +
                 "{\"range\":{\"@timestamp\":{\"format\":\"strict_date_optional_time\",\n" +
                 "\"gte\":\""+moniElastic.getTimeFrom()+"\",\n" +
-                "\"lte\":\""+moniElastic.getTimeTo()+"\"}}}],\n" +
-                "\"should\":[],\n" +
-                "\"must_not\":[]}}},\n" +
-                "\"track_total_hits\":true,\n" +
-                "\"preference\":1640050624720}},\n" +
-                "\"options\":{\"sessionId\":\"eee0c364-bf8f-43a5-bdae-57dd187adfc9\",\n" +
-                "\"isRestore\":false,\n" +
-                "\"strategy\":\"ese\",\n" +
-                "\"isStored\":false,\n" +
-                "\"executionContext\":{\"type\":\"application\",\n" +
-                "\"name\":\"discover\",\n" +
-                "\"description\":\"fetch chart data and total hits\",\n" +
-                "\"url\":\"/app/discover\",\n" +
-                "\"id\":\"\"}}}]}";
+                "\"lte\":\""+moniElastic.getTimeTo()+"\"}}}]}},\n" +
+                "\"highlight\":{\"pre_tags\":[\"@kibana-highlighted-field@\"],\n" +
+                "\"post_tags\":[\"@/kibana-highlighted-field@\"],\n" +
+                "\"fields\":{\"*\":{}},\"fragment_size\":2147483647}\n" +
+                "},\"track_total_hits\":true}}}]}";
         return  dataJason;
     }
 }
