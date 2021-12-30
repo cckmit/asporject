@@ -1,5 +1,6 @@
 package com.as.quartz.service;
 
+import com.alibaba.fastjson.JSONObject;
 import com.as.quartz.domain.MoniElastic;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.search.SearchHit;
@@ -147,5 +148,5 @@ public interface IMoniElasticService {
      * @param job 调度信息
      * @return 结果
      */
-    public String doURLElasticSearch(MoniElastic job) throws IOException;
+    public JSONObject doURLElasticSearch(MoniElastic job) throws IOException;
 }

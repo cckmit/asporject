@@ -1,6 +1,7 @@
 package com.as.quartz.job;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.as.common.constant.Constants;
 import com.as.common.constant.DictTypeConstants;
@@ -84,10 +85,12 @@ public class MoniElasticExecution extends AbstractQuartzJob {
     @Override
     protected void doExecute(JobExecutionContext context, Object job) throws Exception {
         SearchHit[] hits = null;
+        JSONObject urlBody = null;
         String total = null;
         //新增判斷URL Kibana
         if(Constants.PLATFORM_JY8.equals(moniElastic.getPlatform()) || Constants.PLATFORM_PAYUB8.equals(moniElastic.getPlatform())){
-            total = SpringUtils.getBean(IMoniElasticService.class).doURLElasticSearch(moniElastic);
+            urlBody = SpringUtils.getBean(IMoniElasticService.class).doURLElasticSearch(moniElastic);
+            total = urlBody.getJSONObject("result").getJSONObject("rawResponse").getJSONObject("hits").getString("total");
         }else{
             SearchResponse searchResponse = SpringUtils.getBean(IMoniElasticService.class).doElasticSearch(moniElastic);
             hits = searchResponse.getHits().getHits();
@@ -114,6 +117,8 @@ public class MoniElasticExecution extends AbstractQuartzJob {
                 checkAndAlert();
             }
         } else if ((Constants.PLATFORM_JY8.equals(moniElastic.getPlatform()) || Constants.PLATFORM_PAYUB8.equals(moniElastic.getPlatform())) && doMatch(null,result)) {
+            //处理需要导出某字段信息
+            saveUrlExportField(urlBody);
             checkAndAlert();
         }else {
             moniElasticLog.setStatus(Constants.SUCCESS);
@@ -186,6 +191,16 @@ public class MoniElasticExecution extends AbstractQuartzJob {
             }
             moniElasticLog.setExportResult(exportResult.substring(0, exportResult.length() - 1));
         }
+    }
+
+    private void saveUrlExportField(JSONObject object) {
+            String[] exportFields = moniElastic.getExportField().split(",");
+            StringBuilder exportResult = new StringBuilder();
+            JSONObject jsonObject = object.getJSONObject("result").getJSONObject("rawResponse").getJSONObject("hits").getJSONArray("hits").getJSONObject(0).getJSONObject("fields");
+            for (String exportField : exportFields) {
+                exportResult.append(exportField+":"+jsonObject.getJSONArray(exportField)+",");
+            }
+            moniElasticLog.setExportResult(exportResult.substring(0, exportResult.length() - 1));
     }
 
     /**

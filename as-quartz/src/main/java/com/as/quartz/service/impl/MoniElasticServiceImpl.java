@@ -571,7 +571,7 @@ public class MoniElasticServiceImpl implements IMoniElasticService {
     }
 
     @Override
-    public String doURLElasticSearch(MoniElastic moniElastic) throws IOException {
+    public JSONObject doURLElasticSearch(MoniElastic moniElastic) throws IOException {
             OkHttpClient client = new OkHttpClient().newBuilder().build();
             MediaType mediaType = MediaType.parse("application/json");
             RequestBody body = RequestBody.create(mediaType, dataJason(moniElastic));
@@ -585,7 +585,7 @@ public class MoniElasticServiceImpl implements IMoniElasticService {
             String jason = response.body().string();
             JSONObject jsonObject = JSON.parseObject(jason);
             String total=jsonObject.getJSONObject("result").getJSONObject("rawResponse").getJSONObject("hits").getString("total");
-            return total;
+            return jsonObject;
     }
 
     /**
@@ -663,9 +663,11 @@ public class MoniElasticServiceImpl implements IMoniElasticService {
             dataMap.put("multi_match",multiMatch_ValueMap);
             queryJson = new JSONObject(dataMap);
         }
+        //size:1 列出1筆內容
+        //track_total_hits:true 顯示查出筆數
         String dataJason="{\"batch\":[\n" +
                 "{\"request\":{\"params\":{\"index\":\""+moniElastic.getIndex()+"\",\n" +
-                "\"body\":{\"fields\":[{\"field\":\"*\",\n" +
+                "\"body\":{\"sort\":[{\"@timestamp\":{\"order\":\"desc\"}}],\"fields\":[{\"field\":\"*\",\n" +
                 "\"include_unmapped\":\"true\"}],\n" +
                 "\"size\":1,\"_source\":false,\n" +
                 "\"query\":{\"bool\":{\"filter\":["+queryJson+",\n" +
