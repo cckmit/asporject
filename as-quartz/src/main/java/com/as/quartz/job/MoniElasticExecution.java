@@ -197,9 +197,13 @@ public class MoniElasticExecution extends AbstractQuartzJob {
             String[] exportFields = moniElastic.getExportField().split(",");
             StringBuilder exportResult = new StringBuilder();
             JSONObject jsonObject = object.getJSONObject("result").getJSONObject("rawResponse").getJSONObject("hits").getJSONArray("hits").getJSONObject(0).getJSONObject("fields");
+            int count = 1;
             for (String exportField : exportFields) {
-                exportResult.append(exportField+":"+jsonObject.getJSONArray(exportField)+",");
-                exportInfo.append(exportField+":"+jsonObject.getJSONArray(exportField)+",");
+                exportResult.append("(").append(count).append(")");
+                exportInfo.append("(").append(count).append(")");
+                exportResult.append(exportField+":"+jsonObject.getJSONArray(exportField)).append("\n");
+                exportInfo.append(exportField+":"+jsonObject.getJSONArray(exportField)).append("\n");
+                count++;
             }
             moniElasticLog.setExportResult(exportResult.substring(0, exportResult.length() - 1));
     }
