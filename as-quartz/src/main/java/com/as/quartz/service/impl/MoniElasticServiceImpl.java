@@ -91,6 +91,17 @@ public class MoniElasticServiceImpl implements IMoniElasticService {
     private int pf2Port;
 
     /**
+     * jy8 url
+     */
+    @Value("${elastic.jy8.url}")
+    private String jy8Url;
+    /**
+     * payub8 url
+     */
+    @Value("${elastic.payub8.url}")
+    private String payub8Url;
+
+    /**
      * 查询ElasticSearch任务
      *
      * @param id ElasticSearch任务ID
@@ -575,7 +586,7 @@ public class MoniElasticServiceImpl implements IMoniElasticService {
             OkHttpClient client = new OkHttpClient().newBuilder().build();
             MediaType mediaType = MediaType.parse("application/json");
             RequestBody body = RequestBody.create(mediaType, dataJason(moniElastic));
-            String url=Constants.PLATFORM_JY8.equals(moniElastic.getPlatform())?"http://kube.jy8web.com:30101/internal/bsearch":"http://kube.payub8.com:30101/internal/bsearch";
+            String url=Constants.PLATFORM_JY8.equals(moniElastic.getPlatform())?jy8Url:payub8Url;
             Request request = new Request.Builder()
                     .url(url)
                     .method("POST", body)
@@ -584,7 +595,6 @@ public class MoniElasticServiceImpl implements IMoniElasticService {
             Response response = client.newCall(request).execute();
             String jason = response.body().string();
             JSONObject jsonObject = JSON.parseObject(jason);
-            String total=jsonObject.getJSONObject("result").getJSONObject("rawResponse").getJSONObject("hits").getString("total");
             return jsonObject;
     }
 

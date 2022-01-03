@@ -21,6 +21,14 @@ elastic:
         Url: 172.26.113.95
         #端口
         port: 9200
+    #jy8
+    jy8:
+        #url
+        url: http://kube.jy8web.com:30101/internal/bsearch
+    #payub8
+    payub8:
+        #url
+        url: http://kube.payub8.com:30101/internal/bsearch
 
 
 # 开发环境配置
