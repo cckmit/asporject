@@ -589,7 +589,7 @@ public class MoniElasticServiceImpl implements IMoniElasticService {
             String url=Constants.PLATFORM_JY8.equals(moniElastic.getPlatform())?jy8Url:payub8Url;
             Request request = new Request.Builder()
                     .url(url)
-                    .method("POST", body)
+                    .post(body)
                     .addHeader("kbn-version", "7.15.0")
                     .build();
             Response response = client.newCall(request).execute();

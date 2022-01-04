@@ -118,7 +118,7 @@ public class MoniElasticExecution extends AbstractQuartzJob {
             }
         } else if ((Constants.PLATFORM_JY8.equals(moniElastic.getPlatform()) || Constants.PLATFORM_PAYUB8.equals(moniElastic.getPlatform())) && doMatch(null,result)) {
             //处理需要导出某字段信息
-            saveUrlExportField(urlBody);
+            saveUrlExportField(urlBody,total);
             checkAndAlert();
         }else {
             moniElasticLog.setStatus(Constants.SUCCESS);
@@ -193,7 +193,8 @@ public class MoniElasticExecution extends AbstractQuartzJob {
         }
     }
 
-    private void saveUrlExportField(JSONObject object) {
+    private void saveUrlExportField(JSONObject object,String total) {
+        if(Integer.parseInt(total)>0 && StringUtils.isNotEmpty(moniElastic.getExportField())) {
             String[] exportFields = moniElastic.getExportField().split(",");
             StringBuilder exportResult = new StringBuilder();
             JSONObject jsonObject = object.getJSONObject("result").getJSONObject("rawResponse").getJSONObject("hits").getJSONArray("hits").getJSONObject(0).getJSONObject("fields");
@@ -206,6 +207,7 @@ public class MoniElasticExecution extends AbstractQuartzJob {
                 count++;
             }
             moniElasticLog.setExportResult(exportResult.substring(0, exportResult.length() - 1));
+        }
     }
 
     /**
