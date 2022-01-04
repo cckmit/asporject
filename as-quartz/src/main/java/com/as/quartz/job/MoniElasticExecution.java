@@ -116,6 +116,7 @@ public class MoniElasticExecution extends AbstractQuartzJob {
             } else {
                 checkAndAlert();
             }
+            //等於URL Kibana跑進迴圈
         } else if ((Constants.PLATFORM_JY8.equals(moniElastic.getPlatform()) || Constants.PLATFORM_PAYUB8.equals(moniElastic.getPlatform())) && doMatch(null,result)) {
             //处理需要导出某字段信息
             saveUrlExportField(urlJSON,total);
@@ -194,15 +195,20 @@ public class MoniElasticExecution extends AbstractQuartzJob {
     }
 
     private void saveUrlExportField(JSONObject urlJSON,String total) {
+        //判斷total大於0或是否有導出值
         if(Integer.parseInt(total)>0 && StringUtils.isNotEmpty(moniElastic.getExportField())) {
+            //字串拆分
             String[] exportFields = moniElastic.getExportField().split(",");
             StringBuilder exportResult = new StringBuilder();
+            //取得JSON內容
             JSONObject jsonObject = urlJSON.getJSONObject("result").getJSONObject("rawResponse").getJSONObject("hits").getJSONArray("hits").getJSONObject(0).getJSONObject("fields");
             int count = 1;
             for (String exportField : exportFields) {
                 exportResult.append("(").append(count).append(")");
                 exportInfo.append("(").append(count).append(")");
+                //log紀錄
                 exportResult.append(exportField+":"+jsonObject.getJSONArray(exportField)).append("\n");
+                //tg推送
                 exportInfo.append(exportField+":"+jsonObject.getJSONArray(exportField)).append("\n");
                 count++;
             }
@@ -349,7 +355,7 @@ public class MoniElasticExecution extends AbstractQuartzJob {
 
         String autoMatch = moniElastic.getAutoMatch();
 
-        int rows=hits!=null?hits.length:Integer.parseInt(total.replaceAll("[^\\d]", ""));
+        int rows=hits!=null?hits.length:Integer.parseInt(total);
 
         //大于比对
         if (ScheduleConstants.MATCH_GREATER.equals(autoMatch)) {
