@@ -87,8 +87,12 @@ public class MoniElasticExecution extends AbstractQuartzJob {
         SearchHit[] hits = null;
         JSONObject urlJSON = null;
         String total = null;
-        //新增判斷URL Kibana
+        boolean url_Kibana = false;
+        //判斷平台
         if(Constants.PLATFORM_JY8.equals(moniElastic.getPlatform()) || Constants.PLATFORM_PAYUB8.equals(moniElastic.getPlatform())){
+            url_Kibana=true;
+        }
+        if(url_Kibana){
             urlJSON = SpringUtils.getBean(IMoniElasticService.class).doURLElasticSearch(moniElastic);
             total = urlJSON.getJSONObject("result").getJSONObject("rawResponse").getJSONObject("hits").getString("total");
         }else{
@@ -96,13 +100,13 @@ public class MoniElasticExecution extends AbstractQuartzJob {
             hits = searchResponse.getHits().getHits();
         }
         //储存结果判斷URL傳total否則傳hits.length
-        String result = String.format("find %s hits", Constants.PLATFORM_JY8.equals(moniElastic.getPlatform())?total:Constants.PLATFORM_PAYUB8.equals(moniElastic.getPlatform())?total:hits.length);
+        String result = String.format("find %s hits", url_Kibana?total:hits.length);
         moniElasticLog.setExecuteResult(result);
         if (ScheduleConstants.MATCH_NO_NEED.equals(moniElastic.getAutoMatch())) {
             moniElasticLog.setStatus(Constants.SUCCESS);
             moniElasticLog.setAlertStatus(Constants.FAIL);
             //不等於URL Kibana跑進迴圈
-        } else if (!(Constants.PLATFORM_JY8.equals(moniElastic.getPlatform()) || Constants.PLATFORM_PAYUB8.equals(moniElastic.getPlatform())) && doMatch(hits,null)) {
+        } else if (!url_Kibana && doMatch(hits,null)) {
             //处理需要导出某字段信息
             saveExportField(hits);
 
@@ -117,7 +121,7 @@ public class MoniElasticExecution extends AbstractQuartzJob {
                 checkAndAlert();
             }
             //等於URL Kibana跑進迴圈
-        } else if ((Constants.PLATFORM_JY8.equals(moniElastic.getPlatform()) || Constants.PLATFORM_PAYUB8.equals(moniElastic.getPlatform())) && doMatch(null,result)) {
+        } else if (url_Kibana && doMatch(null,total)) {
             //处理需要导出某字段信息
             saveUrlExportField(urlJSON,total);
             checkAndAlert();
