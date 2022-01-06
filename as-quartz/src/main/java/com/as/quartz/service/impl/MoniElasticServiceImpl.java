@@ -675,20 +675,19 @@ public class MoniElasticServiceImpl implements IMoniElasticService {
         }
         //size:1 列出1筆內容
         //track_total_hits:true 顯示查出筆數
-        String dataJson= String.format("""
-                {"batch":[{"request":{"params":{"index":"%s",
-                "body":{"sort":[{"@timestamp":{"order":"desc"}}],"fields":[{"field":"*",
-                "include_unmapped":"true"}],
-                "size":1,"_source":false,
-                "query":{"bool":{"filter":[%s,
-                {"range":{"@timestamp":{"format":"strict_date_optional_time",
-                "gte":"%s",
-                "lte":"%s"}}}]}},
-                "highlight":{"pre_tags":["@kibana-highlighted-field@"],
-                "post_tags":["@/kibana-highlighted-field@"],
-                "fields":{"*":{}},"fragment_size":2147483647}
-                },"track_total_hits":true}}}]}""",
-                moniElastic.getIndex(),queryJson,moniElastic.getTimeFrom(),moniElastic.getTimeTo());
+        String dataJson="{\"batch\":[\n" +
+                "{\"request\":{\"params\":{\"index\":\""+moniElastic.getIndex()+"\",\n" +
+                "\"body\":{\"sort\":[{\"@timestamp\":{\"order\":\"desc\"}}],\"fields\":[{\"field\":\"*\",\n" +
+                "\"include_unmapped\":\"true\"}],\n" +
+                "\"size\":1,\"_source\":false,\n" +
+                "\"query\":{\"bool\":{\"filter\":["+queryJson+",\n" +
+                "{\"range\":{\"@timestamp\":{\"format\":\"strict_date_optional_time\",\n" +
+                "\"gte\":\""+moniElastic.getTimeFrom()+"\",\n" +
+                "\"lte\":\""+moniElastic.getTimeTo()+"\"}}}]}},\n" +
+                "\"highlight\":{\"pre_tags\":[\"@kibana-highlighted-field@\"],\n" +
+                "\"post_tags\":[\"@/kibana-highlighted-field@\"],\n" +
+                "\"fields\":{\"*\":{}},\"fragment_size\":2147483647}\n" +
+                "},\"track_total_hits\":true}}}]}";
         logger.info(String.format("URL_Kibana 本轮监控json ： 格式 %s by [%s]",dataJson, StringUtils.isBlank(moniElastic.getAsid()) ? moniElastic.getEnName() : moniElastic.getAsid()));
         return  dataJson;
     }
