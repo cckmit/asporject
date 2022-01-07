@@ -9,5 +9,5 @@ ENV LANG C.UTF-8
 ENV TZ=PRC
 RUN ln -snf /usr/share/zoneinfo/ /etc/localtime && echo  > /etc/timezone
 WORKDIR /app
-COPY ./build/libs/*.jar asportal.jar
+COPY ./ASPortal/build/libs/as-admin-1.0.0-SNAPSHOT.jar asportal.jar
 ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom","-jar","/app/asportal.jar"]

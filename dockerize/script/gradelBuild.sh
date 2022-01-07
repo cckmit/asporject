@@ -1,0 +1,1 @@
+cd /usr/local/dockerize/tmp/ASPortal && ./gradlew clean build bootJar -info -Dorg.gradle.java.home='/usr/lib/jdk-15.0.2'
