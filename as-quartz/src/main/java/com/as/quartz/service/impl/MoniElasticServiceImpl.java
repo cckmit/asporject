@@ -637,15 +637,16 @@ public class MoniElasticServiceImpl implements IMoniElasticService {
                             filter_ValueMap.put("bool", bool2_ValueMap);
                         }
                     }
-                    filterList.add(filter_ValueMap);
+                }else if(queryValue.contains("*")){
+                    filter_ValueMap.put("query_string",Map.of("query",queryValue));
                 }else{
                     Map<String, Object> multiMatch_ValueMap = new HashMap();
                     multiMatch_ValueMap.put("type","phrase");
                     multiMatch_ValueMap.put("query",queryValue.replaceAll("\"", ""));
                     multiMatch_ValueMap.put("lenient",true);
                     filter_ValueMap.put("multi_match",multiMatch_ValueMap);
-                    filterList.add(filter_ValueMap);
                 }
+                filterList.add(filter_ValueMap);
             }
 
             if (moniElastic.getQuery().contains(" OR ")) {
@@ -672,7 +673,7 @@ public class MoniElasticServiceImpl implements IMoniElasticService {
         }else {
             Map<String, Object> multiMatch_ValueMap = new HashMap();
             multiMatch_ValueMap.put("type","phrase");
-            multiMatch_ValueMap.put("query",moniElastic.getQuery());
+            multiMatch_ValueMap.put("query",moniElastic.getQuery().replaceAll("\"", ""));
             multiMatch_ValueMap.put("lenient",true);
             dataMap.put("multi_match",multiMatch_ValueMap);
             queryJson = new JSONObject(dataMap);
