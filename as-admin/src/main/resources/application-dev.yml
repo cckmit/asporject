@@ -24,7 +24,7 @@ elastic:
     #jy8
     jy8:
         #url
-        url: http://kube.jy8web.com:30101/internal/bsearch
+        url: http://kube.16888dev.com:30101/internal/bsearch
     #payub8
     payub8:
         #url

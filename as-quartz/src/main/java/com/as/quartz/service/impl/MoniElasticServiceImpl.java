@@ -617,21 +617,25 @@ public class MoniElasticServiceImpl implements IMoniElasticService {
                     Map<String, Object> should_ValueMap = new HashMap<>();
                     Map<String, Object> bool2_ValueMap = new HashMap<>();
                     List shouldList = new ArrayList();
-
-                    should_ValueMap.put("match_phrase", matchPhrase_ValueMap);
                     shouldList.add(should_ValueMap);
                     bool2_ValueMap.put("should", shouldList);
                     bool2_ValueMap.put("minimum_should_match", 1);
-                    if (value[0].contains("NOT")){
-                        matchPhrase_ValueMap.put(value[0].replaceAll("NOT", ""), value[1]);
-                        Map<String, Object> mustNot_ValueMap = new HashMap<>();
-                        Map<String, Object> boolNot_ValueMap = new HashMap<>();
-                        mustNot_ValueMap.put("bool",bool2_ValueMap);
-                        boolNot_ValueMap.put("must_not",mustNot_ValueMap);
-                        filter_ValueMap.put("bool", boolNot_ValueMap);
-                    } else {
-                        matchPhrase_ValueMap.put(value[0], value[1]);
+                    if(value[1].contains("*")){
+                        should_ValueMap.put("query_string", Map.of("fields",Arrays.asList(value[0]),"query",value[1]));
                         filter_ValueMap.put("bool", bool2_ValueMap);
+                    }else {
+                        should_ValueMap.put("match_phrase", matchPhrase_ValueMap);
+                        if (value[0].contains("NOT")) {
+                            matchPhrase_ValueMap.put(value[0].replaceAll("NOT", ""), value[1]);
+                            Map<String, Object> mustNot_ValueMap = new HashMap<>();
+                            Map<String, Object> boolNot_ValueMap = new HashMap<>();
+                            mustNot_ValueMap.put("bool", bool2_ValueMap);
+                            boolNot_ValueMap.put("must_not", mustNot_ValueMap);
+                            filter_ValueMap.put("bool", boolNot_ValueMap);
+                        } else {
+                            matchPhrase_ValueMap.put(value[0], value[1]);
+                            filter_ValueMap.put("bool", bool2_ValueMap);
+                        }
                     }
                     filterList.add(filter_ValueMap);
                 }else{
@@ -675,19 +679,19 @@ public class MoniElasticServiceImpl implements IMoniElasticService {
         }
         //size:1 列出1筆內容
         //track_total_hits:true 顯示查出筆數
-        String dataJson="{\"batch\":[\n" +
-                "{\"request\":{\"params\":{\"index\":\""+moniElastic.getIndex()+"\",\n" +
-                "\"body\":{\"sort\":[{\"@timestamp\":{\"order\":\"desc\"}}],\"fields\":[{\"field\":\"*\",\n" +
-                "\"include_unmapped\":\"true\"}],\n" +
-                "\"size\":1,\"_source\":false,\n" +
-                "\"query\":{\"bool\":{\"filter\":["+queryJson+",\n" +
-                "{\"range\":{\"@timestamp\":{\"format\":\"strict_date_optional_time\",\n" +
-                "\"gte\":\""+moniElastic.getTimeFrom()+"\",\n" +
-                "\"lte\":\""+moniElastic.getTimeTo()+"\"}}}]}},\n" +
-                "\"highlight\":{\"pre_tags\":[\"@kibana-highlighted-field@\"],\n" +
-                "\"post_tags\":[\"@/kibana-highlighted-field@\"],\n" +
-                "\"fields\":{\"*\":{}},\"fragment_size\":2147483647}\n" +
-                "},\"track_total_hits\":true}}}]}";
+        String dataJson= String.format("""
+                {"batch":[{"request":{"params":{"index":"%s",
+                "body":{"sort":[{"@timestamp":{"order":"desc"}}],"fields":[{"field":"*",
+                "include_unmapped":"true"}],
+                "size":1,"_source":false,
+                "query":{"bool":{"filter":[%s,
+                {"range":{"@timestamp":{"format":"strict_date_optional_time",
+                "gte":"%s",
+                "lte":"%s"}}}]}},
+                "highlight":{"pre_tags":["@kibana-highlighted-field@"],
+                "post_tags":["@/kibana-highlighted-field@"],
+                "fields":{"*":{}},"fragment_size":2147483647}
+                },"track_total_hits":true}}}]}""",moniElastic.getIndex(),queryJson,moniElastic.getTimeFrom(),moniElastic.getTimeTo());
         logger.info(String.format("URL_Kibana 本轮监控json ： 格式 %s by [%s]",dataJson, StringUtils.isBlank(moniElastic.getAsid()) ? moniElastic.getEnName() : moniElastic.getAsid()));
         return  dataJson;
     }
