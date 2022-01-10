@@ -8,6 +8,8 @@ else
         echo 'no running process'
 fi
 
+sleep 5
+
 docker run -itd \
 --network=host \
 --name as-portal \
