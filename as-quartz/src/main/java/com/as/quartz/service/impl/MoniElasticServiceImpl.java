@@ -687,7 +687,6 @@ public class MoniElasticServiceImpl implements IMoniElasticService {
                 "post_tags":["@/kibana-highlighted-field@"],
                 "fields":{"*":{}},"fragment_size":2147483647}
                 },"track_total_hits":true}}}]}""",moniElastic.getIndex(),queryJson,moniElastic.getTimeFrom(),moniElastic.getTimeTo());
-        logger.info(String.format("URL_Kibana 本轮监控json ： 格式 %s by [%s]",dataJson, StringUtils.isBlank(moniElastic.getAsid()) ? moniElastic.getEnName() : moniElastic.getAsid()));
         return  dataJson;
     }
 }

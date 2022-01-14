@@ -206,22 +206,26 @@ public class MoniElasticExecution extends AbstractQuartzJob {
     private void saveUrlExportField(JSONObject urlJSON,String total) {
         //判斷total大於0或是否有導出值
         if(Integer.parseInt(total)>0 && StringUtils.isNotEmpty(moniElastic.getExportField())) {
-            //字串拆分
-            String[] exportFields = moniElastic.getExportField().split(",");
-            StringBuilder exportResult = new StringBuilder();
-            //取得JSON內容
-            JSONObject jsonObject = urlJSON.getJSONObject("result").getJSONObject("rawResponse").getJSONObject("hits").getJSONArray("hits").getJSONObject(0).getJSONObject("fields");
-            int count = 1;
-            for (String exportField : exportFields) {
-                exportResult.append("(").append(count).append(")");
-                exportInfo.append("(").append(count).append(")");
-                //log紀錄
-                exportResult.append(exportField+":"+jsonObject.getJSONArray(exportField)).append("\n");
-                //tg推送
-                exportInfo.append(exportField+":"+jsonObject.getJSONArray(exportField)).append("\n");
-                count++;
+            try {
+                //字串拆分
+                String[] exportFields = moniElastic.getExportField().split(",");
+                StringBuilder exportResult = new StringBuilder();
+                //取得JSON內容
+                JSONObject jsonObject = urlJSON.getJSONObject("result").getJSONObject("rawResponse").getJSONObject("hits").getJSONArray("hits").getJSONObject(0).getJSONObject("fields");
+                int count = 1;
+                for (String exportField : exportFields) {
+                    exportResult.append("(").append(count).append(")");
+                    exportInfo.append("(").append(count).append(")");
+                    //log紀錄
+                    exportResult.append(exportField + ":" + jsonObject.getJSONArray(exportField)).append("\n");
+                    //tg推送
+                    exportInfo.append(exportField + ":" + jsonObject.getJSONArray(exportField)).append("\n");
+                    count++;
+                }
+                moniElasticLog.setExportResult(exportResult.substring(0, exportResult.length() - 1));
+            } catch (Exception e) {
+                log.error("saveUrlExportField : "+e);
             }
-            moniElasticLog.setExportResult(exportResult.substring(0, exportResult.length() - 1));
         }
     }
 
