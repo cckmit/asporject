@@ -124,7 +124,12 @@ public class MoniElasticExecution extends AbstractQuartzJob {
         } else if (url_Kibana && doMatch(null,total)) {
             //处理需要导出某字段信息
             saveUrlExportField(urlJSON,total);
-            checkAndAlert();
+            if(Integer.parseInt(total)>0 && moniElastic.getId()==77){
+                Map<String, String> compareResult = SpringUtils.getBean(IMoniElasticService.class).doJY8DrawCompare(urlJSON);
+                doCompare(compareResult);
+            }else {
+                checkAndAlert();
+            }
         }else {
             moniElasticLog.setStatus(Constants.SUCCESS);
             moniElasticLog.setAlertStatus(Constants.FAIL);
@@ -254,6 +259,10 @@ public class MoniElasticExecution extends AbstractQuartzJob {
             moniElasticLog.setStatus(Constants.SUCCESS);
             moniElasticLog.setAlertStatus(Constants.FAIL);
         }
+    }
+
+    public void doUrlCompare(JSONObject urlJSON) throws Exception {
+
     }
 
     private void sendAlert() throws Exception {

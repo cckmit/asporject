@@ -521,6 +521,25 @@ public class MoniElasticServiceImpl implements IMoniElasticService {
         return map;
     }
 
+    public Map<String, String> doJY8DrawCompare(JSONObject urlJSON) {
+        Map<String, String> map = new HashMap();
+        StringBuilder result = new StringBuilder();
+        int index = 0;
+        List lists = urlJSON.getJSONObject("result").getJSONObject("rawResponse").getJSONObject("hits").getJSONArray("hits");
+        for(Object list : lists){
+            JSONObject size=JSONObject.parseObject(list.toString()).getJSONObject("fields");
+            double draw=Double.parseDouble(size.getJSONArray("context.binance_draw_info").toString().substring(21,size.getJSONArray("context.binance_draw_info").toString().length()-3));
+
+            if(draw<1000000) {
+                index++;
+                result.append(String.format("game_code : %s , binance_draw_info : %s \n",size.getJSONArray("context.game_code"),size.getJSONArray("context.binance_draw_info")));
+            }
+        }
+        map.put("index", String.valueOf(index));
+        map.put("result", result.toString());
+        return map;
+    }
+
     /**
      * 导入JOB数据
      *
@@ -659,7 +678,7 @@ public class MoniElasticServiceImpl implements IMoniElasticService {
                 {"batch":[{"request":{"params":{"index":"%s",
                 "body":{"sort":[{"@timestamp":{"order":"desc"}}],"fields":[{"field":"*",
                 "include_unmapped":"true"}],
-                "size":1,"_source":false,
+                "size":10,"_source":false,
                 "query":{"bool":{"filter":[%s,
                 {"range":{"@timestamp":{"format":"strict_date_optional_time",
                 "gte":"%s",

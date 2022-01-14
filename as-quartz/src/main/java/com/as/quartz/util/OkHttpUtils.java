@@ -21,9 +21,9 @@ public class OkHttpUtils {
             synchronized (OkHttpUtils.class) {
                 if (StringUtils.isNull(client)) {
                     client = new OkHttpClient.Builder().connectTimeout(30, TimeUnit.SECONDS)
-                            .readTimeout(30, TimeUnit.SECONDS)
-                            .writeTimeout(30, TimeUnit.SECONDS)
-                            .connectionPool(new ConnectionPool(64, 5, TimeUnit.MINUTES))
+                            .readTimeout(30, TimeUnit.SECONDS)//讀取超時
+                            .writeTimeout(30, TimeUnit.SECONDS)//寫入超時
+                            .connectionPool(new ConnectionPool(64, 5, TimeUnit.MINUTES))//自定義連線池最大空嫌連接數和等待時間大小，否則默認最大5個空間連接'
                             .dns(new XDns(30, TimeUnit.SECONDS))
                             .retryOnConnectionFailure(true)
                             .build();
