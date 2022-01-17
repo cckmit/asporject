@@ -126,6 +126,7 @@ public class MoniElasticExecution extends AbstractQuartzJob {
             saveUrlExportField(urlJSON,total);
             if(Integer.parseInt(total)>0 && (moniElastic.getId()==77 || moniElastic.getId()==78)){
                 Map<String, String> compareResult = SpringUtils.getBean(IMoniElasticService.class).doJY8DrawCompare(urlJSON);
+                compareResult.put("ExpectedResult",moniElastic.getExpectedResult());
                 doCompare(compareResult);
             }else {
                 checkAndAlert();
@@ -253,20 +254,21 @@ public class MoniElasticExecution extends AbstractQuartzJob {
     private void doCompare(Map<String, String> compareResult) throws Exception {
         String result;
         String index = StringUtils.isNull(compareResult) ? "0" : compareResult.get("index");
-        if (!"0".equals(index)) {
+        Boolean boolExpect = StringUtils.isNull(compareResult.get("ExpectedResult"));
+        if (boolExpect && !"0".equals(index)) {
             result = String.format("find %s hits;\n", index) + compareResult.get("result");
             moniElasticLog.setExecuteResult(result);
             checkAndAlert();
-        } else {
-            result = "find 0 hits";
+        }else if(!boolExpect && Integer.parseInt(index)>Integer.parseInt(compareResult.get("ExpectedResult"))){
+            result = String.format("find %s hits;\n", index) + compareResult.get("result");
+            moniElasticLog.setExecuteResult(result);
+            checkAndAlert();
+        }else {
+            result = boolExpect?"find 0 hits":String.format("find %s hits;\n", index);
             moniElasticLog.setExecuteResult(result);
             moniElasticLog.setStatus(Constants.SUCCESS);
             moniElasticLog.setAlertStatus(Constants.FAIL);
         }
-    }
-
-    public void doUrlCompare(JSONObject urlJSON) throws Exception {
-
     }
 
     private void sendAlert() throws Exception {
