@@ -264,7 +264,7 @@ public class MoniElasticExecution extends AbstractQuartzJob {
             moniElasticLog.setExecuteResult(result);
             checkAndAlert();
         }else {
-            result = boolExpect?"find 0 hits":String.format("find %s hits;\n", index);
+            result = boolExpect==false?(String.format("find %s hits;\n", index)+compareResult.get("result")):"find 0 hits";
             moniElasticLog.setExecuteResult(result);
             moniElasticLog.setStatus(Constants.SUCCESS);
             moniElasticLog.setAlertStatus(Constants.FAIL);

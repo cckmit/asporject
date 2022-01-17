@@ -678,7 +678,7 @@ public class MoniElasticServiceImpl implements IMoniElasticService {
                 {"batch":[{"request":{"params":{"index":"%s",
                 "body":{"sort":[{"@timestamp":{"order":"desc"}}],"fields":[{"field":"*",
                 "include_unmapped":"true"}],
-                "size":10,"_source":false,
+                "size":15,"_source":false,
                 "query":{"bool":{"filter":[%s,
                 {"range":{"@timestamp":{"format":"strict_date_optional_time",
                 "gte":"%s",
