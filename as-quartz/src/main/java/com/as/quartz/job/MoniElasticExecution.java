@@ -257,8 +257,11 @@ public class MoniElasticExecution extends AbstractQuartzJob {
         String index = StringUtils.isNull(compareResult) ? "0" : compareResult.get("index");
         Boolean boolExpect = StringUtils.isNull(compareResult.get("ExpectedResult"));
         //输出日志
-        if(!boolExpect && !StringUtils.isNull(compareResult.get("result"))){
+        if(!boolExpect && !"0".equals(index)){
             log.info("JY8 - id:"+moniElasticLog.getId()+" result : "+compareResult.get("result"));
+            result = (String.format("find %s hits;\n", index)+compareResult.get("result"));
+        }else{
+            result = "find 0 hits";
         }
         if (boolExpect && !"0".equals(index)) {
             result = String.format("find %s hits;\n", index) + compareResult.get("result");
@@ -269,11 +272,6 @@ public class MoniElasticExecution extends AbstractQuartzJob {
             moniElasticLog.setExecuteResult(result);
             checkAndAlert();
         }else {
-            if(!boolExpect && !StringUtils.isNull(compareResult.get("result"))){
-                result = (String.format("find %s hits;\n", index)+compareResult.get("result"));
-            }else{
-                result = "find 0 hits";
-            }
             moniElasticLog.setExecuteResult(result);
             moniElasticLog.setStatus(Constants.SUCCESS);
             moniElasticLog.setAlertStatus(Constants.FAIL);
