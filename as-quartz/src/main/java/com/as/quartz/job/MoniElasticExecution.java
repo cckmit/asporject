@@ -124,6 +124,7 @@ public class MoniElasticExecution extends AbstractQuartzJob {
         } else if (url_Kibana && doMatch(null,total)) {
             //处理需要导出某字段信息
             saveUrlExportField(urlJSON,total);
+            //幣安數據判斷
             if(Integer.parseInt(total)>0 && (moniElastic.getId()==77 || moniElastic.getId()==78)){
                 Map<String, String> compareResult = SpringUtils.getBean(IMoniElasticService.class).doJY8DrawCompare(urlJSON);
                 compareResult.put("ExpectedResult",moniElastic.getExpectedResult());
