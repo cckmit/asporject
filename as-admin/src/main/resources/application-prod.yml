@@ -70,7 +70,7 @@ spring:
                 sec:
                     # enabled 数据源开关
                     enabled: true
-                    url: jdbc:oracle:thin:@DB.pf1prod.com:1521:LOTTERY
+                    url: jdbc:oracle:thin:@DB-S.pf1prod.com:1521:LOTTERY
                     username: AS_MONITOR
                     password: Uie88Nmx2j
                     driverClassName: oracle.jdbc.driver.OracleDriver
