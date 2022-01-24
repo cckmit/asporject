@@ -127,6 +127,8 @@ public class MoniElasticExecution extends AbstractQuartzJob {
             //幣安數據判斷
             if(Integer.parseInt(total)>0 && (moniElastic.getId()==77 || moniElastic.getId()==78)){
                 Map<String, String> compareResult = SpringUtils.getBean(IMoniElasticService.class).doJY8DrawCompare(urlJSON);
+                log.info("BA ID:"+moniElastic.getId()+" logID:"+moniElasticLog.getId()+" TIME:"+new Date());
+                System.out.println("-----BA ID:"+moniElastic.getId()+" logID:"+moniElasticLog.getId()+" TIME:"+new Date());
                 compareResult.put("ExpectedResult",moniElastic.getExpectedResult());
                 doCompare(compareResult);
             }else {
