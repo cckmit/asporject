@@ -95,6 +95,7 @@ public class MoniElasticExecution extends AbstractQuartzJob {
         if(url_Kibana){
             urlJSON = SpringUtils.getBean(IMoniElasticService.class).doURLElasticSearch(moniElastic);
             total = urlJSON.getJSONObject("result").getJSONObject("rawResponse").getJSONObject("hits").getString("total");
+            log.info("BA KIBANA:"+url_Kibana+" TOTAL:"+total+" doMatch:"+doMatch(null,total));
         }else{
             SearchResponse searchResponse = SpringUtils.getBean(IMoniElasticService.class).doElasticSearch(moniElastic);
             hits = searchResponse.getHits().getHits();
@@ -102,8 +103,6 @@ public class MoniElasticExecution extends AbstractQuartzJob {
         //储存结果判斷URL傳total否則傳hits.length
         String result = String.format("find %s hits", url_Kibana?total:hits.length);
         moniElasticLog.setExecuteResult(result);
-        log.info("BA KIBANA:"+url_Kibana+" TOTAL:"+total+" doMatch:"+doMatch(null,total));
-        System.out.println("------BA KIBANA:"+url_Kibana+" TOTAL:"+total+" doMatch:"+doMatch(null,total));
         if (ScheduleConstants.MATCH_NO_NEED.equals(moniElastic.getAutoMatch())) {
             moniElasticLog.setStatus(Constants.SUCCESS);
             moniElasticLog.setAlertStatus(Constants.FAIL);

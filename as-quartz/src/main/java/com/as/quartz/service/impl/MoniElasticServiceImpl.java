@@ -526,7 +526,10 @@ public class MoniElasticServiceImpl implements IMoniElasticService {
         StringBuilder result = new StringBuilder();
         int index = 0;
         List lists = urlJSON.getJSONObject("result").getJSONObject("rawResponse").getJSONObject("hits").getJSONArray("hits");
-        logger.info("DATAJSON: "+urlJSON);
+        if(lists.size()<2){
+            logger.info("DATALISTS:"+lists.size());
+            logger.info("DATAJSON: "+urlJSON);
+        }
         for(Object list : lists){
             JSONObject size=JSONObject.parseObject(list.toString()).getJSONObject("fields");
             double draw=Double.parseDouble(size.getJSONArray("context.binance_draw_info").toString().substring(21,size.getJSONArray("context.binance_draw_info").toString().length()-3));
@@ -535,7 +538,6 @@ public class MoniElasticServiceImpl implements IMoniElasticService {
             if(draw<1000000) {
                 result.append(String.format("game_code : %s , binance_draw_info : %s \n",size.getJSONArray("context.game_code"),size.getJSONArray("context.binance_draw_info")));
                 index++;
-                logger.info("JY8-100w - "+String.format("game_code : %s , binance_draw_info : %s \n",size.getJSONArray("context.game_code"),size.getJSONArray("context.binance_draw_info")));
             }
         }
         map.put("index", String.valueOf(index));
