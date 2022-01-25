@@ -526,10 +526,10 @@ public class MoniElasticServiceImpl implements IMoniElasticService {
         StringBuilder result = new StringBuilder();
         int index = 0;
         List lists = urlJSON.getJSONObject("result").getJSONObject("rawResponse").getJSONObject("hits").getJSONArray("hits");
-        logger.info("DATALISTS: "+lists);
+        logger.info("DATALISTS: "+lists!=null?"not null":"null");
         for(Object list : lists){
             JSONObject size=JSONObject.parseObject(list.toString()).getJSONObject("fields");
-            logger.info("DATASIZE: "+size);
+            logger.info("DATASIZE: "+size!=null?"not null":"null");
             double draw=Double.parseDouble(size.getJSONArray("context.binance_draw_info").toString().substring(21,size.getJSONArray("context.binance_draw_info").toString().length()-3));
             logger.info("DATA8 - "+String.format("binance_draw_info : %s \n",size.getJSONArray("context.binance_draw_info")));
             //幣安數據小於100萬
