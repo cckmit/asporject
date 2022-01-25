@@ -125,7 +125,7 @@ public class MoniElasticExecution extends AbstractQuartzJob {
             //处理需要导出某字段信息
             saveUrlExportField(urlJSON,total);
             //幣安數據判斷
-            log.info("BA URL"+urlJSON!=null?"not null":null+" TOTAL:"+total);
+            log.info("BA URL:"+(urlJSON!=null?"not null":null)+" TOTAL:"+total);
             if(urlJSON!=null && Integer.parseInt(total)>0 && (moniElastic.getId()==77 || moniElastic.getId()==78)){
                 Map<String, String> compareResult = SpringUtils.getBean(IMoniElasticService.class).doJY8DrawCompare(urlJSON);
                 log.info("BA ID:"+moniElastic.getId()+" logID:"+moniElasticLog.getId()+" TIME:"+new Date());
