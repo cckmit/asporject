@@ -96,6 +96,9 @@ public class MoniElasticExecution extends AbstractQuartzJob {
             urlJSON = SpringUtils.getBean(IMoniElasticService.class).doURLElasticSearch(moniElastic);
             total = urlJSON.getJSONObject("result").getJSONObject("rawResponse").getJSONObject("hits").getString("total");
             log.info("BA KIBANA:"+url_Kibana+" TOTAL:"+total+" doMatch:"+doMatch(null,total));
+            if(!doMatch(null,total)) {
+                log.info("BA JSON:" + urlJSON);
+            }
         }else{
             SearchResponse searchResponse = SpringUtils.getBean(IMoniElasticService.class).doElasticSearch(moniElastic);
             hits = searchResponse.getHits().getHits();
