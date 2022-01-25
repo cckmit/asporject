@@ -527,6 +527,7 @@ public class MoniElasticServiceImpl implements IMoniElasticService {
         int index = 0;
         List lists = urlJSON.getJSONObject("result").getJSONObject("rawResponse").getJSONObject("hits").getJSONArray("hits");
         logger.info("DATALISTS: "+(lists!=null?"not null":"null"));
+        logger.info("DATAJSON: "+lists);
         for(Object list : lists){
             JSONObject size=JSONObject.parseObject(list.toString()).getJSONObject("fields");
             logger.info("DATASIZE: "+size);
