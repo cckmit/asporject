@@ -525,7 +525,7 @@ public class MoniElasticServiceImpl implements IMoniElasticService {
         Map<String, String> map = new HashMap();
         StringBuilder result = new StringBuilder();
         int index = 0;
-        List lists = urlJSON.getJSONObject("result").getJSONObject("rawResponse").getJSONObject("hits").getJSONArray("hits");
+        List lists = urlJSON.getJSONArray("hits");
         if(lists.size()<2){
             map.put("lists","0");
             return map;

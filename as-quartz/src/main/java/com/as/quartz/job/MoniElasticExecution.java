@@ -93,8 +93,8 @@ public class MoniElasticExecution extends AbstractQuartzJob {
             url_Kibana=true;
         }
         if(url_Kibana){
-            urlJSON = SpringUtils.getBean(IMoniElasticService.class).doURLElasticSearch(moniElastic);
-            total = urlJSON.getJSONObject("result").getJSONObject("rawResponse").getJSONObject("hits").getString("total");
+            urlJSON = SpringUtils.getBean(IMoniElasticService.class).doURLElasticSearch(moniElastic).getJSONObject("result").getJSONObject("rawResponse").getJSONObject("hits");
+            total = urlJSON.getString("total");
         }else{
             SearchResponse searchResponse = SpringUtils.getBean(IMoniElasticService.class).doElasticSearch(moniElastic);
             hits = searchResponse.getHits().getHits();
@@ -131,6 +131,7 @@ public class MoniElasticExecution extends AbstractQuartzJob {
                     moniElasticLog.setStatus(Constants.ERROR);
                     moniElasticLog.setAlertStatus(Constants.FAIL);
                     moniElasticLog.setExceptionLog(urlJSON.toJSONString());
+                    log.info("BA LOG-ID:"+moniElasticLog.getId()+" his:"+urlJSON);
                 }else {
                     compareResult.put("ExpectedResult",moniElastic.getExpectedResult());
                     doCompare(compareResult);
@@ -142,6 +143,7 @@ public class MoniElasticExecution extends AbstractQuartzJob {
             moniElasticLog.setStatus(Constants.ERROR);
             moniElasticLog.setAlertStatus(Constants.FAIL);
             moniElasticLog.setExceptionLog(urlJSON.toJSONString());
+            log.info("BA LOG-ID:"+moniElasticLog.getId()+" his:"+urlJSON);
         }else{
             moniElasticLog.setStatus(Constants.SUCCESS);
             moniElasticLog.setAlertStatus(Constants.FAIL);
