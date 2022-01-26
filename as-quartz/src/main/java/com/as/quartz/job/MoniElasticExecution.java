@@ -94,6 +94,10 @@ public class MoniElasticExecution extends AbstractQuartzJob {
         }
         if(url_Kibana){
             urlJSON = SpringUtils.getBean(IMoniElasticService.class).doURLElasticSearch(moniElastic).getJSONObject("result").getJSONObject("rawResponse").getJSONObject("hits");
+            if(urlJSON.getJSONArray("hits").size()==0 && (moniElastic.getId()==77 || moniElastic.getId()==78)){
+                urlJSON = SpringUtils.getBean(IMoniElasticService.class).doURLElasticSearch(moniElastic).getJSONObject("result").getJSONObject("rawResponse").getJSONObject("hits");
+                log.info("BA AGAIN SIZE:"+urlJSON.getJSONArray("hits").size());
+            }
             total = urlJSON.getString("total");
         }else{
             SearchResponse searchResponse = SpringUtils.getBean(IMoniElasticService.class).doElasticSearch(moniElastic);
@@ -126,10 +130,6 @@ public class MoniElasticExecution extends AbstractQuartzJob {
             saveUrlExportField(urlJSON,total);
             //幣安數據判斷
             if(Integer.parseInt(total)>0 && (moniElastic.getId()==77 || moniElastic.getId()==78)){
-                if(urlJSON.getJSONArray("hits").size()==0){
-                    urlJSON = SpringUtils.getBean(IMoniElasticService.class).doURLElasticSearch(moniElastic).getJSONObject("result").getJSONObject("rawResponse").getJSONObject("hits");
-                    log.info("BA AGAIN SIZE:"+urlJSON.getJSONArray("hits").size());
-                }
                 Map<String, String> compareResult = SpringUtils.getBean(IMoniElasticService.class).doJY8DrawCompare(urlJSON);
                 if(compareResult.get("lists").equals("0")){
                     moniElasticLog.setStatus(Constants.ERROR);
@@ -274,7 +274,6 @@ public class MoniElasticExecution extends AbstractQuartzJob {
         Boolean boolExpect = StringUtils.isNull(compareResult.get("ExpectedResult"));
         //输出日志
         if(!boolExpect && !"0".equals(index)){
-            log.info("JY8 - id:"+moniElasticLog.getId()+" result : "+compareResult.get("result"));
             result = (String.format("find %s hits;\n", index)+compareResult.get("result"));
         }else{
             result = "find 0 hits";
