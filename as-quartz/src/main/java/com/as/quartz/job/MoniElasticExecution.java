@@ -125,11 +125,11 @@ public class MoniElasticExecution extends AbstractQuartzJob {
                 checkAndAlert();
             }
             //等於URL Kibana跑進迴圈
-        } else if (url_Kibana && doMatch(null,total)) {
-            //处理需要导出某字段信息
-            saveUrlExportField(urlJSON,total);
+        } else if (url_Kibana) {
             //幣安數據判斷
             if(moniElastic.getId()==77 || moniElastic.getId()==78){
+                //处理需要导出某字段信息
+                saveUrlExportField(urlJSON,total);
                 Map<String, String> compareResult = SpringUtils.getBean(IMoniElasticService.class).doJY8DrawCompare(urlJSON);
                 if(compareResult.get("lists").equals("0")){
                     moniElasticLog.setStatus(Constants.ERROR);
@@ -140,14 +140,14 @@ public class MoniElasticExecution extends AbstractQuartzJob {
                     compareResult.put("ExpectedResult",moniElastic.getExpectedResult());
                     doCompare(compareResult);
                 }
-            }else {
+            }else if(doMatch(null,total)){
+                //处理需要导出某字段信息
+                saveUrlExportField(urlJSON,total);
                 checkAndAlert();
+            }else{
+                moniElasticLog.setStatus(Constants.SUCCESS);
+                moniElasticLog.setAlertStatus(Constants.FAIL);
             }
-        }else if (url_Kibana && (moniElastic.getId()==77 || moniElastic.getId()==78) && !doMatch(null,total)){
-            moniElasticLog.setStatus(Constants.ERROR);
-            moniElasticLog.setAlertStatus(Constants.FAIL);
-            moniElasticLog.setExceptionLog(urlJSON.toJSONString());
-            log.info("BA LOG-ID:"+moniElasticLog.getId()+" his:"+urlJSON);
         }else{
             moniElasticLog.setStatus(Constants.SUCCESS);
             moniElasticLog.setAlertStatus(Constants.FAIL);
@@ -229,7 +229,7 @@ public class MoniElasticExecution extends AbstractQuartzJob {
                 String[] exportFields = moniElastic.getExportField().split(",");
                 StringBuilder exportResult = new StringBuilder();
                 //取得JSON內容
-                JSONObject jsonObject = urlJSON.getJSONObject("result").getJSONObject("rawResponse").getJSONObject("hits").getJSONArray("hits").getJSONObject(0).getJSONObject("fields");
+                JSONObject jsonObject = urlJSON.getJSONArray("hits").getJSONObject(0).getJSONObject("fields");
                 int count = 1;
                 for (String exportField : exportFields) {
                     exportResult.append("(").append(count).append(")");
