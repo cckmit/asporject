@@ -38,7 +38,7 @@ import java.net.SocketTimeoutException;
 import java.util.Date;
 import java.util.Map;
 import java.util.Objects;
-
+import java.util.List;
 /**
  * SQL检测任务执行类（禁止并发执行）
  *
@@ -94,6 +94,10 @@ public class MoniElasticExecution extends AbstractQuartzJob {
         }
         if(url_Kibana){
             urlJSON = SpringUtils.getBean(IMoniElasticService.class).doURLElasticSearch(moniElastic).getJSONObject("result").getJSONObject("rawResponse").getJSONObject("hits");
+            if(urlJSON.getJSONArray("hits").size()==0){
+                urlJSON = SpringUtils.getBean(IMoniElasticService.class).doURLElasticSearch(moniElastic).getJSONObject("result").getJSONObject("rawResponse").getJSONObject("hits");
+                log.info("BA AGAIN SIZE:"+urlJSON.getJSONArray("hits").size());
+            }
             total = urlJSON.getString("total");
         }else{
             SearchResponse searchResponse = SpringUtils.getBean(IMoniElasticService.class).doElasticSearch(moniElastic);
