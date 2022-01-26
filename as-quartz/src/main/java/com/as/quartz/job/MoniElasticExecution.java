@@ -95,10 +95,6 @@ public class MoniElasticExecution extends AbstractQuartzJob {
         if(url_Kibana){
             urlJSON = SpringUtils.getBean(IMoniElasticService.class).doURLElasticSearch(moniElastic);
             total = urlJSON.getJSONObject("result").getJSONObject("rawResponse").getJSONObject("hits").getString("total");
-            log.info("BA KIBANA:"+url_Kibana+" TOTAL:"+total+" doMatch:"+doMatch(null,total));
-            if(!doMatch(null,total)) {
-                log.info("BA JSON:" + urlJSON);
-            }
         }else{
             SearchResponse searchResponse = SpringUtils.getBean(IMoniElasticService.class).doElasticSearch(moniElastic);
             hits = searchResponse.getHits().getHits();
@@ -129,16 +125,24 @@ public class MoniElasticExecution extends AbstractQuartzJob {
             //处理需要导出某字段信息
             saveUrlExportField(urlJSON,total);
             //幣安數據判斷
-            log.info("BA URL:"+(urlJSON!=null?"not null":null)+" TOTAL:"+total);
-            if(urlJSON!=null && Integer.parseInt(total)>0 && (moniElastic.getId()==77 || moniElastic.getId()==78)){
+            if(Integer.parseInt(total)>0 && (moniElastic.getId()==77 || moniElastic.getId()==78)){
                 Map<String, String> compareResult = SpringUtils.getBean(IMoniElasticService.class).doJY8DrawCompare(urlJSON);
-                log.info("BA ID:"+moniElastic.getId()+" logID:"+moniElasticLog.getId()+" TIME:"+new Date());
-                compareResult.put("ExpectedResult",moniElastic.getExpectedResult());
-                doCompare(compareResult);
+                if(compareResult.get("lists").equals("0")){
+                    moniElasticLog.setStatus(Constants.ERROR);
+                    moniElasticLog.setAlertStatus(Constants.FAIL);
+                    moniElasticLog.setExceptionLog(urlJSON.toJSONString());
+                }else {
+                    compareResult.put("ExpectedResult",moniElastic.getExpectedResult());
+                    doCompare(compareResult);
+                }
             }else {
                 checkAndAlert();
             }
-        }else {
+        }else if (url_Kibana && !doMatch(null,total)){
+            moniElasticLog.setStatus(Constants.ERROR);
+            moniElasticLog.setAlertStatus(Constants.FAIL);
+            moniElasticLog.setExceptionLog(urlJSON.toJSONString());
+        }else{
             moniElasticLog.setStatus(Constants.SUCCESS);
             moniElasticLog.setAlertStatus(Constants.FAIL);
         }

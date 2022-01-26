@@ -527,13 +527,12 @@ public class MoniElasticServiceImpl implements IMoniElasticService {
         int index = 0;
         List lists = urlJSON.getJSONObject("result").getJSONObject("rawResponse").getJSONObject("hits").getJSONArray("hits");
         if(lists.size()<2){
-            logger.info("DATALISTS:"+lists.size());
-            logger.info("DATAJSON: "+urlJSON);
+            map.put("lists","0");
+            return map;
         }
         for(Object list : lists){
             JSONObject size=JSONObject.parseObject(list.toString()).getJSONObject("fields");
             double draw=Double.parseDouble(size.getJSONArray("context.binance_draw_info").toString().substring(21,size.getJSONArray("context.binance_draw_info").toString().length()-3));
-            logger.info("DATA8 - "+String.format("binance_draw_info : %s \n",size.getJSONArray("context.binance_draw_info")));
             //幣安數據小於100萬
             if(draw<1000000) {
                 result.append(String.format("game_code : %s , binance_draw_info : %s \n",size.getJSONArray("context.game_code"),size.getJSONArray("context.binance_draw_info")));
@@ -683,7 +682,7 @@ public class MoniElasticServiceImpl implements IMoniElasticService {
                 {"batch":[{"request":{"params":{"index":"%s",
                 "body":{"sort":[{"@timestamp":{"order":"desc"}}],"fields":[{"field":"*",
                 "include_unmapped":"true"}],
-                "size":15,"_source":false,
+                "size":10,"_source":false,
                 "query":{"bool":{"filter":[%s,
                 {"range":{"@timestamp":{"format":"strict_date_optional_time",
                 "gte":"%s",
