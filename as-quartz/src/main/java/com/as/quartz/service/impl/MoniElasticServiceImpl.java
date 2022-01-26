@@ -539,6 +539,7 @@ public class MoniElasticServiceImpl implements IMoniElasticService {
                 index++;
             }
         }
+        map.put("lists",String.valueOf(lists.size()));
         map.put("index", String.valueOf(index));
         map.put("result", result.toString());
         return map;
