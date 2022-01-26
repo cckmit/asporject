@@ -143,7 +143,7 @@ public class MoniElasticExecution extends AbstractQuartzJob {
             }else {
                 checkAndAlert();
             }
-        }else if (url_Kibana && !doMatch(null,total)){
+        }else if (url_Kibana && (moniElastic.getId()==77 || moniElastic.getId()==78) && !doMatch(null,total)){
             moniElasticLog.setStatus(Constants.ERROR);
             moniElasticLog.setAlertStatus(Constants.FAIL);
             moniElasticLog.setExceptionLog(urlJSON.toJSONString());
