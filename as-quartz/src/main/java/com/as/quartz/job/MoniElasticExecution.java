@@ -89,6 +89,7 @@ public class MoniElasticExecution extends AbstractQuartzJob {
             JSONObject urlJSON = SpringUtils.getBean(IMoniElasticService.class).doURLElasticSearch(moniElastic).getJSONObject("result").getJSONObject("rawResponse").getJSONObject("hits");
 
             if((moniElastic.getId()==77 || moniElastic.getId()==78) && urlJSON.getJSONArray("hits").size()==0){
+                log.info("BA SIZE 0:"+urlJSON+" LOGID:"+moniElasticLog.getId());
                 for(int i=1;i<=3;i++){
                     urlJSON = SpringUtils.getBean(IMoniElasticService.class).doURLElasticSearch(moniElastic).getJSONObject("result").getJSONObject("rawResponse").getJSONObject("hits");
                     log.info("BA AGAIN:"+i+" LOGID:"+moniElasticLog.getId()+" SIZE:"+urlJSON.getJSONArray("hits").size());
