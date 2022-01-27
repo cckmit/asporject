@@ -533,6 +533,7 @@ public class MoniElasticServiceImpl implements IMoniElasticService {
         for(Object list : lists){
             JSONObject size=JSONObject.parseObject(list.toString()).getJSONObject("fields");
             double draw=Double.parseDouble(size.getJSONArray("context.binance_draw_info").toString().substring(21,size.getJSONArray("context.binance_draw_info").toString().length()-3));
+            logger.info("BA DRAW:"+String.format("binance_draw_info : %s \n",size.getJSONArray("context.binance_draw_info")));
             //幣安數據小於100萬
             if(draw<1000000) {
                 result.append(String.format("game_code : %s , binance_draw_info : %s \n",size.getJSONArray("context.game_code"),size.getJSONArray("context.binance_draw_info")));

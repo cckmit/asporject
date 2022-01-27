@@ -84,48 +84,21 @@ public class MoniElasticExecution extends AbstractQuartzJob {
      */
     @Override
     protected void doExecute(JobExecutionContext context, Object job) throws Exception {
-        SearchHit[] hits = null;
-        JSONObject urlJSON = null;
-        String total = null;
-        boolean url_Kibana = false;
         //判斷平台
         if(Constants.PLATFORM_JY8.equals(moniElastic.getPlatform()) || Constants.PLATFORM_PAYUB8.equals(moniElastic.getPlatform())){
-            url_Kibana=true;
-        }
-        if(url_Kibana){
-            urlJSON = SpringUtils.getBean(IMoniElasticService.class).doURLElasticSearch(moniElastic).getJSONObject("result").getJSONObject("rawResponse").getJSONObject("hits");
-            if((moniElastic.getId()==77 || moniElastic.getId()==78) && urlJSON.getJSONArray("hits").size()==0){
-                urlJSON = SpringUtils.getBean(IMoniElasticService.class).doURLElasticSearch(moniElastic).getJSONObject("result").getJSONObject("rawResponse").getJSONObject("hits");
-                log.info("BA AGAIN SIZE:"+urlJSON.getJSONArray("hits").size());
-            }
-            total = urlJSON.getString("total");
-        }else{
-            SearchResponse searchResponse = SpringUtils.getBean(IMoniElasticService.class).doElasticSearch(moniElastic);
-            hits = searchResponse.getHits().getHits();
-        }
-        //储存结果判斷URL傳total否則傳hits.length
-        String result = String.format("find %s hits", url_Kibana?total:hits.length);
-        moniElasticLog.setExecuteResult(result);
-        if (ScheduleConstants.MATCH_NO_NEED.equals(moniElastic.getAutoMatch())) {
-            moniElasticLog.setStatus(Constants.SUCCESS);
-            moniElasticLog.setAlertStatus(Constants.FAIL);
-            //不等於URL Kibana跑進迴圈
-        } else if (!url_Kibana && doMatch(hits,null)) {
-            //处理需要导出某字段信息
-            saveExportField(hits);
+            JSONObject urlJSON = SpringUtils.getBean(IMoniElasticService.class).doURLElasticSearch(moniElastic).getJSONObject("result").getJSONObject("rawResponse").getJSONObject("hits");
 
-            Map<String, String> compareResult = null;
-            if (hits.length > 0 && moniElastic.getId()==2) {
-                compareResult = SpringUtils.getBean(IMoniElasticService.class).doPf1DrawCompare(hits);
-                doCompare(compareResult);
-            } else if (hits.length > 0 && moniElastic.getId()==1) {
-                compareResult = SpringUtils.getBean(IMoniElasticService.class).doPf2DrawCompare(hits);
-                doCompare(compareResult);
-            } else {
-                checkAndAlert();
+            if((moniElastic.getId()==77 || moniElastic.getId()==78) && urlJSON.getJSONArray("hits").size()==0){
+                for(int i=1;i<=3;i++){
+                    urlJSON = SpringUtils.getBean(IMoniElasticService.class).doURLElasticSearch(moniElastic).getJSONObject("result").getJSONObject("rawResponse").getJSONObject("hits");
+                    log.info("BA AGAIN:"+i+" SIZE:"+urlJSON.getJSONArray("hits").size());
+                    if(urlJSON.getJSONArray("hits").size()>0) break;
+                }
             }
-            //等於URL Kibana跑進迴圈
-        } else if (url_Kibana) {
+            String total = urlJSON.getString("total");
+            //储存结果
+            String result = String.format("find %s hits", total);
+            moniElasticLog.setExecuteResult(result);
             //幣安數據判斷
             if(moniElastic.getId()==77 || moniElastic.getId()==78){
                 //处理需要导出某字段信息
@@ -149,10 +122,34 @@ public class MoniElasticExecution extends AbstractQuartzJob {
                 moniElasticLog.setAlertStatus(Constants.FAIL);
             }
         }else{
-            moniElasticLog.setStatus(Constants.SUCCESS);
-            moniElasticLog.setAlertStatus(Constants.FAIL);
-        }
+            SearchResponse searchResponse = SpringUtils.getBean(IMoniElasticService.class).doElasticSearch(moniElastic);
+            SearchHit[] hits = searchResponse.getHits().getHits();
+            //储存结果
+            String result = String.format("find %s hits", hits.length);
+            moniElasticLog.setExecuteResult(result);
+            if (ScheduleConstants.MATCH_NO_NEED.equals(moniElastic.getAutoMatch())) {
+                moniElasticLog.setStatus(Constants.SUCCESS);
+                moniElasticLog.setAlertStatus(Constants.FAIL);
+            } else if (doMatch(hits,null)) {
+                //处理需要导出某字段信息
+                saveExportField(hits);
 
+                Map<String, String> compareResult = null;
+                if (hits.length > 0 && moniElastic.getId()==2) {
+                    compareResult = SpringUtils.getBean(IMoniElasticService.class).doPf1DrawCompare(hits);
+                    doCompare(compareResult);
+                } else if (hits.length > 0 && moniElastic.getId()==1) {
+                    compareResult = SpringUtils.getBean(IMoniElasticService.class).doPf2DrawCompare(hits);
+                    doCompare(compareResult);
+                } else {
+                    checkAndAlert();
+                }
+                //等於URL Kibana跑進迴圈
+            } else{
+                moniElasticLog.setStatus(Constants.SUCCESS);
+                moniElasticLog.setAlertStatus(Constants.FAIL);
+            }
+        }
     }
 
     private void checkAndAlert() throws Exception {
