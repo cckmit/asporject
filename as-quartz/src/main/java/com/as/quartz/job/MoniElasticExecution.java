@@ -89,10 +89,11 @@ public class MoniElasticExecution extends AbstractQuartzJob {
             JSONObject urlJSON = SpringUtils.getBean(IMoniElasticService.class).doURLElasticSearch(moniElastic).getJSONObject("result").getJSONObject("rawResponse").getJSONObject("hits");
 
             if((moniElastic.getId()==77 || moniElastic.getId()==78) && urlJSON.getJSONArray("hits").size()==0){
-                log.info("BA SIZE 0:"+urlJSON+" LOGID:"+moniElasticLog.getId());
-                for(int i=1;i<=3;i++){
+                log.error("BA SIZE 0:"+urlJSON+" LOGID:"+moniElasticLog.getId());
+                for(int i=1;i<=4;i++){
+                    if(i==3)Thread.sleep(1000);
                     urlJSON = SpringUtils.getBean(IMoniElasticService.class).doURLElasticSearch(moniElastic).getJSONObject("result").getJSONObject("rawResponse").getJSONObject("hits");
-                    log.info("BA AGAIN:"+i+" LOGID:"+moniElasticLog.getId()+" SIZE:"+urlJSON.getJSONArray("hits").size());
+                    log.error("BA AGAIN:"+i+" LOGID:"+moniElasticLog.getId()+" SIZE:"+urlJSON.getJSONArray("hits").size());
                     if(urlJSON.getJSONArray("hits").size()>0) break;
                 }
             }
@@ -109,7 +110,7 @@ public class MoniElasticExecution extends AbstractQuartzJob {
                     moniElasticLog.setStatus(Constants.ERROR);
                     moniElasticLog.setAlertStatus(Constants.FAIL);
                     moniElasticLog.setExceptionLog(urlJSON.toJSONString());
-                    log.info("BA LOG-ID:"+moniElasticLog.getId()+" his:"+urlJSON);
+                    log.error("BA LOG ID:"+moniElasticLog.getId()+" his:"+urlJSON);
                 }else {
                     compareResult.put("ExpectedResult",moniElastic.getExpectedResult());
                     doCompare(compareResult);
