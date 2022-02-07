@@ -103,11 +103,11 @@ spring:
             # pf2 dw sit
             pf2-dw:
                 # enabled 数据源开关
-                # remark 測試環境共用
+                # remark 測試環境共用，因未開通防火牆配置訪問DW權限，因此先帶入DRAW庫帳號密碼
                 enabled: true
                 url: jdbc:oracle:thin:@DB.PF2SIT1-OOB.COM:1521/UB8.pf2sit1.com
                 username: draw
-                password: Draw12800sdjj
+                password: oKD8wRwwA7j
                 driverClassName: oracle.jdbc.driver.OracleDriver
 
             # 初始连接数
