@@ -521,7 +521,7 @@ public class MoniElasticServiceImpl implements IMoniElasticService {
         return map;
     }
 
-    public Map<String, String> doJY8DrawCompare(JSONObject urlJSON) {
+    public Map<String, String> doJY8ForBADrawCompare(JSONObject urlJSON) {
         Map<String, String> map = new HashMap();
         StringBuilder result = new StringBuilder();
         int index = 0;
@@ -536,6 +536,7 @@ public class MoniElasticServiceImpl implements IMoniElasticService {
             //幣安數據小於100萬
             if(draw<1000000) {
                 result.append(String.format("game_code : %s , binance_draw_info : %s \n",size.getJSONArray("context.game_code"),size.getJSONArray("context.binance_draw_info")));
+                logger.info("BA 100:"+String.format("game_code : %s , binance_draw_info : %s \n",size.getJSONArray("context.game_code"),size.getJSONArray("context.binance_draw_info")));
                 index++;
             }
         }

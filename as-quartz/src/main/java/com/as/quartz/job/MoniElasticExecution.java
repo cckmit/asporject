@@ -90,8 +90,8 @@ public class MoniElasticExecution extends AbstractQuartzJob {
 
             if((moniElastic.getId()==77 || moniElastic.getId()==78) && urlJSON.getJSONArray("hits").size()==0){
                 log.error("BA SIZE 0:"+urlJSON+" LOGID:"+moniElasticLog.getId());
-                for(int i=1;i<=4;i++){
-                    if(i==3)Thread.sleep(1000);
+                for(int i=1;i<=5;i++){
+                    if(i==3 || i==5)Thread.sleep(1000);
                     urlJSON = SpringUtils.getBean(IMoniElasticService.class).doURLElasticSearch(moniElastic).getJSONObject("result").getJSONObject("rawResponse").getJSONObject("hits");
                     log.error("BA AGAIN:"+i+" LOGID:"+moniElasticLog.getId()+" SIZE:"+urlJSON.getJSONArray("hits").size());
                     if(urlJSON.getJSONArray("hits").size()>0) break;
@@ -105,7 +105,7 @@ public class MoniElasticExecution extends AbstractQuartzJob {
             if(moniElastic.getId()==77 || moniElastic.getId()==78){
                 //处理需要导出某字段信息
                 saveUrlExportField(urlJSON,total);
-                Map<String, String> compareResult = SpringUtils.getBean(IMoniElasticService.class).doJY8DrawCompare(urlJSON);
+                Map<String, String> compareResult = SpringUtils.getBean(IMoniElasticService.class).doJY8ForBADrawCompare(urlJSON);
                 if(compareResult.get("lists").equals("0")){
                     moniElasticLog.setStatus(Constants.ERROR);
                     moniElasticLog.setAlertStatus(Constants.FAIL);
