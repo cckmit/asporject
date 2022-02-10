@@ -609,7 +609,7 @@ public class MoniElasticServiceImpl implements IMoniElasticService {
     @Override
     public JSONObject doURLElasticSearch(MoniElastic moniElastic) throws IOException {
             OkHttpClient client = new OkHttpClient().newBuilder().build();
-            MediaType mediaType = MediaType.parse("application/json");
+            MediaType mediaType = MediaType.parse("application/json; charset=utf-8");
             RequestBody body = RequestBody.create(mediaType, dataJason(moniElastic));
             String url=Constants.PLATFORM_JY8.equals(moniElastic.getPlatform())?jy8Url:payub8Url;
             Request request = new Request.Builder()
