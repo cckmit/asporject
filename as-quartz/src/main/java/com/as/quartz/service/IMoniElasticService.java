@@ -130,7 +130,7 @@ public interface IMoniElasticService {
     public Map<String, String> doPf2DrawCompare(SearchHit[] hits);
 
 
-    public Map<String, String> doJY8DrawCompare(JSONObject urlJSON);
+    public Map<String, String> doJY8ForBADrawCompare(JSONObject urlJSON);
 
     /**
      * 导入JOB数据

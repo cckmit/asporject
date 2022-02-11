@@ -89,11 +89,19 @@ public class MoniElasticExecution extends AbstractQuartzJob {
             JSONObject urlJSON = SpringUtils.getBean(IMoniElasticService.class).doURLElasticSearch(moniElastic).getJSONObject("result").getJSONObject("rawResponse").getJSONObject("hits");
 
             if((moniElastic.getId()==77 || moniElastic.getId()==78) && urlJSON.getJSONArray("hits").size()==0){
-                log.info("BA SIZE 0:"+urlJSON+" LOGID:"+moniElasticLog.getId());
-                for(int i=1;i<=3;i++){
+                log.error("BA SIZE 0:"+urlJSON+" LOGID:"+moniElasticLog.getId());
+                int i=1;
+                while(urlJSON.getJSONArray("hits").size()==0){
+                    if(i%10==0)Thread.sleep(1000);
                     urlJSON = SpringUtils.getBean(IMoniElasticService.class).doURLElasticSearch(moniElastic).getJSONObject("result").getJSONObject("rawResponse").getJSONObject("hits");
-                    log.info("BA AGAIN:"+i+" LOGID:"+moniElasticLog.getId()+" SIZE:"+urlJSON.getJSONArray("hits").size());
-                    if(urlJSON.getJSONArray("hits").size()>0) break;
+                    if(urlJSON.getJSONArray("hits").size()>0) {
+                        log.error("BA AGAIN:" + i + " LOGID:" + moniElasticLog.getId() + " SIZE:" + urlJSON.getJSONArray("hits").size());
+                    }
+                    if(i==50){
+                        log.error("BA AGAIN:" + i + " LOGID:" + moniElasticLog.getId() + " SIZE:" + urlJSON.getJSONArray("hits").size());
+                        break;
+                    }
+                    i++;
                 }
             }
             String total = urlJSON.getString("total");
@@ -104,12 +112,12 @@ public class MoniElasticExecution extends AbstractQuartzJob {
             if(moniElastic.getId()==77 || moniElastic.getId()==78){
                 //处理需要导出某字段信息
                 saveUrlExportField(urlJSON,total);
-                Map<String, String> compareResult = SpringUtils.getBean(IMoniElasticService.class).doJY8DrawCompare(urlJSON);
+                Map<String, String> compareResult = SpringUtils.getBean(IMoniElasticService.class).doJY8ForBADrawCompare(urlJSON);
                 if(compareResult.get("lists").equals("0")){
                     moniElasticLog.setStatus(Constants.ERROR);
                     moniElasticLog.setAlertStatus(Constants.FAIL);
                     moniElasticLog.setExceptionLog(urlJSON.toJSONString());
-                    log.info("BA LOG-ID:"+moniElasticLog.getId()+" his:"+urlJSON);
+                    log.error("BA LOG ID:"+moniElasticLog.getId()+" his:"+urlJSON);
                 }else {
                     compareResult.put("ExpectedResult",moniElastic.getExpectedResult());
                     doCompare(compareResult);

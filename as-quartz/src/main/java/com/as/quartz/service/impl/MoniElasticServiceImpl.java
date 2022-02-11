@@ -521,7 +521,7 @@ public class MoniElasticServiceImpl implements IMoniElasticService {
         return map;
     }
 
-    public Map<String, String> doJY8DrawCompare(JSONObject urlJSON) {
+    public Map<String, String> doJY8ForBADrawCompare(JSONObject urlJSON) {
         Map<String, String> map = new HashMap();
         StringBuilder result = new StringBuilder();
         int index = 0;
@@ -533,7 +533,6 @@ public class MoniElasticServiceImpl implements IMoniElasticService {
         for(Object list : lists){
             JSONObject size=JSONObject.parseObject(list.toString()).getJSONObject("fields");
             double draw=Double.parseDouble(size.getJSONArray("context.binance_draw_info").toString().substring(21,size.getJSONArray("context.binance_draw_info").toString().length()-3));
-            logger.info("BA DRAW:"+String.format("binance_draw_info : %s \n",size.getJSONArray("context.binance_draw_info")));
             //幣安數據小於100萬
             if(draw<1000000) {
                 result.append(String.format("game_code : %s , binance_draw_info : %s \n",size.getJSONArray("context.game_code"),size.getJSONArray("context.binance_draw_info")));
@@ -610,7 +609,7 @@ public class MoniElasticServiceImpl implements IMoniElasticService {
     @Override
     public JSONObject doURLElasticSearch(MoniElastic moniElastic) throws IOException {
             OkHttpClient client = new OkHttpClient().newBuilder().build();
-            MediaType mediaType = MediaType.parse("application/json");
+            MediaType mediaType = MediaType.parse("application/json; charset=utf-8");
             RequestBody body = RequestBody.create(mediaType, dataJason(moniElastic));
             String url=Constants.PLATFORM_JY8.equals(moniElastic.getPlatform())?jy8Url:payub8Url;
             Request request = new Request.Builder()
