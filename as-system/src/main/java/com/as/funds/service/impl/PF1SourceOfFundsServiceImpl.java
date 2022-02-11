@@ -19,7 +19,7 @@ import java.util.Map;
  * @date 2021-07-05
  */
 @Service
-@DataSource(value = DataSourceType.PF1)
+@DataSource(value = DataSourceType.PF1_SEC)
 public class PF1SourceOfFundsServiceImpl implements IPF1SourceOfFundsService {
     @Autowired
     private PF1SourceOfFundsMapper pf1SourceOfFundsMapper;

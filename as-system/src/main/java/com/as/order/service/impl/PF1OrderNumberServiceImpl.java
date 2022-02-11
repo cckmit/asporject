@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
  * @date 2021-07-05
  */
 @Service
-@DataSource(value = DataSourceType.PF1)
+@DataSource(value = DataSourceType.PF1_SEC)
 public class PF1OrderNumberServiceImpl implements IPF1OrderNumberService 
 {
     @Autowired

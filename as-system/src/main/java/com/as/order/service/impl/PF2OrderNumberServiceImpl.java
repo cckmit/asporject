@@ -20,7 +20,7 @@ import java.util.List;
  * @date 2021-07-05
  */
 @Service
-@DataSource(value = DataSourceType.PF2_CORE)
+@DataSource(value = DataSourceType.PF2_CORE_SEC)
 public class PF2OrderNumberServiceImpl implements IPF2OrderNumberService {
     @Autowired
     private PF2OrderNumberMapper pf2OrderNumberMapper;

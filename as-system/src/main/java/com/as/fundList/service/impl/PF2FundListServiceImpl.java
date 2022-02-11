@@ -17,7 +17,7 @@ import java.util.List;
  * @date 2021-07-05
  */
 @Service
-@DataSource(value = DataSourceType.PF2_CORE)
+@DataSource(value = DataSourceType.PF2_CORE_SEC)
 public class PF2FundListServiceImpl implements IPF2FundListService {
     @Autowired
     private PF2FundListMapper pf2FundListMapper;

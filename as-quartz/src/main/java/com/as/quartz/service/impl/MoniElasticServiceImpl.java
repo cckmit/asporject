@@ -413,7 +413,7 @@ public class MoniElasticServiceImpl implements IMoniElasticService {
         int index = 0;
         Map<String, String> map = new HashMap();
         //先切换到PF1数据源
-        DynamicDataSourceContextHolder.setDataSourceType(DataSourceType.PF1.name());
+        DynamicDataSourceContextHolder.setDataSourceType(DataSourceType.PF1_SEC.name());
         for (SearchHit hit : hits) {
             try {
                 String sourceAsString = hit.getSourceAsString();
@@ -480,7 +480,7 @@ public class MoniElasticServiceImpl implements IMoniElasticService {
         int index = 0;
         Map<String, String> map = new HashMap();
         //先切换到PF2数据源
-        DynamicDataSourceContextHolder.setDataSourceType(DataSourceType.PF2_CORE.name());
+        DynamicDataSourceContextHolder.setDataSourceType(DataSourceType.PF2_CORE_SEC.name());
         for (SearchHit hit : hits) {
             try {
                 Map<String, Object> sourceAsMap = hit.getSourceAsMap();

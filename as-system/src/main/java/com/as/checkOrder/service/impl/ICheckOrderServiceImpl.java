@@ -24,13 +24,13 @@ public class ICheckOrderServiceImpl implements ICheckOrderService {
 
 
     @Override
-    @DataSource(value = DataSourceType.PF1)
+    @DataSource(value = DataSourceType.PF1_SEC)
     public CheckOrder findAllPf1ByAccounts(String account) {
         return checkOrderMapper.findAllPf1ByAccounts(account);
     }
 
     @Override
-    @DataSource(value = DataSourceType.PF2_CORE)
+    @DataSource(value = DataSourceType.PF2_CORE_SEC)
     public CheckOrder findAllPf2ByAccounts(String account) {
         return checkOrderMapper.findAllPf2ByAccounts(account);
     }
