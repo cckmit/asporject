@@ -1,0 +1,21 @@
+CREATE TABLE MONI_CERTIFICATE (
+                          ID INT(11) NOT NULL AUTO_INCREMENT COMMENT 'ID',
+                          domain VARCHAR(30) DEFAULT NULL COMMENT '域名',
+                          TICKET_NUMBER VARCHAR(20) DEFAULT NULL COMMENT 'TICKET NUMBER',
+                          BEFORE_TIME DATETIME DEFAULT NULL COMMENT '證書生效時間',
+                          VAILD_TIME DATETIME DEFAULT NULL COMMENT '證書過期時間',
+                          EN_NAME VARCHAR(200) NOT NULL COMMENT '任务名称-英文',
+                          CH_NAME VARCHAR(200) NOT NULL COMMENT '任务名称-中文',
+                          STATUS CHAR(1) NOT NULL DEFAULT '1' COMMENT '状态（0正常 1停用）',
+                          PLATFORM CHAR(10) DEFAULT NULL COMMENT '平台',
+                          CRON_EXPRESSION VARCHAR(100) DEFAULT NULL COMMENT '频率',
+                          CREATE_BY VARCHAR(30) NOT NULL COMMENT '建立人员',
+                          CREATE_TIME DATETIME NOT NULL COMMENT '建立时间',
+                          TELEGRAM_ALERT VARCHAR(1) DEFAULT '0' COMMENT '是否TELEGRAM告警（0正常 1停用）',
+                          TELEGRAM_INFO VARCHAR(500) DEFAULT NULL COMMENT '告警信息',
+                          TELEGRAM_CONFIG VARCHAR(256) DEFAULT NULL COMMENT 'telegram发送群组配置',
+                          PRIORITY VARCHAR(12) DEFAULT NULL COMMENT '优先级',
+                          ACTION_ITEM VARCHAR(30) DEFAULT NULL COMMENT '实施项目',
+                          LAST_ALERT DATETIME DEFAULT NULL COMMENT '最后告警时间',
+                          PRIMARY KEY (ID)
+) ENGINE=INNODB DEFAULT CHARSET=UTF8 COMMENT='證書期限檢測';

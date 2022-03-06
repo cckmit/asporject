@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" >
+<head>
+    <th:block th:include="include :: header('修改證書期限檢測')" />
+    <th:block th:include="include :: datetimepicker-css" />
+</head>
+<body class="white-bg">
+<div class="wrapper wrapper-content animated fadeInRight ibox-content">
+    <form autocomplete="off" class="form-horizontal m" id="form-certificate-edit" th:object="${moniCertificate}">
+        <input name="id" th:field="*{id}" type="hidden">
+        <div class="form-group">
+            <label class="col-sm-3 control-label">[[#{certificate.domain}]]:</label>
+            <div class="col-sm-8">
+                <input name="domain" th:field="*{domain}" class="form-control" type="text">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">[[#{moniJob.ticket}]]:</label>
+            <div class="col-sm-8">
+                <input name="ticketNumber" th:field="*{ticketNumber}" class="form-control" type="text">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-sm-3 control-label is-required">[[#{certificate.job.name.en}]]：</label>
+            <div class="col-sm-8">
+                <input name="enName" th:field="*{enName}" class="form-control" type="text" required>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label is-required">[[#{certificate.job.name.tw}]]：</label>
+            <div class="col-sm-8">
+                <input name="chName" th:field="*{chName}" class="form-control" type="text" required>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label is-required">[[#{sql.job.status}]]：</label>
+            <div class="col-sm-8">
+<!--                調用@service(dict) bean，然後th:each歷遍-->
+                <div class="radio-box" th:each="dict:${@dict.getType('sys_job_status')}">
+<!--                    輸入 field取object字段，th:id感覺沒必要-->
+                    <input type="radio"  name="status" th:value="${dict.dictValue}" th:field="*{status}" required>
+<!--                    輸入標籤提示，th:for感覺沒必要-->
+                    <label  th:text="#{${dict.dictLabel}}"></label>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">[[#{moniJob.platform}]]：</label>
+            <div class="col-sm-8">
+                <select name="platform" class="form-control m-b" th:with="type=${@dict.getType('ub8_platform_type')}" required>
+                    <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}" th:field="*{platform}"></option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">[[#{moniJob.cron.expression}]]:</label>
+            <div class="col-sm-8">
+                <input name="cronExpression" th:field="*{cronExpression}" class="form-control" type="text">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">[[#{moniJob.alert}]]:</label>
+            <div class="col-sm-8">
+                <input name="telegramAlert" th:field="*{telegramAlert}" class="form-control" type="text">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">[[#{moniJob.tg.info}]]：</label>
+            <div class="col-sm-8">
+                <textarea name="telegramInfo" class="form-control">[[*{telegramInfo}]]</textarea>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">[[#{moniJob.tg.group}]]：</label>
+            <div class="col-sm-8">
+                <input name="telegramConfig" th:field="*{telegramConfig}" class="form-control" type="text">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">[[#{moniJob.priority}]]:</label>
+            <div class="col-sm-8">
+                <input name="priority" th:field="*{priority}" class="form-control" type="text">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">[[#{moniJob.action}]]：</label>
+            <div class="col-sm-8">
+                <input name="actionItem" th:field="*{actionItem}" class="form-control" type="text">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">[[#{moniJob.last.alert}]]：</label>
+            <div class="col-sm-8">
+                <div class="input-group date">
+                    <input name="lastAlert" th:value="${#dates.format(moniCertificate.lastAlert, 'yyyy-MM-dd')}" class="form-control" placeholder="yyyy-MM-dd" type="text">
+                    <span class="input-group-addon"><i class="fa fa-calendar"></i></span>
+                </div>
+            </div>
+        </div>
+        <div class="btn-group-sm" id="toolbar" role="group">
+            <a class="btn btn-success" onclick="$.operate.add()">
+                <i class="fa fa-plus"></i> [[#{common.add}]]
+            </a>
+        </div>
+    </form>
+</div>
+<th:block th:include="include :: footer" />
+<th:block th:include="include :: datetimepicker-js" />
+<script th:inline="javascript">
+    var prefix = ctx + "/monitor/certificateJob";
+    $("#form-certificate-edit").validate({
+        focusCleanup: true
+    });
+
+    function submitHandler() {
+        if ($.validate.form()) {
+            $.operate.save(prefix + "/edit", $('#form-certificate-edit').serialize());
+        }
+    }
+
+</script>
+</body>
+</html>

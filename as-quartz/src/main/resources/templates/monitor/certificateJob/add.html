@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" >
+<head>
+    <th:block th:include="include :: header('新增證書期效检测任务')" />
+</head>
+<body class="white-bg">
+<div class="wrapper wrapper-content animated fadeInRight ibox-content">
+    <form autocomplete="off" class="form-horizontal m" id="form-certificateJob-add">
+        <h4 class="form-header h4">[[#{user.add.basic.information}]]</h4>
+        <div class="form-group">
+            <label class="col-sm-3 control-label is-required">ID：</label>
+            <div class="col-sm-8">
+                <input id="id" name="id" class="form-control" type="text" required>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label is-required">Domain：</label>
+            <div class="col-sm-8">
+                <input name="domain" class="form-control" type="text" required>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">Ticket Number：</label>
+            <div class="col-sm-8">
+                <input name="ticketNumber" class="form-control" type="text">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label is-required">[[#{certificate.job.name.tw}]]：</label>
+            <div class="col-sm-8">
+                <input name="chName" class="form-control" type="text" required>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label is-required">[[#{certificate.job.name.en}]]：</label>
+            <div class="col-sm-8">
+                <input name="enName" class="form-control" type="text" required>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label is-required">[[#{sql.job.status}]]：</label>
+            <div class="col-sm-8">
+                <div class="radio-box" th:each="dict : ${@dict.getType('sys_job_status')}">
+                    <input type="radio" th:id="${'status_' + dict.dictCode}" name="status" th:value="${dict.dictValue}" th:checked="${dict.default}" required>
+                    <label th:for="${'status_' + dict.dictCode}" th:text="#{${dict.dictLabel}}"></label>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label is-required">[[#{sql.job.platform}]]：</label>
+            <div class="col-sm-8">
+                <select name="platform" class="form-control m-b" th:with="type=${@dict.getType('ub8_platform_type')}" required>
+                    <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}"></option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label is-required">[[#{sql.job.cron.expression}]]：</label>
+            <div class="col-sm-8">
+                <div class="input-group">
+                    <input id="cronExpression" name="cronExpression" class="form-control" type="text" required>
+                    <span class="input-group-btn">
+                        <button id="getNextCron" type="button" class="btn btn-primary" data-toggle="tooltip" data-placement="bottom" th:title="#{job.view.recent.run.time.info}" style="padding-bottom: 3px;">
+                        <i class="fa fa-eye"></i>
+                        </button>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label is-required">[[#{sql.job.tg.alert}]]：</label>
+            <div class="col-sm-8">
+                <div class="radio-box" th:each="dict : ${@dict.getType('sys_normal_disable')}">
+                    <input type="radio" th:id="${'telegramAlert_' + dict.dictCode}" name="telegramAlert" th:value="${dict.dictValue}" th:checked="${dict.default}" required>
+                    <label th:for="${'telegramAlert_' + dict.dictCode}" th:text="#{${dict.dictLabel}}"></label>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+<!--            可在替換-->
+            <label class="col-sm-3 control-label" th:title="#{api.job.tg.info}"><i class="fa fa-question-circle-o"></i> [[#{sql.job.tg.info}]]：</label>
+            <div class="col-sm-8">
+                <textarea name="telegramInfo" class="form-control" rows="5"></textarea>
+            </div>
+        </div>
+<!--        <div class="form-group">-->
+<!--            <label class="col-sm-3 control-label is-required" th:title="#{sql.job.ignore.alert.info}"><i class="fa fa-question-circle-o"></i> [[#{sql.job.ignore.alert}]]：</label>-->
+<!--            <div class="col-sm-8">-->
+<!--                <input name="ignoreAlert" class="form-control" type="text" required>-->
+<!--            </div>-->
+<!--        </div>-->
+        <div class="form-group">
+            <label class="col-sm-3 control-label is-required">[[#{sql.job.tg.group}]]：</label>
+            <div class="col-sm-8">
+                <select name="telegramConfig" class="form-control m-b" th:with="type=${@dict.getType('telegram_notice_group')}" required>
+                    <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}" th:selected="${dict.isDefault == 'Y'} ? true : false"></option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-sm-3 control-label is-required">[[#{sql.job.priority}]]：</label>
+            <div class="col-sm-8">
+                <div class="radio-box" th:each="dict : ${@dict.getType('job_priority_list')}">
+                    <input type="radio" th:id="${'priority_' + dict.dictCode}" name="priority" th:value="${dict.dictValue}" th:checked="${dict.default}" required>
+                    <label th:for="${'priority_' + dict.dictCode}" th:text="#{${dict.dictLabel}}"></label>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label is-required">[[#{sql.job.action}]]：</label>
+            <div class="col-sm-8">
+                <select name="actionItem" class="form-control m-b" th:with="type=${@dict.getType('job_call_who')}" required>
+                    <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}"></option>
+                </select>
+            </div>
+        </div>
+<!--     改成刷新證書-->
+<!--        <div class="form-group">-->
+<!--            <div class="col-sm-offset-4 col-sm-4">-->
+<!--                <button id="testBtn" type="button" class="btn btn-block btn-outline btn-primary"-->
+<!--                        th:data-loading-text="'<i class=\'fa fa-hourglass-2\'></i> '+#{sql.job.script.test.loading}"-->
+<!--                        th:data-error-text="'<i class=\'fa fa-exclamation-circle\'></i> '+#{home.server.error}"-->
+<!--                        th:data-success-text="'<i class=\'fa fa-check-circle\'></i> '+#{sql.job.script.test.success}+' <i class=\'fa fa-thumbs-o-up\'></i>'"-->
+<!--                        th:data-failure-text="'<i class=\'fa fa-times-circle\'></i> '+#{sql.job.script.test.failure}+' <i class=\'fa fa-frown-o\'></i>'"-->
+<!--                        autocomplete="off"><i class="fa fa-bug"></i> [[#{sql.job.script.test}]]</button>&nbsp;-->
+<!--            </div>-->
+<!--        </div>-->
+    </form>
+</div>
+<!--include=include::footer加載公共模板-->
+<th:block th:include="include :: footer" />
+<script th:inline="javascript">
+    var prefix = ctx + "monitor/certificateJob"
+    //jquery validate，所以不用$(document).read
+    //選取form-certificatedJob-add元素
+    $("#form-certificateJob-add").validate({
+        onkeyup: false,
+        rules:{
+            id:{
+                remote: {
+                    url: prefix + "/checkIdExist",
+                    type: "post",
+                    dataType: "json",
+                    data: {
+                        "id": function() {
+                            return $.common.trim($("#id").val());
+                        }
+                    },
+                    dataFilter: function(data, type) {
+                        return data;
+                    }
+                }
+            },
+            cronExpression:{
+                remote: {
+                    url: prefix + "/checkCronExpressionIsValid",
+                    type: "post",
+                    dataType: "json",
+                    data: {
+                        "cronExpression": function() {
+                            return $.common.trim($("#cronExpression").val());
+                        }
+                    },
+                    dataFilter: function(data, type) {
+                        return data;
+                    }
+                }
+            },
+            id: {
+                digits: true
+            },
+
+        },
+        messages: {
+            "cronExpression": {
+                remote: i18n('sql.job.cron.expression.error')
+            },
+            "id": {
+                remote: i18n('sql.job.id.error')
+            }
+        },
+        focusCleanup: true
+    });
+
+    function submitHandler() {
+        if ($.validate.form()) {
+            $.operate.save(prefix + "/add", $('#form-certificateJob-add').serialize());
+        }
+    }
+
+    function testStart(){
+        $('#testBtn').button('loading')
+        $('#testBtn').removeClass('btn-danger')
+        $('#testBtn').removeClass('btn-info')
+        $('#testBtn').addClass('btn-primary')
+        $('#testBtn').css('color','white')
+    }
+
+    function testSuccess(){
+        $('#testBtn').removeClass('btn-primary')
+        $('#testBtn').removeClass('btn-danger')
+        $('#testBtn').addClass('btn-info')
+        $('#testBtn').removeAttr('style')
+        $('#testBtn').button('success')
+    }
+
+    function testFailure(){
+        $('#testBtn').removeClass('btn-primary')
+        $('#testBtn').removeClass('btn-info')
+        $('#testBtn').addClass('btn-danger')
+        $('#testBtn').removeAttr('style')
+        $('#testBtn').button('failure')
+    }
+
+    function testError(){
+        $('#testBtn').removeClass('btn-primary')
+        $('#testBtn').removeClass('btn-info')
+        $('#testBtn').addClass('btn-danger')
+        $('#testBtn').removeAttr('style')
+        $('#testBtn').button('error')
+    }
+
+    $(document).ready(function(){
+        //功能檢測按鈕
+        $('#testBtn').on('click',function(){
+            if ($.validate.form()) {
+                testStart()
+                $.ajax({
+                    type:"POST",
+                    url:prefix + "/test",
+                    data:$.common.formToJSON("form-certificateJob-add"),
+                    error : function(){
+                        testError()
+                    },
+                    success : function(data) {
+                        if(data.code === 0){
+                            testSuccess()
+                        } else {
+                            testFailure()
+                            $.modal.alertError('Response:' + data.msg)
+                        }
+                    }
+                });
+            }
+        });
+
+        $('#contentType').change(function(){
+            changePlaceholder()
+        })
+
+        $('#method').change(function(){
+            changePlaceholder()
+        })
+    });
+
+    function changePlaceholder(){
+        var selected = $('#contentType').val()
+        var method = $('#method').val()
+        if (selected.indexOf("json") !== -1 && $.common.equalsIgnoreCase(method, "POST")){
+            $('#body').attr('placeholder','{\n"key1":"value1",\n"key2":"value2"\n}')
+        } else {
+            $('#body').attr("placeholder","key1: value1\nkey2: value2")
+        }
+    }
+
+    //jquery函數入口
+    $(document).ready(function(){
+        //cronJob檢測按鈕
+        $('#getNextCron').click(function(){
+            if ($("#form-certificateJob-add").validate().element($("#cronExpression"))) {
+                var cronExpression = $("[name='cronExpression']").val();
+                $.ajax({
+                    type:"POST",
+                    url:prefix + "/getCronSchdule",
+                    contentType: "application/x-www-form-urlencoded",
+                    data : {
+                        "cronExpression": cronExpression
+                    },
+                    success : function(data) {
+                        $.modal.alertSuccess(data)
+                    }
+                });
+            }
+        });
+    });
+</script>
+</body>
+</html>

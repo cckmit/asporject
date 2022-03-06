@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <th:block th:include="include :: header('證書期效检测任务')" />
+</head>
+<body class="gray-bg">
+<div class="container-div">
+
+    <H1>Hello</H1>
+    <a class="btn btn-success" onclick="$.operate.add()" shiro:hasPermission="monitor:certificateJob:add">
+        <i class="fa fa-plus"></i> [[#{common.add}]]
+    </a>
+</div>
+<th:block th:include="include :: footer" />
+<script th:inline="javascript">
+    var editFlag = [[${@permission.hasPermi('monitor:certificateJob:edit')}]];
+    var removeFlag = [[${@permission.hasPermi('monitor:certificateJob:remove')}]];
+    var statusFlag = [[${@permission.hasPermi('monitor:certificateJob:changeStatus')}]];
+    var alertFlag = [[${@permission.hasPermi('monitor:certificateJob:changeAlert')}]];
+    var runFlag = [[${@permission.hasPermi('monitor:certificateJob:runOnce')}]];
+    var detailFlag = [[${@permission.hasPermi('monitor:certificateJob:detail')}]];
+    var logFlag = [[${@permission.hasPermi('monitor:certificateJobLog:detail')}]];
+    var platformDatas = [[${@dict.getType('ub8_platform_type')}]];
+    var methodDatas = [[${@dict.getType('api_job_method')}]];
+    var contentTypeDatas = [[${@dict.getType('api_job_content')}]];
+    var telegramAlertDatas = [[${@dict.getType('sys_normal_disable')}]];
+    var telegramConfigDatas = [[${@dict.getType('telegram_notice_group')}]];
+    var requesterDatas = [[${@dict.getType('job_requester_list')}]];
+    var priorityDatas = [[${@dict.getType('job_priority_list')}]];
+    var actionItemDatas = [[${@dict.getType('job_call_who')}]];
+    var prefix = ctx + "monitor/certificateJob";
+
+    var options = {
+        importTemplateUrl: prefix + "/importTemplate",
+        sortName: "createTime",
+        sortOrder: "desc",
+        modalName: i18n('ceritficate.job')
+    };
+    $.table.init(options);
+
+
+</script>
+</body>
+</html>

@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.as.quartz.mapper.MoniCertificateMapper">
+
+    <resultMap type="MoniCertificate" id="MoniCertificateResult">
+        <result property="id"    column="ID"    />
+        <result property="domain"    column="domain"    />
+        <result property="ticketNumber"    column="TICKET_NUMBER"    />
+        <result property="beforeTime"    column="BEFORE_TIME"    />
+        <result property="vaildTime"    column="VAILD_TIME"    />
+        <result property="enName"    column="EN_NAME"    />
+        <result property="chName"    column="CH_NAME"    />
+        <result property="status"    column="STATUS"    />
+        <result property="platform"    column="PLATFORM"    />
+        <result property="cronExpression"    column="CRON_EXPRESSION"    />
+        <result property="createBy"    column="CREATE_BY"    />
+        <result property="createTime"    column="CREATE_TIME"    />
+        <result property="telegramAlert"    column="TELEGRAM_ALERT"    />
+        <result property="telegramInfo"    column="TELEGRAM_INFO"    />
+        <result property="telegramConfig"    column="TELEGRAM_CONFIG"    />
+        <result property="priority"    column="PRIORITY"    />
+        <result property="actionItem"    column="ACTION_ITEM"    />
+        <result property="lastAlert"    column="LAST_ALERT"    />
+    </resultMap>
+
+    <sql id="selectMoniCertificateVo">
+        select ID, domain, TICKET_NUMBER, BEFORE_TIME, VAILD_TIME, EN_NAME, CH_NAME, STATUS, PLATFORM, CRON_EXPRESSION, CREATE_BY, CREATE_TIME, TELEGRAM_ALERT, TELEGRAM_INFO, TELEGRAM_CONFIG, PRIORITY, ACTION_ITEM, LAST_ALERT from moni_certificate
+    </sql>
+
+    <select id="selectMoniCertificateList" parameterType="MoniCertificate" resultMap="MoniCertificateResult">
+        <include refid="selectMoniCertificateVo"/>
+        <where>
+            <if test="domain != null  and domain != ''"> and domain = #{domain}</if>
+            <if test="ticketNumber != null  and ticketNumber != ''"> and TICKET_NUMBER = #{ticketNumber}</if>
+            <if test="beforeTime != null "> and BEFORE_TIME = #{beforeTime}</if>
+            <if test="vaildTime != null "> and VAILD_TIME = #{vaildTime}</if>
+            <if test="enName != null  and enName != ''"> and EN_NAME like concat('%', #{enName}, '%')</if>
+            <if test="chName != null  and chName != ''"> and CH_NAME like concat('%', #{chName}, '%')</if>
+            <if test="status != null  and status != ''"> and STATUS = #{status}</if>
+            <if test="platform != null  and platform != ''"> and PLATFORM = #{platform}</if>
+            <if test="cronExpression != null  and cronExpression != ''"> and CRON_EXPRESSION = #{cronExpression}</if>
+            <if test="createBy != null  and createBy != ''"> and CREATE_BY = #{createBy}</if>
+            <if test="createTime != null "> and CREATE_TIME = #{createTime}</if>
+            <if test="telegramAlert != null  and telegramAlert != ''"> and TELEGRAM_ALERT = #{telegramAlert}</if>
+            <if test="telegramInfo != null  and telegramInfo != ''"> and TELEGRAM_INFO = #{telegramInfo}</if>
+            <if test="telegramConfig != null  and telegramConfig != ''"> and TELEGRAM_CONFIG = #{telegramConfig}</if>
+            <if test="priority != null  and priority != ''"> and PRIORITY = #{priority}</if>
+            <if test="actionItem != null  and actionItem != ''"> and ACTION_ITEM = #{actionItem}</if>
+            <if test="lastAlert != null "> and LAST_ALERT = #{lastAlert}</if>
+        </where>
+    </select>
+
+    <select id="selectMoniCertificateById" parameterType="Long" resultMap="MoniCertificateResult">
+        <include refid="selectMoniCertificateVo"/>
+        where ID = #{id}
+    </select>
+
+    <insert id="insertMoniCertificate" parameterType="MoniCertificate" useGeneratedKeys="true" keyProperty="id">
+        insert into moni_certificate
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="domain != null">domain,</if>
+            <if test="ticketNumber != null">TICKET_NUMBER,</if>
+            <if test="beforeTime != null">BEFORE_TIME,</if>
+            <if test="vaildTime != null">VAILD_TIME,</if>
+            <if test="enName != null and enName != ''">EN_NAME,</if>
+            <if test="chName != null and chName != ''">CH_NAME,</if>
+            <if test="status != null and status != ''">STATUS,</if>
+            <if test="platform != null">PLATFORM,</if>
+            <if test="cronExpression != null">CRON_EXPRESSION,</if>
+            <if test="createBy != null and createBy != ''">CREATE_BY,</if>
+            <if test="createTime != null">CREATE_TIME,</if>
+            <if test="telegramAlert != null">TELEGRAM_ALERT,</if>
+            <if test="telegramInfo != null">TELEGRAM_INFO,</if>
+            <if test="telegramConfig != null">TELEGRAM_CONFIG,</if>
+            <if test="priority != null">PRIORITY,</if>
+            <if test="actionItem != null">ACTION_ITEM,</if>
+            <if test="lastAlert != null">LAST_ALERT,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="domain != null">#{domain},</if>
+            <if test="ticketNumber != null">#{ticketNumber},</if>
+            <if test="beforeTime != null">#{beforeTime},</if>
+            <if test="vaildTime != null">#{vaildTime},</if>
+            <if test="enName != null and enName != ''">#{enName},</if>
+            <if test="chName != null and chName != ''">#{chName},</if>
+            <if test="status != null and status != ''">#{status},</if>
+            <if test="platform != null">#{platform},</if>
+            <if test="cronExpression != null">#{cronExpression},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="telegramAlert != null">#{telegramAlert},</if>
+            <if test="telegramInfo != null">#{telegramInfo},</if>
+            <if test="telegramConfig != null">#{telegramConfig},</if>
+            <if test="priority != null">#{priority},</if>
+            <if test="actionItem != null">#{actionItem},</if>
+            <if test="lastAlert != null">#{lastAlert},</if>
+        </trim>
+    </insert>
+
+    <update id="updateMoniCertificate" parameterType="MoniCertificate">
+        update moni_certificate
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="domain != null">domain = #{domain},</if>
+            <if test="ticketNumber != null">TICKET_NUMBER = #{ticketNumber},</if>
+            <if test="beforeTime != null">BEFORE_TIME = #{beforeTime},</if>
+            <if test="vaildTime != null">VAILD_TIME = #{vaildTime},</if>
+            <if test="enName != null and enName != ''">EN_NAME = #{enName},</if>
+            <if test="chName != null and chName != ''">CH_NAME = #{chName},</if>
+            <if test="status != null and status != ''">STATUS = #{status},</if>
+            <if test="platform != null">PLATFORM = #{platform},</if>
+            <if test="cronExpression != null">CRON_EXPRESSION = #{cronExpression},</if>
+            <if test="createBy != null and createBy != ''">CREATE_BY = #{createBy},</if>
+            <if test="createTime != null">CREATE_TIME = #{createTime},</if>
+            <if test="telegramAlert != null">TELEGRAM_ALERT = #{telegramAlert},</if>
+            <if test="telegramInfo != null">TELEGRAM_INFO = #{telegramInfo},</if>
+            <if test="telegramConfig != null">TELEGRAM_CONFIG = #{telegramConfig},</if>
+            <if test="priority != null">PRIORITY = #{priority},</if>
+            <if test="actionItem != null">ACTION_ITEM = #{actionItem},</if>
+            <if test="lastAlert != null">LAST_ALERT = #{lastAlert},</if>
+        </trim>
+        where ID = #{id}
+    </update>
+
+    <delete id="deleteMoniCertificateById" parameterType="Long">
+        delete from moni_certificate where ID = #{id}
+    </delete>
+
+    <delete id="deleteMoniCertificateByIds" parameterType="String">
+        delete from moni_certificate where ID in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

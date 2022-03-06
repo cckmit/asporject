@@ -53,9 +53,9 @@ spring:
         druid:
             # AS Portal mysql dev
             master:
-                url: jdbc:mysql://localhost:3306/monitor?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
+                url: jdbc:mysql://192.168.64.130:3306/monitor?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
                 username: root
-                password: 1qaz2wsx
+                password: Shen@1990
                 driverClassName: com.mysql.cj.jdbc.Driver
             # pf1 lottery dev
             pf1:
