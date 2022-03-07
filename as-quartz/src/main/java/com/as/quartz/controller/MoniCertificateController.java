@@ -33,7 +33,7 @@ public class MoniCertificateController extends BaseController {
     private IJobService sysJobService;
 
     @RequiresPermissions("monitor:certificateJob:view")
-    @GetMapping()
+    @GetMapping("/certificateJob")
     public String certificateJob()
     {
         return prefix + "/certificateJob";

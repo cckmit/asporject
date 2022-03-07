@@ -81,8 +81,8 @@ subprojects {
         implementation "org.apache.commons:commons-lang3"
         implementation "net.logstash.logback:logstash-logback-encoder:6.6"
 
-        compileOnly "org.projectlombok:lombok:1.18.16"
-        annotationProcessor "org.projectlombok:lombok:1.18.16"
+        compileOnly "org.projectlombok:lombok:1.18.22"
+        annotationProcessor "org.projectlombok:lombok:1.18.22"
 
         //compile project(':as-common')
         //compile project(':as-generator')
